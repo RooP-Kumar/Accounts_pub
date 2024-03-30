@@ -42,5 +42,9 @@ fun Setting(
                     }
                 }
         )
+
+        Text(
+            text = "hello There! this is the demo text composable to test"
+        )
     }
 }
