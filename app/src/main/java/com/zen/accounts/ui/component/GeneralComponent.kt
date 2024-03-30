@@ -1,7 +1,9 @@
 package com.zen.accounts.ui.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,12 +34,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 import com.zen.accounts.R
 import com.zen.accounts.ui.theme.Purple80
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.editTextCursorColor
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
+import com.zen.accounts.ui.theme.normalPadding
 import com.zen.accounts.ui.theme.normalTextSize
 import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.placeholder
@@ -50,7 +54,10 @@ fun GeneralEditText(
     placeholderText : String = "Enter Text",
     singleLine : Boolean = true,
     enable : Boolean = true,
-    keyboardOptions : KeyboardOptions = KeyboardOptions.Default
+    keyboardOptions : KeyboardOptions = KeyboardOptions.Default,
+    clickableFun : (() -> Unit)? = null,
+    @DrawableRes trailingIcon : Int? = null,
+    trailingIconClick : (() -> Unit)? = null
 ) {
     val passwordVisible : MutableState<Boolean> = rememberSaveable {mutableStateOf(true)}
     Box {
@@ -63,7 +70,13 @@ fun GeneralEditText(
                 .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
                 .clip(RoundedCornerShape(generalPadding))
                 .background(surface)
-                .padding(generalPadding),
+                .clickable{
+                    if (clickableFun != null) {
+                        clickableFun()
+                    }
+                }
+                .padding(generalPadding)
+            ,
             singleLine = singleLine,
             cursorBrush = Brush.linearGradient(listOf(editTextCursorColor, editTextCursorColor)),
             textStyle = TextStyle.Default.copy(
@@ -106,6 +119,29 @@ fun GeneralEditText(
                         )
                     }
                 }
+
+                if(trailingIcon != null) {
+                    Column(
+                        Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(trailingIcon),
+                            contentDescription = "eye_icon",
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .clickable(
+                                    interactionSource = remember {
+                                        MutableInteractionSource()
+                                    },
+                                    indication = null
+                                ) {
+                                    if (trailingIconClick != null) {
+                                        trailingIconClick()
+                                    }
+                                }
+                        )
+                    }
+                }
             }
 
         }
@@ -130,7 +166,8 @@ fun GeneralButton(
     ) {
         Text(
             text = text,
-            style = Typography.bodyMedium.copy(color = onSurface)
+            style = Typography.bodyMedium.copy(color = onSurface),
+            modifier = Modifier.padding(vertical = normalPadding)
         )
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -19,6 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.screens.addexpense.AddExpense
+import com.zen.accounts.ui.screens.addexpense.AddExpenseViewModel
 import com.zen.accounts.ui.screens.myexpense.MyExpense
 import com.zen.accounts.ui.screens.setting.Setting
 import com.zen.accounts.ui.theme.Typography
@@ -29,7 +31,8 @@ fun MainNavigation(appState: AppState, padding : PaddingValues) {
     appState.mainNavController = rememberNavController()
     NavHost(navController = appState.mainNavController, startDestination = BottomScreen.AddExpenseScreen.route, route = main_route){
         composable(route = BottomScreen.AddExpenseScreen.route) {
-            AddExpense(appState = appState)
+            val viewModel : AddExpenseViewModel = hiltViewModel()
+            AddExpense(appState = appState, viewModel = viewModel)
         }
 
         composable(route = BottomScreen.MyExpenseScreen.route) {

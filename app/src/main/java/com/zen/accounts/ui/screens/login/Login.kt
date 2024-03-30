@@ -37,10 +37,10 @@ import com.zen.accounts.ui.theme.enter_email
 import com.zen.accounts.ui.theme.enter_pass
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.login_label_cap
+import com.zen.accounts.ui.theme.login_button_label
 import com.zen.accounts.ui.theme.normalPadding
 import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.register_label_cap
+import com.zen.accounts.ui.theme.register_button_label
 import com.zen.accounts.ui.theme.shadowColor
 import kotlinx.coroutines.launch
 
@@ -117,7 +117,7 @@ private fun MainUI(
                 )
                 Spacer(modifier = Modifier.width(normalPadding))
                 Text(
-                    text = register_label_cap,
+                    text = register_button_label,
                     style = Typography.bodySmall.copy(color = Purple80),
                     modifier = Modifier
                         .clickable {
@@ -126,7 +126,7 @@ private fun MainUI(
                 )
             }
 
-            GeneralButton(text = login_label_cap, modifier = Modifier) {
+            GeneralButton(text = login_button_label, modifier = Modifier) {
                 coroutineScope.launch {
                     if(user.value != null) {
                         LoginUser(appState, user.value!!)
