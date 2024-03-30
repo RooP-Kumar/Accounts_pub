@@ -22,8 +22,6 @@ class DiModule {
         ).build()
     }
 
-    // This is the main branch code just for checking.
-
     @Provides
     fun getExpenseDao(db : AppDatabase) : ExpenseDao {
         return db.getExpenseDao()
