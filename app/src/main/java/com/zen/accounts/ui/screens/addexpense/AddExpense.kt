@@ -1,9 +1,6 @@
 package com.zen.accounts.ui.screens.addexpense
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,10 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -34,7 +28,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.zen.accounts.R
-import com.zen.accounts.db.model.ExpenseType
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.component.GeneralButton
 import com.zen.accounts.ui.component.GeneralEditText
@@ -42,7 +35,6 @@ import com.zen.accounts.ui.theme.add_item_button_label
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.normalPadding
 import com.zen.accounts.ui.theme.shadowColor
 
 data class AddExpenseUiState(

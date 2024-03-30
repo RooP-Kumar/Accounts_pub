@@ -7,14 +7,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import com.zen.accounts.states.AppState
-import com.zen.accounts.ui.navigation.Screen
-import com.zen.accounts.ui.theme.auth_route
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.main_route
 import com.zen.accounts.ui.theme.onBackground
