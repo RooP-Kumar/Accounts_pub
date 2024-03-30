@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Accounts</string>
+
+<!--  Screen Routes Strings  -->
+    <string name="splash_screen_route">Splash Screen</string>
+    <string name="login_screen_route">Login Screen Route</string>
+    <string name="register_screen_route">Register Screen Route</string>
+    <string name="logout_route">Logout Route</string>
+
+<!--  Screen Label Strings  -->
+    <string name="login_label">Login</string>
+    <string name="login_label_cap">LOGIN</string>
+    <string name="register_label">Register</string>
+    <string name="register_label_cap">REGISTER</string>
+</resources>
