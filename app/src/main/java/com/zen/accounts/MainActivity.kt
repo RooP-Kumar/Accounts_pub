@@ -1,8 +1,13 @@
 package com.zen.accounts
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.zen.accounts.states.getAppState
@@ -19,6 +24,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val context = LocalContext.current
                 val appState = getAppState(context)
+                appState.darkMode = appState.dataStore.isInDarkMode.collectAsState(initial = null)
                 appState.authNavController = navController
                 NavigationGraph(appState)
             }

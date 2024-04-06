@@ -2,7 +2,12 @@ package com.zen.accounts.states
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavHostController
 import com.zen.accounts.db.datastore.UserDataStore
 
@@ -33,4 +38,10 @@ class AppState(context: Context) {
 
     // User Data Store
     var dataStore = UserDataStore(context)
+
+    // Drawer State
+    var drawerState : MutableState<Boolean>? = null
+
+    // Dark Mode
+    lateinit var darkMode : State<Boolean?>
 }

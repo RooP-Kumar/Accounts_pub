@@ -11,7 +11,8 @@ import java.util.Date
 @TypeConverters(ListOfExpenseItemToStringConverter::class, DateLongConverter::class)
 data class Expense(
     @PrimaryKey val id : Long = 0L,
+    val title : String = "",
     val items : List<ExpenseItem> = listOf(),
     val totalAmount : Long = 0L,
-    var date : Date = Date()
+    var date : String = ""
 )

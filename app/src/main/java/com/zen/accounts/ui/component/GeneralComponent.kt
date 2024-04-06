@@ -1,6 +1,9 @@
 package com.zen.accounts.ui.component
 
+import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -46,17 +49,18 @@ import com.zen.accounts.ui.theme.surface
 
 @Composable
 fun GeneralEditText(
-    text : MutableState<String>,
+    text: MutableState<String>,
     modifier: Modifier,
-    placeholderText : String = "Enter Text",
-    singleLine : Boolean = true,
-    enable : Boolean = true,
-    keyboardOptions : KeyboardOptions = KeyboardOptions.Default,
-    clickableFun : (() -> Unit)? = null,
-    @DrawableRes trailingIcon : Int? = null,
-    trailingIconClick : (() -> Unit)? = null
+    placeholderText: String = "Enter Text",
+    singleLine: Boolean = true,
+    enable: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    clickableFun: (() -> Unit)? = null,
+    showClickEffect : Boolean = true,
+    @DrawableRes trailingIcon: Int? = null,
+    trailingIconClick: (() -> Unit)? = null
 ) {
-    val passwordVisible : MutableState<Boolean> = rememberSaveable {mutableStateOf(true)}
+    val passwordVisible: MutableState<Boolean> = rememberSaveable { mutableStateOf(true) }
     Box {
         BasicTextField(
             value = text.value,
@@ -67,13 +71,15 @@ fun GeneralEditText(
                 .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
                 .clip(RoundedCornerShape(generalPadding))
                 .background(surface)
-                .clickable{
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = if (showClickEffect) LocalIndication.current else null
+                ) {
                     if (clickableFun != null) {
                         clickableFun()
                     }
                 }
-                .padding(generalPadding)
-            ,
+                .padding(generalPadding),
             singleLine = singleLine,
             cursorBrush = Brush.linearGradient(listOf(editTextCursorColor, editTextCursorColor)),
             textStyle = TextStyle.Default.copy(
@@ -83,13 +89,13 @@ fun GeneralEditText(
             ),
             enabled = enable,
             keyboardOptions = keyboardOptions,
-            visualTransformation = if(passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation()
-        ){
+            visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation()
+        ) {
             it()
             Row(
                 Modifier.fillMaxWidth()
             ) {
-                if(text.value.isEmpty()) {
+                if (text.value.isEmpty()) {
                     Text(
                         text = placeholderText,
                         style = TextStyle.Default.copy(
@@ -100,8 +106,9 @@ fun GeneralEditText(
                     )
                 }
 
-                if(keyboardOptions.keyboardType == KeyboardType.Password) {
-                    val passIcon = if(passwordVisible.value) R.drawable.ic_eye else R.drawable.ic_eye_off
+                if (keyboardOptions.keyboardType == KeyboardType.Password) {
+                    val passIcon =
+                        if (passwordVisible.value) R.drawable.ic_eye else R.drawable.ic_eye_off
                     Column(
                         Modifier.weight(1f)
                     ) {
@@ -117,7 +124,7 @@ fun GeneralEditText(
                     }
                 }
 
-                if(trailingIcon != null) {
+                if (trailingIcon != null) {
                     Column(
                         Modifier.weight(1f)
                     ) {
@@ -147,17 +154,19 @@ fun GeneralEditText(
 
 @Composable
 fun GeneralButton(
-    text : String,
+    text: String,
     modifier: Modifier,
-    onClick : () -> Unit
+    enable: Boolean = true,
+    onClick: () -> Unit
 ) {
     Button(
         modifier = modifier
-            .fillMaxWidth()
             .padding(horizontal = generalPadding, vertical = halfGeneralPadding),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Purple80
+            containerColor = Purple80,
+            disabledContainerColor = Purple80
         ),
+        enabled = enable,
         shape = RoundedCornerShape(generalPadding),
         onClick = { onClick() }
     ) {

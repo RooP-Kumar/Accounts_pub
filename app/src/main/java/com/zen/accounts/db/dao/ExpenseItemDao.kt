@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ExpenseItemDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertExpenseItem(expenseItem : ExpenseItem)
+    suspend fun insertExpenseItem(expenseItem : ExpenseItem)
 
     @Query("SELECT * FROM expense_items WHERE id = :id")
     fun getExpenseItem(id : Long) : Flow<ExpenseItem>
