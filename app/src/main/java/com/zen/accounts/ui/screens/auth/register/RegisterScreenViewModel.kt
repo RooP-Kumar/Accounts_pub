@@ -1,4 +1,4 @@
-package com.zen.accounts.ui.screens.register
+package com.zen.accounts.ui.screens.auth.register
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

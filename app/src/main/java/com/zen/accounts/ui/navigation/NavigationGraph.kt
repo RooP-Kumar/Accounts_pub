@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.zen.accounts.R
 import com.zen.accounts.states.AppState
-import com.zen.accounts.ui.screens.splash.Splash
+import com.zen.accounts.ui.screens.auth.splash.Splash
 import com.zen.accounts.ui.theme.add_expense_item_screen_route
 import com.zen.accounts.ui.theme.add_expense_screen_label
 import com.zen.accounts.ui.theme.add_expense_screen_route

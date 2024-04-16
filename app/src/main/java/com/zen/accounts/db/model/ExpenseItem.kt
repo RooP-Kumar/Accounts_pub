@@ -10,6 +10,5 @@ data class ExpenseItem(
     var itemType : String = "",
     var itemPrice : Long = 0L,
     var itemQty : Int = 0,
-    var itemFrom : String? = null, // Only when itemType = Travel
-    var itemDestination : String? = null, // Only when itemType = Travel
+    var itemAmountType : String = ""
 )

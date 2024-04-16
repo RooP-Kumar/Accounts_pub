@@ -1,9 +1,10 @@
-package com.zen.accounts.ui.screens.register
+package com.zen.accounts.ui.screens.auth.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,25 +16,25 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.zen.accounts.db.model.User
 import com.zen.accounts.states.AppState
-import com.zen.accounts.ui.component.GeneralButton
-import com.zen.accounts.ui.component.GeneralEditText
+import com.zen.accounts.ui.screens.common.GeneralButton
+import com.zen.accounts.ui.screens.common.GeneralEditText
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.theme.Purple80
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.already_have_account
 import com.zen.accounts.ui.theme.background
+import com.zen.accounts.ui.theme.did_not_have_account
 import com.zen.accounts.ui.theme.enter_email
-import com.zen.accounts.ui.theme.enter_name
 import com.zen.accounts.ui.theme.enter_pass
-import com.zen.accounts.ui.theme.enter_phone
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.login_button_label
@@ -43,27 +44,27 @@ import com.zen.accounts.ui.theme.register_button_label
 import com.zen.accounts.ui.theme.shadowColor
 import kotlinx.coroutines.launch
 
-data class RegisterUiState (
-    val userName : MutableState<String> = mutableStateOf(""),
-    val email : MutableState<String> = mutableStateOf(""),
-    val phone : MutableState<String> = mutableStateOf(""),
-    val password : MutableState<String> = mutableStateOf(""),
+data class LoginUiState(
+    val emailUsernamePhone : MutableState<String> = mutableStateOf(""),
+    val password : MutableState<String> = mutableStateOf("")
 )
 
 @Composable
-fun Register(
+fun Login(
     appState: AppState,
-    viewModel: RegisterScreenViewModel
+    viewModel: LoginScreenViewModel
 ) {
-    MainUI(appState = appState, viewModel)
+    MainUI(appState, viewModel)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MainUI(
     appState: AppState,
-    viewModel: RegisterScreenViewModel
+    viewModel: LoginScreenViewModel
 ) {
-    val uiState = viewModel.registerUiState
+    val uiState = viewModel.loginUiState
+    val user = appState.dataStore.getUser.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
@@ -85,24 +86,14 @@ private fun MainUI(
                 .background(background)
                 .padding(vertical = halfGeneralPadding)
         ) {
-            GeneralEditText(
-                text = uiState.userName,
-                modifier = Modifier.fillMaxWidth(),
-                placeholderText = enter_name
-            )
 
             GeneralEditText(
-                text = uiState.email,
+                text = uiState.emailUsernamePhone,
                 modifier = Modifier.fillMaxWidth(),
-                placeholderText = enter_email
-            )
-
-            GeneralEditText(
-                text = uiState.phone,
-                modifier = Modifier.fillMaxWidth(),
-                placeholderText = enter_phone,
+                placeholderText = enter_email,
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Phone
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
                 )
             )
 
@@ -111,7 +102,8 @@ private fun MainUI(
                 modifier = Modifier.fillMaxWidth(),
                 placeholderText = enter_pass,
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Password
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
                 )
             )
 
@@ -120,23 +112,25 @@ private fun MainUI(
                     .padding(horizontal = generalPadding, vertical = normalPadding)
             ) {
                 Text(
-                    text = already_have_account,
+                    text = did_not_have_account,
                     style = Typography.bodySmall.copy(color = onBackground)
                 )
                 Spacer(modifier = Modifier.width(normalPadding))
                 Text(
-                    text = login_button_label,
+                    text = register_button_label,
                     style = Typography.bodySmall.copy(color = Purple80),
                     modifier = Modifier
                         .clickable {
-                            appState.authNavController.navigate(Screen.LoginScreen.route)
+                            appState.authNavController.navigate(Screen.RegisterScreen.route)
                         }
                 )
             }
 
-            GeneralButton(text = register_button_label, modifier = Modifier) {
+            GeneralButton(text = login_button_label, modifier = Modifier) {
                 coroutineScope.launch {
-                    registerUser(appState, User(uiState.userName.value, uiState.email.value, uiState.phone.value))
+                    if(user.value != null) {
+                        LoginUser(appState, user.value!!)
+                    }
                 }
             }
         }
@@ -144,6 +138,7 @@ private fun MainUI(
     }
 }
 
-private suspend fun registerUser(appState: AppState, user: User) {
-    appState.dataStore.saveUser(user)
+// logic to login user in to the application.
+suspend private fun LoginUser(appState : AppState, user: User) {
+    appState.dataStore.saveUser(user.copy(isAuthenticated = true))
 }

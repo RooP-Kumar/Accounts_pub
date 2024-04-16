@@ -60,7 +60,7 @@ fun ExpenseItemLayout(
         }
 
         Text(
-            text = getRupeeString(expenseItem.itemPrice),
+            text = getRupeeString(if(expenseItem.itemAmountType != "TA") expenseItem.itemPrice * expenseItem.itemQty else expenseItem.itemPrice),
             style = textStyle,
             modifier = Modifier
                 .wrapContentWidth()

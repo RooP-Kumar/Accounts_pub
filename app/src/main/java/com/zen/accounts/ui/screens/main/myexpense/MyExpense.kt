@@ -1,15 +1,12 @@
-package com.zen.accounts.ui.screens.myexpense
+package com.zen.accounts.ui.screens.main.myexpense
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,16 +18,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.states.AppState
-import com.zen.accounts.ui.component.GeneralButton
-import com.zen.accounts.ui.screens.addexpense.AddExpenseViewModel
+import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
@@ -38,8 +32,8 @@ import com.zen.accounts.ui.theme.getRupeeString
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
-import com.zen.accounts.ui.theme.shadowColor
 import com.zen.accounts.ui.theme.surface
+import com.zen.accounts.utility.DateStringConverter
 import com.zen.accounts.utility.ExpenseItemLayout
 import com.zen.accounts.utility.customShadow
 
@@ -166,6 +160,11 @@ fun MyExpense(
                             }
 
                         }
+
+                        Text(
+                            text = DateStringConverter().dateToString(allExpense.value[it].date),
+                            style = Typography.bodyMedium.copy(color = onBackground)
+                        )
 
                     }
 

@@ -1,17 +1,17 @@
-package com.zen.accounts.ui.screens.addexpense
+package com.zen.accounts.ui.screens.main.addexpense
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.db.model.ExpenseType
-import com.zen.accounts.repository.ExpenseItemRepository
-import com.zen.accounts.repository.ExpenseRepository
-import com.zen.accounts.repository.ExpenseTypeRepository
-import com.zen.accounts.ui.screens.addexpense.addexpenseitem.AddExpenseItemUiState
+import com.zen.accounts.ui.screens.main.addexpense.addexpenseitem.ExpenseItemRepository
+import com.zen.accounts.ui.screens.main.addexpense.addexpenseitem.ExpenseTypeRepository
+import com.zen.accounts.ui.screens.main.addexpense.addexpenseitem.AddExpenseItemUiState
+import com.zen.accounts.utility.enums.LoadingState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,7 +29,6 @@ class AddExpenseViewModel @Inject constructor(
     val allExpenseItem : Flow<List<ExpenseItem>> = expenseItemRepository.allExpenseItem
 
     fun addExpenseIntoLocalDatabase(expense: Expense) {
-        Log.d("asdf", "addExpenseIntoLocalDatabase: $expense")
         viewModelScope.launch(Dispatchers.IO) {
             expenseRepository.insertExpenseIntoRoom(expense)
         }
@@ -37,7 +36,22 @@ class AddExpenseViewModel @Inject constructor(
 
     fun addExpenseItemIntoLocalDatabase(expenseItem : ExpenseItem) {
         viewModelScope.launch(Dispatchers.IO) {
+            addExpenseItemUiState.loadingState.value = LoadingState.LOADING
             expenseItemRepository.insertExpenseItemIntoRoom(expenseItem)
+            delay(300)
+            addExpenseItemUiState.loadingState.value = LoadingState.SUCCESS
+        }
+    }
+
+    fun deleteExpenseItemsFromLocalDatabase() {
+        viewModelScope.launch {
+            expenseItemRepository.removeAllExpenseItems()
+        }
+    }
+
+    fun uploadExpense(expense: Expense) {
+        viewModelScope.launch {
+            expenseRepository.uploadExpense(expense)
         }
     }
 }

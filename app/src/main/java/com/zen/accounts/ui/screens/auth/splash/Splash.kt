@@ -1,4 +1,4 @@
-package com.zen.accounts.ui.screens.splash
+package com.zen.accounts.ui.screens.auth.splash
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

@@ -1,9 +1,9 @@
-package com.zen.accounts.ui.screens.myexpense
+package com.zen.accounts.ui.screens.main.myexpense
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zen.accounts.db.model.Expense
-import com.zen.accounts.repository.ExpenseRepository
+import com.zen.accounts.ui.screens.main.addexpense.ExpenseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch

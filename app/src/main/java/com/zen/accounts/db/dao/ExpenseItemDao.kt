@@ -1,6 +1,7 @@
 package com.zen.accounts.db.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -17,4 +18,7 @@ interface ExpenseItemDao {
 
     @Query("SELECT * FROM expense_items")
     fun getAllExpenseItems() : Flow<List<ExpenseItem>>
+
+    @Query("DELETE FROM expense_items")
+    suspend fun deleteAllItems()
 }

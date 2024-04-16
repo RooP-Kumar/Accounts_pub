@@ -1,4 +1,4 @@
-package com.zen.accounts.ui.screens.addexpense
+package com.zen.accounts.ui.screens.main.addexpense
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
@@ -26,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.states.AppState
-import com.zen.accounts.ui.component.GeneralButton
-import com.zen.accounts.ui.component.GeneralEditText
+import com.zen.accounts.ui.screens.common.GeneralButton
+import com.zen.accounts.ui.screens.common.GeneralEditText
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
@@ -36,7 +35,6 @@ import com.zen.accounts.ui.theme.getRupeeString
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
-import com.zen.accounts.ui.theme.shadowColor
 import com.zen.accounts.ui.theme.surface
 import com.zen.accounts.utility.ExpenseItemLayout
 import java.util.Date
@@ -174,12 +172,14 @@ fun ExpenseItemListSection (
                         ) {
                             val tempExpense = Expense(
                                 id = System.currentTimeMillis(),
-                                title = title!!.value,
+                                title = title?.value ?: "",
                                 items = allExpenseItem,
                                 totalAmount = totalExpenseAmount.value,
-                                date = System.currentTimeMillis().toString()
+                                date = Date(System.currentTimeMillis())
                             )
-                            viewModel!!.addExpenseIntoLocalDatabase(tempExpense)
+                            viewModel?.uploadExpense(tempExpense)
+                            viewModel?.addExpenseIntoLocalDatabase(tempExpense)
+                            viewModel?.deleteExpenseItemsFromLocalDatabase()
                         }
 
                     }

@@ -1,4 +1,4 @@
-package com.zen.accounts.ui.screens.splash
+package com.zen.accounts.ui.screens.auth.splash
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -1,4 +1,4 @@
-package com.zen.accounts.ui.screens.login
+package com.zen.accounts.ui.screens.auth.login
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

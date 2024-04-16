@@ -1,4 +1,4 @@
-package com.zen.accounts.repository
+package com.zen.accounts.ui.screens.main.addexpense.addexpenseitem
 
 import com.zen.accounts.db.dao.ExpenseTypeDao
 import com.zen.accounts.db.model.ExpenseType

@@ -1,6 +1,8 @@
 package com.zen.accounts.utility
 
+import android.content.Context
 import android.graphics.BlurMaskFilter
+import android.widget.Toast
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -98,3 +100,7 @@ fun Modifier.customShadowTwo(
         }
     }
 )
+
+fun Context.toast(msg : String) {
+    Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+}

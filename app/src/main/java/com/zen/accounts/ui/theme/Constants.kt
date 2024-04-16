@@ -47,3 +47,6 @@ fun getRupeeString(amount: Long) : String {
     if(amount == 0L) return ""
     return "\u20B9 $amount"
 }
+
+// <------------------ Date Formatter Pattern String ------------------>
+const val date_formatter_patter_string = "dd LLL, yyyy hh:mm a"
