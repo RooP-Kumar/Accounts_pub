@@ -1,1 +1,14 @@
-Just a starter pack of android library and some General UI component, so that do not have to create again and again the same things.
+### Accounts
+A Simple Application, which keeps track of all my expenses.
+
+
+> ### Technology Used
+> - Android Studio
+> 
+> - Room
+> 
+> - Dagger-Hilt
+> 
+> - Jetpack Compose
+> 
+> - Navigation Component

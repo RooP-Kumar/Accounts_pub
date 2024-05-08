@@ -5,11 +5,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.zen.accounts.states.AppState
-import com.zen.accounts.ui.screens.login.Login
-import com.zen.accounts.ui.screens.login.LoginScreenViewModel
-import com.zen.accounts.ui.screens.register.Register
-import com.zen.accounts.ui.screens.register.RegisterScreenViewModel
-import com.zen.accounts.ui.theme.auth_route
+import com.zen.accounts.ui.screens.auth.login.Login
+import com.zen.accounts.ui.viewmodels.LoginScreenViewModel
+import com.zen.accounts.ui.screens.auth.register.Register
+import com.zen.accounts.ui.viewmodels.RegisterScreenViewModel
+import com.zen.accounts.ui.screens.common.auth_route
 
 fun NavGraphBuilder.AuthNavigation(
     appState: AppState

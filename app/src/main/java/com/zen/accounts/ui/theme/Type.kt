@@ -87,3 +87,11 @@ val Typography = Typography(
     )
 
 )
+
+val buttonDescriptionTextStyle = TextStyle(
+    fontFamily = FontFamily(Font(R.font.montserrat)),
+    fontWeight = FontWeight.Medium,
+    fontSize = 12.sp,
+    lineHeight = 14.sp,
+    letterSpacing = 0.5.sp
+)

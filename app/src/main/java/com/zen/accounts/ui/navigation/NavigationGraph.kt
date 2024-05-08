@@ -1,54 +1,73 @@
 package com.zen.accounts.ui.navigation
 
-import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.zen.accounts.R
+import com.zen.accounts.db.model.Expense
 import com.zen.accounts.states.AppState
-import com.zen.accounts.ui.screens.splash.Splash
-import com.zen.accounts.ui.theme.add_expense_screen_label
-import com.zen.accounts.ui.theme.add_expense_screen_route
-import com.zen.accounts.ui.theme.login_screen_route
-import com.zen.accounts.ui.theme.main_route
-import com.zen.accounts.ui.theme.my_expense_screen_label
-import com.zen.accounts.ui.theme.my_expense_screen_route
-import com.zen.accounts.ui.theme.register_screen_route
-import com.zen.accounts.ui.theme.setting_screen_label
-import com.zen.accounts.ui.theme.setting_screen_route
-import com.zen.accounts.ui.theme.splash_route
-import com.zen.accounts.ui.theme.splash_screen_route
+import com.zen.accounts.ui.screens.auth.splash.Splash
+import com.zen.accounts.ui.screens.common.add_expense_item_screen_label
+import com.zen.accounts.ui.screens.common.add_expense_item_screen_route
+import com.zen.accounts.ui.screens.common.add_expense_screen_label
+import com.zen.accounts.ui.screens.common.add_expense_screen_route
+import com.zen.accounts.ui.screens.common.expense_detail_screen_label
+import com.zen.accounts.ui.screens.common.expense_detail_screen_route
+import com.zen.accounts.ui.screens.common.expense_details_argument
+import com.zen.accounts.ui.screens.common.home_screen_route
+import com.zen.accounts.ui.screens.common.login_screen_label
+import com.zen.accounts.ui.screens.common.login_screen_route
+import com.zen.accounts.ui.screens.common.my_expense_screen_label
+import com.zen.accounts.ui.screens.common.my_expense_screen_route
+import com.zen.accounts.ui.screens.common.register_screen_label
+import com.zen.accounts.ui.screens.common.register_screen_route
+import com.zen.accounts.ui.screens.common.setting_screen_label
+import com.zen.accounts.ui.screens.common.setting_screen_route
+import com.zen.accounts.ui.screens.common.splash_route
+import com.zen.accounts.ui.screens.common.splash_screen_route
+import com.zen.accounts.ui.screens.common.splash_screen_screen_label
+import com.zen.accounts.utility.expenseToString
 
 @Composable
 fun NavigationGraph(
     appState: AppState
 ) {
-    NavHost(navController = appState.authNavController, startDestination = Screen.SplashScreen.route, route = splash_route){
+    NavHost(navController = appState.navController, startDestination = Screen.SplashScreen.route, route = splash_route){
         composable(route = Screen.SplashScreen.route) {
             Splash(appState)
         }
 
         AuthNavigation(appState)
 
-        composable(route = main_route) {
-            BottomNavigation(appState = appState)
-        }
-
-
+        MainNavigation(appState = appState)
 
     }
 }
 
-sealed class Screen(val route : String) {
-    data object SplashScreen : Screen(splash_screen_route)
-    data object LoginScreen : Screen(login_screen_route)
-    data object RegisterScreen : Screen(register_screen_route)
-
-
+sealed class Screen(val route : String, val title: String) {
+    data object SplashScreen : Screen(splash_screen_route, splash_screen_screen_label)
+    data object LoginScreen : Screen(login_screen_route, login_screen_label)
+    data object RegisterScreen : Screen(register_screen_route, register_screen_label)
+    data object AddExpenseItemScreen : Screen(add_expense_item_screen_route, add_expense_item_screen_label)
+    data object MyExpenseScreen : Screen(my_expense_screen_route, my_expense_screen_label)
+    data object AddExpenseScreen : Screen(add_expense_screen_route, add_expense_screen_label)
+    data object ExpenseDetailScreen : Screen("$expense_detail_screen_route/{$expense_details_argument}", expense_detail_screen_label) {
+        fun getRoute(data : Expense) : String {
+            return "$expense_detail_screen_route/${expenseToString(data)}"
+        }
+    }
+    data object Home : Screen(home_screen_route, my_expense_screen_label)
+    data object SettingScreen : Screen(setting_screen_route, setting_screen_label)
 }
 
-sealed class BottomScreen(val route: String, val title: String, @DrawableRes val icon : Int) {
-    data object AddExpenseScreen : BottomScreen(add_expense_screen_route, add_expense_screen_label, R.drawable.ic_add_expense)
-    data object MyExpenseScreen : BottomScreen(my_expense_screen_route, my_expense_screen_label, R.drawable.ic_book)
-    data object SettingScreen : BottomScreen(setting_screen_route, setting_screen_label, R.drawable.ic_setting)
+fun getScreenRouteWithTitle() : List<Screen> {
+    return listOf(
+        Screen.LoginScreen,
+        Screen.RegisterScreen,
+        Screen.AddExpenseItemScreen,
+        Screen.MyExpenseScreen,
+        Screen.Home,
+        Screen.AddExpenseScreen,
+        Screen.SettingScreen,
+        Screen.ExpenseDetailScreen
+    )
 }

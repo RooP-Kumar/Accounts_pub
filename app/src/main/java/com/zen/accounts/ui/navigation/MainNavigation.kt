@@ -1,83 +1,63 @@
 package com.zen.accounts.ui.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material3.Scaffold
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.painterResource
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navigation
 import com.zen.accounts.states.AppState
-import com.zen.accounts.ui.screens.addexpense.AddExpense
-import com.zen.accounts.ui.screens.myexpense.MyExpense
-import com.zen.accounts.ui.screens.setting.Setting
-import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.main_route
+import com.zen.accounts.ui.screens.common.expense_details_argument
+import com.zen.accounts.ui.screens.common.main_route
+import com.zen.accounts.ui.screens.main.addexpense.AddExpense
+import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
+import com.zen.accounts.ui.screens.main.addexpenseitem.AddExpenseItem
+import com.zen.accounts.ui.screens.main.expenseDetail.ExpenseDetails
+import com.zen.accounts.ui.screens.main.home.Home
+import com.zen.accounts.ui.viewmodels.HomeViewModel
+import com.zen.accounts.ui.screens.main.myexpense.MyExpense
+import com.zen.accounts.ui.viewmodels.MyExpenseViewModel
+import com.zen.accounts.ui.screens.main.setting.Setting
+import com.zen.accounts.ui.viewmodels.SettingViewModel
+import com.zen.accounts.utility.stringToExpense
 
-@Composable
-fun MainNavigation(appState: AppState, padding : PaddingValues) {
-    appState.mainNavController = rememberNavController()
-    NavHost(navController = appState.mainNavController, startDestination = BottomScreen.AddExpenseScreen.route, route = main_route){
-        composable(route = BottomScreen.AddExpenseScreen.route) {
-            AddExpense(appState = appState)
+fun NavGraphBuilder.MainNavigation(appState: AppState) {
+    navigation(startDestination = Screen.Home.route, route = main_route) {
+        composable(route = Screen.AddExpenseScreen.route) {
+            val viewModel: AddExpenseViewModel = hiltViewModel()
+            AddExpense(appState = appState, viewModel = viewModel)
         }
 
-        composable(route = BottomScreen.MyExpenseScreen.route) {
-            MyExpense(appState = appState)
+        composable(route = Screen.AddExpenseItemScreen.route) {
+            val viewModel: AddExpenseViewModel = hiltViewModel()
+            AddExpenseItem(appState = appState, viewModel = viewModel)
         }
 
-        composable(route = BottomScreen.SettingScreen.route) {
-            Setting(appState = appState)
+        // Home Screen
+        composable(route = Screen.Home.route) {
+            val viewModel: HomeViewModel = hiltViewModel()
+            Home(appState = appState, viewModel)
         }
-    }
-}
 
-@Composable
-fun BottomNavigation(appState: AppState) {
-    val items = listOf(
-        BottomScreen.MyExpenseScreen,
-        BottomScreen.AddExpenseScreen,
-        BottomScreen.SettingScreen
-    )
-    Scaffold(
-        bottomBar = {
-            BottomNavigation {
-                val navBackStackEntry by appState.mainNavController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-                items.forEach { screen ->
-                    BottomNavigationItem(
-                        icon = { Icon(painter = painterResource(id = screen.icon), contentDescription = null) },
-                        label = {
-                            Text(
-                                screen.title,
-                                style = Typography.bodySmall
-                            )
-                        },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                        onClick = {
-                            appState.mainNavController.navigate(screen.route) {
-                                popUpTo(appState.mainNavController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
-                }
-            }
+        composable(route = Screen.MyExpenseScreen.route) {
+            val viewModel: MyExpenseViewModel = hiltViewModel()
+            MyExpense(appState = appState, viewModel)
         }
-    ) {
-        MainNavigation(appState = appState, it)
+
+        composable(
+            route = Screen.ExpenseDetailScreen.route,
+            arguments = listOf(navArgument(expense_details_argument) {NavType.StringType})
+        ) {backStackEntry ->
+            val arg = stringToExpense(backStackEntry.arguments?.getString(expense_details_argument)!!)
+            val viewModel: MyExpenseViewModel = hiltViewModel()
+            ExpenseDetails(appState = appState, arg, viewModel)
+        }
+
+        // Setting Screen route to navigate
+        composable(route = Screen.SettingScreen.route) {
+            val addExpenseViewModel : AddExpenseViewModel = hiltViewModel()
+            val settingViewModel : SettingViewModel = hiltViewModel()
+            Setting(appState = appState, addExpenseViewModel = addExpenseViewModel, settingViewModel = settingViewModel)
+        }
     }
 }
