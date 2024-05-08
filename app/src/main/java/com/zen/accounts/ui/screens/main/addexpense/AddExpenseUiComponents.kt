@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,17 +24,19 @@ import androidx.compose.ui.unit.dp
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.states.AppState
+import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralEditText
-import com.zen.accounts.ui.navigation.Screen
+import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
+import com.zen.accounts.ui.theme.border_color
 import com.zen.accounts.ui.theme.generalPadding
-import com.zen.accounts.ui.theme.getRupeeString
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.surface
+import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
 import com.zen.accounts.utility.ExpenseItemLayout
 import java.util.Date
 
@@ -52,11 +53,10 @@ fun UpperTitleSection(
             .padding(vertical = halfGeneralPadding, horizontal = generalPadding)
     )
 
-    HorizontalLineOnBackground()
-
     GeneralEditText(
-        text = title,
-        modifier = Modifier,
+        text = title.value,
+        onValueChange = {title.value = it},
+        modifier = Modifier.fillMaxWidth(),
         placeholderText = "Enter Title",
         enable = appState.drawerState?.value != true,
         showClickEffect = false
@@ -101,14 +101,13 @@ fun AddExpenseItemTitleSection(
 @Composable
 fun ExpenseItemListSection (
     appState : AppState,
-    paddingValues: PaddingValues,
     allExpenseItem : List<ExpenseItem>,
     rightSideTitleHeight : MutableState<Dp>? = null,
     expenseItemListAmountTextWidth : MutableState<Dp>,
     localDensity: Density,
     title : MutableState<String>? = null,
     viewModel: AddExpenseViewModel? = null,
-    totalExpenseAmount : MutableState<Long>,
+    totalExpenseAmount : MutableState<Double>,
     orientation: Int = 0,
     addButtonVisible : Boolean
 ) {
@@ -177,7 +176,6 @@ fun ExpenseItemListSection (
                                 totalAmount = totalExpenseAmount.value,
                                 date = Date(System.currentTimeMillis())
                             )
-                            viewModel?.uploadExpense(tempExpense)
                             viewModel?.addExpenseIntoLocalDatabase(tempExpense)
                             viewModel?.deleteExpenseItemsFromLocalDatabase()
                         }
@@ -217,8 +215,7 @@ fun LazyColumSection(
     ) {
         items(allExpenseItem.size + 1, key = { it.hashCode() }) {
             ExpenseItemLayout(
-                expenseItem = if (it < allExpenseItem.size) allExpenseItem[it] else ExpenseItem(),
-                expenseItemListAmountTextWidth
+                expenseItem = if (it < allExpenseItem.size) allExpenseItem[it] else ExpenseItem(1, "", null),
             )
 
             if (it != allExpenseItem.size) {
@@ -246,7 +243,7 @@ private fun AddExpenseButton(
             modifier = modifier,
             enable = appState.drawerState?.value != true
         ) {
-            appState.mainNavController.navigate(Screen.AddExpenseItemScreen.route)
+            appState.navController.navigate(Screen.AddExpenseItemScreen.route)
         }
     } else if(visible) {
         GeneralButton(
@@ -261,19 +258,18 @@ private fun AddExpenseButton(
                 },
             enable = appState.drawerState?.value != true
         ) {
-            appState.mainNavController.navigate(Screen.AddExpenseItemScreen.route)
+            appState.navController.navigate(Screen.AddExpenseItemScreen.route)
         }
     }
 }
 
 @Composable
-fun HorizontalLineOnBackground() {
+fun HorizontalLineOnBackground(modifier: Modifier = Modifier) {
     Spacer(
-        Modifier
+        modifier
             .fillMaxWidth()
-            .padding(vertical = halfGeneralPadding)
             .height(0.2.dp)
-            .background(onBackground)
+            .background(border_color)
     )
 }
 

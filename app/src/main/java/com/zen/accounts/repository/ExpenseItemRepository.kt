@@ -1,4 +1,4 @@
-package com.zen.accounts.ui.screens.main.addexpenseitem
+package com.zen.accounts.repository
 
 import com.zen.accounts.db.dao.ExpenseItemDao
 import com.zen.accounts.db.model.ExpenseItem
@@ -14,7 +14,7 @@ class ExpenseItemRepository @Inject constructor(
         expenseItemDao.insertExpenseItem(expenseItem)
     }
 
-    suspend fun removeAllExpenseItems() {
+    suspend fun clearExpenseItemTable() {
         expenseItemDao.deleteAllItems()
     }
 }

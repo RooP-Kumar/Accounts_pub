@@ -1,10 +1,8 @@
 package com.zen.accounts.utility
 
-import android.util.Log
 import androidx.room.TypeConverter
-import com.zen.accounts.ui.theme.date_formatter_patter_string
+import com.zen.accounts.ui.screens.common.date_formatter_patter_string
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.Date
 
 class DateStringConverter {

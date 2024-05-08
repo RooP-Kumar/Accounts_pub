@@ -1,4 +1,4 @@
-package com.zen.accounts.utility.enums
+package com.zen.accounts.ui.screens.common
 
 import android.os.Bundle
 import androidx.compose.runtime.MutableState
@@ -14,7 +14,42 @@ enum class LoadingState {
     FAILURE
 }
 
+sealed class BackupPlan(val label : String) {
+    data object Off : BackupPlan("Off")
+    data object Now : BackupPlan("Now")
+    data object Daily : BackupPlan("Daily")
+    data object Weekly : BackupPlan("Weekly")
+    data object Monthly : BackupPlan("Monthly")
 
+    companion object {
+        fun getAllBackupPlan() : List<BackupPlan> {
+            return listOf(
+                Off,
+                Now,
+                Daily,
+                Weekly,
+                Monthly
+            )
+        }
+    }
+
+}
+
+data class ExpenseItemQuantityAmount(
+    var amountType : AmountType,
+    var amountPlaceholder : String,
+    var quantityPlaceholder : String
+)
+
+data class AmountType(
+    override var id: Long = 0L,
+    override var value: String = ""
+) : DropDownList()
+
+open class DropDownList{
+    open var id : Long = 0L
+    open var value: String = ""
+}
 
 object dpSaver : Saver<MutableState<Dp>, Bundle> {
     override fun SaverScope.save(value: MutableState<Dp>): Bundle? {
@@ -29,7 +64,3 @@ object dpSaver : Saver<MutableState<Dp>, Bundle> {
 
 }
 
-open class DropDownList{
-    open var id : Long = 0L
-    open var value: String = ""
-}

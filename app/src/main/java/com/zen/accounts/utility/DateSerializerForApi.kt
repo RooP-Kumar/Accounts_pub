@@ -3,7 +3,7 @@ package com.zen.accounts.utility
 import com.google.gson.JsonElement
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
-import com.zen.accounts.ui.theme.date_formatter_patter_string
+import com.zen.accounts.ui.screens.common.date_formatter_patter_string
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.Date

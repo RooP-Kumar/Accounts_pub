@@ -1,7 +1,6 @@
 package com.zen.accounts.db.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -10,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseItemDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertExpenseItem(expenseItem : ExpenseItem)
 
     @Query("SELECT * FROM expense_items WHERE id = :id")

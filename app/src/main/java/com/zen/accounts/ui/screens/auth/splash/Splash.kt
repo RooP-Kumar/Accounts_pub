@@ -12,11 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import com.zen.accounts.states.AppState
+import com.zen.accounts.ui.screens.common.main_route
+import com.zen.accounts.ui.screens.common.splash_route
+import com.zen.accounts.ui.screens.common.splash_screen_route
 import com.zen.accounts.ui.theme.background
-import com.zen.accounts.ui.theme.main_route
 import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.splash_route
-import com.zen.accounts.ui.theme.splash_screen_route
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -28,7 +28,7 @@ fun Splash(
     LaunchedEffect(key1 = Unit) {
         splashScreenAutoCloseCoroutine.launch {
             delay(1000L)
-            appState.authNavController.navigate(main_route){
+            appState.navController.navigate(main_route){
                 this.popUpTo(splash_route) {
                     inclusive
                 }

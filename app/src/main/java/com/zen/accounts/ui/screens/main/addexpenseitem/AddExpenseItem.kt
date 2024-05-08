@@ -1,51 +1,44 @@
-package com.zen.accounts.ui.screens.main.addexpense.addexpenseitem
+package com.zen.accounts.ui.screens.main.addexpenseitem
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.zen.accounts.R
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.states.AppState
-import com.zen.accounts.ui.screens.common.AmountType
 import com.zen.accounts.ui.screens.common.GeneralButton
-import com.zen.accounts.ui.screens.common.GeneralDropDown
 import com.zen.accounts.ui.screens.common.GeneralEditText
 import com.zen.accounts.ui.screens.common.LoadingDialog
-import com.zen.accounts.ui.screens.main.addexpense.AddExpenseViewModel
-import com.zen.accounts.ui.theme.Typography
+import com.zen.accounts.ui.screens.common.LoadingState
+import com.zen.accounts.ui.screens.common.TopBarBackButton
+import com.zen.accounts.ui.screens.common.add_expense_item_screen_label
 import com.zen.accounts.ui.screens.common.add_item_button_label
+import com.zen.accounts.ui.screens.common.getQuantityAmountRelation
+import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
+import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onSurface
-import com.zen.accounts.utility.customShadowTwo
-import com.zen.accounts.ui.screens.common.LoadingState
-import com.zen.accounts.ui.screens.common.getQuantityAmountRelation
+import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.utility.toast
 import kotlinx.coroutines.launch
 
@@ -63,8 +56,7 @@ data class AddExpenseItemUiState(
 @Composable
 fun AddExpenseItem(
     appState: AppState,
-    viewModel: AddExpenseViewModel,
-    paddingValues: PaddingValues
+    viewModel: AddExpenseViewModel
 ) {
     val uiState = viewModel.addExpenseItemUiState
     val coroutineScope = rememberCoroutineScope()
@@ -83,50 +75,57 @@ fun AddExpenseItem(
         loadingState = uiState.loadingState,
         onSuccess = {
             coroutineScope.launch {
-                appState.mainNavController.popBackStack()
+                appState.navController.popBackStack()
             }
         }
     )
 
     MainUI(
         appState,
-        viewModel,
-        paddingValues
+        viewModel
     )
 }
 
 @Composable
 private fun MainUI(
     appState: AppState,
-    viewModel: AddExpenseViewModel,
-    paddingValues: PaddingValues
+    viewModel: AddExpenseViewModel
 ) {
     val localContext = LocalContext.current
-    val allExpenseType = viewModel.allExpenseType.collectAsState(initial = listOf())
     val uiState = viewModel.addExpenseItemUiState
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(background)
-            .padding(generalPadding)
-            .padding(top = paddingValues.calculateTopPadding())
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(75.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TopBarBackButton(appState = appState)
+
+            Text(
+                text = add_expense_item_screen_label,
+                style = Typography.bodyLarge.copy(onBackground),
+                modifier = Modifier
+                    .padding(generalPadding)
+                    .weight(1f)
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .customShadowTwo(
-                    radiusX = generalPadding,
-                    radiusY = generalPadding,
-                    blur = halfGeneralPadding
-                )
-                .clip(shape = RoundedCornerShape(generalPadding))
                 .background(background)
-                .padding(vertical = halfGeneralPadding)
+                .padding(vertical = generalPadding)
         ) {
 
             GeneralEditText(
-                text = uiState.title,
+                text = uiState.title.value,
+                onValueChange = {uiState.title.value = it},
                 modifier = Modifier.fillMaxWidth(),
                 placeholderText = "Title",
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -135,7 +134,8 @@ private fun MainUI(
                 )
             )
             GeneralEditText(
-                text = uiState.amount,
+                text = uiState.amount.value,
+                onValueChange = {uiState.amount.value = it},
                 modifier = Modifier.fillMaxWidth(),
                 placeholderText = "Amount",
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -148,6 +148,8 @@ private fun MainUI(
                 text = add_item_button_label,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = generalPadding)
+                    .padding(top = halfGeneralPadding)
             ) {
 
                 val itemTitle = uiState.title.value.trim()

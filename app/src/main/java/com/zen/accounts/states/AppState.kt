@@ -5,9 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavHostController
 import com.zen.accounts.db.datastore.UserDataStore
 
@@ -33,8 +30,7 @@ class AppState(context: Context) {
     }
 
     // Holding navController for circulate throughout the whole application.
-    var authNavController : NavHostController = NavHostController(context)
-    var mainNavController : NavHostController = NavHostController(context)
+    var navController : NavHostController = NavHostController(context)
 
     // User Data Store
     var dataStore = UserDataStore(context)

@@ -1,13 +1,12 @@
-package com.zen.accounts.ui.screens.auth.register
+package com.zen.accounts.ui.viewmodels
 
-import android.util.Log
-import androidx.datastore.core.DataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zen.accounts.api.resource.Resource
 import com.zen.accounts.db.datastore.UserDataStore
 import com.zen.accounts.db.model.User
 import com.zen.accounts.repository.AuthRepository
+import com.zen.accounts.ui.screens.auth.register.RegisterUiState
 import com.zen.accounts.ui.screens.common.LoadingState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -25,7 +24,6 @@ class RegisterScreenViewModel @Inject constructor(
                 when(val res = authRepository.registerUser(user, pass)) {
                     is Resource.SUCCESS -> {
                         loadingState.value = LoadingState.SUCCESS
-                        dataStore.saveUser(user.copy(uid = res.value.value))
                         snackBarText.value = "You can successfully login to your account."
                         userName.value = ""
                         email.value = ""

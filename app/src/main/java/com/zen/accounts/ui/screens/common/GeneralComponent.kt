@@ -1,6 +1,11 @@
 package com.zen.accounts.ui.screens.common
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,9 +23,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -44,9 +52,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.zen.accounts.R
-import com.zen.accounts.ui.theme.Purple80
 import com.zen.accounts.ui.theme.Typography
+import com.zen.accounts.ui.theme.disabled_color
 import com.zen.accounts.ui.theme.editTextCursorColor
+import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.normalPadding
@@ -54,13 +63,12 @@ import com.zen.accounts.ui.theme.normalTextSize
 import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.placeholder
 import com.zen.accounts.ui.theme.surface
-import com.zen.accounts.utility.enums.DropDownList
-import com.zen.accounts.utility.enums.dpSaver
 
 @Composable
 fun GeneralEditText(
-    text: MutableState<String>,
+    text: String,
     modifier: Modifier,
+    onValueChange : (String) -> Unit = {},
     placeholderText: String = "Enter Text",
     singleLine: Boolean = true,
     enable: Boolean = true,
@@ -72,9 +80,9 @@ fun GeneralEditText(
 ) {
     val passwordVisible: MutableState<Boolean> = rememberSaveable { mutableStateOf(true) }
     BasicTextField(
-        value = text.value,
+        value = text,
         onValueChange = {
-            text.value = it
+            onValueChange(it)
         },
         modifier = modifier
             .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
@@ -104,7 +112,7 @@ fun GeneralEditText(
         Row(
             Modifier
         ) {
-            if (text.value.isEmpty()) {
+            if (text.isEmpty()) {
                 Text(
                     text = placeholderText,
                     style = TextStyle.Default.copy(
@@ -128,7 +136,8 @@ fun GeneralEditText(
                             .align(Alignment.End)
                             .clickable {
                                 passwordVisible.value = !passwordVisible.value
-                            }
+                            },
+                        tint = onSurface
                     )
                 }
             }
@@ -151,7 +160,8 @@ fun GeneralEditText(
                                 if (trailingIconClick != null) {
                                     trailingIconClick()
                                 }
-                            }
+                            },
+                        tint = onSurface
                     )
                 }
             }
@@ -163,16 +173,18 @@ fun GeneralEditText(
 @Composable
 fun GeneralButton(
     text: String,
-    modifier: Modifier,
+    modifier: Modifier? = null,
     enable: Boolean = true,
     onClick: () -> Unit
 ) {
     Button(
         modifier = modifier
-            .padding(horizontal = generalPadding, vertical = halfGeneralPadding),
+            ?: Modifier
+                .fillMaxWidth()
+                .padding(horizontal = generalPadding, vertical = halfGeneralPadding),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Purple80,
-            disabledContainerColor = Purple80
+            containerColor = enabled_color,
+            disabledContainerColor = disabled_color
         ),
         enabled = enable,
         shape = RoundedCornerShape(generalPadding),
@@ -180,7 +192,7 @@ fun GeneralButton(
     ) {
         Text(
             text = text,
-            style = Typography.bodyMedium.copy(color = onSurface),
+            style = Typography.bodyMedium.copy(color = Color.White),
             modifier = Modifier.padding(vertical = normalPadding)
         )
     }
@@ -190,21 +202,31 @@ fun GeneralButton(
 @Composable
 fun GeneralDropDown(
     modifier: Modifier,
-    value : MutableState<String>,
+    value : MutableState<BackupPlan>,
     showDropDown : MutableState<Boolean>,
-    valueList : List<DropDownList>,
-    placeholderText: String = "Select Expense Type"
+    enable : Boolean = false,
+    valueList : List<BackupPlan>,
+    placeholderText: String = "Select Expense Type",
+    onClick: () -> Unit = {},
+    onItemClick : (BackupPlan) -> Unit
 ) {
     val localDensity = LocalDensity.current
     val dropDownHeight : MutableState<Dp> = remember { mutableStateOf(0.dp) }
     val dropDownRowWidth = rememberSaveable(saver = dpSaver) { mutableStateOf(0.dp) }
     val dropDownIcon = rememberSaveable { mutableIntStateOf(R.drawable.ic_drop_down) }
+    val text = remember {
+        derivedStateOf { value.value.label }
+    }
+
+    if(!enable){
+        value.value = BackupPlan.Off
+    }
 
     Row(
         modifier = modifier
     ) {
         GeneralEditText(
-            text = value,
+            text = text.value,
             modifier = Modifier
                 .onGloballyPositioned {
                     dropDownRowWidth.value =
@@ -213,9 +235,17 @@ fun GeneralDropDown(
             ,
             enable = false,
             placeholderText = placeholderText,
-            clickableFun = { showDropDown.value = !showDropDown.value },
+            clickableFun = {
+                if(enable) {
+                    showDropDown.value = !showDropDown.value
+                }
+                onClick()
+            },
             trailingIcon = dropDownIcon.intValue,
-            trailingIconClick = { showDropDown.value = !showDropDown.value }
+            trailingIconClick = {
+                if(enable)
+                    showDropDown.value = !showDropDown.value
+            }
         )
 
         DropdownMenu(
@@ -230,13 +260,14 @@ fun GeneralDropDown(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = valueList[i].value,
+                            text = valueList[i].label,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center
                         )
                     },
                     onClick = {
-                        value.value = valueList[i].value
+                        onItemClick(valueList[i])
+                        value.value = valueList[i]
                         showDropDown.value = false
                     },
                     modifier = Modifier
@@ -249,4 +280,35 @@ fun GeneralDropDown(
     }
 }
 
+@Composable
+fun GeneralSnackBar(
+    visible : MutableState<Boolean>,
+    text : String,
+    modifier: Modifier
+) {
+    AnimatedVisibility(
+        visible = visible.value,
+        enter = slideInVertically(initialOffsetY = { -300 }) + fadeIn(),
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { -300 })
+    ) {
+        Snackbar(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(generalPadding)
+                .then(modifier),
+            containerColor = surface,
+            contentColor = onSurface,
+            shape = RoundedCornerShape(generalPadding)
+        ) {
+            Text(
+                text = text,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(generalPadding),
+                style = Typography.bodyMedium.copy(color = onSurface)
+            )
+        }
+    }
+}
 

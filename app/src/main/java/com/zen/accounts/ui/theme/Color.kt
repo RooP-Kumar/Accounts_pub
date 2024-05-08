@@ -10,6 +10,12 @@ val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)
 
+// colors
+val disabled_color = Color(0xFFD7C1FE)
+val enabled_color = Color(0xFF6002EE)
+val text_color = Color(0xFF545454)
+val border_color = Color(0xFFD1D1D1)
+
 // surface colors
 val lightSurface = Color(0xFFF6F6F6)
 val darkSurface = Color(0xFF0F0F0F)

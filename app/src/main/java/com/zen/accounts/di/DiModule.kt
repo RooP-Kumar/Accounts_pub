@@ -6,9 +6,9 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.zen.accounts.api.retrofit.ExpenseService
 import com.zen.accounts.db.AppDatabase
+import com.zen.accounts.db.dao.BackupTrackerDao
 import com.zen.accounts.db.dao.ExpenseDao
 import com.zen.accounts.db.dao.ExpenseItemDao
-import com.zen.accounts.db.dao.ExpenseTypeDao
 import com.zen.accounts.utility.DateDeSerializerForApi
 import com.zen.accounts.utility.DateSerializerForApi
 import dagger.Module
@@ -38,13 +38,13 @@ class DiModule {
     }
 
     @Provides
-    fun getExpenseTypeDao(db : AppDatabase) : ExpenseTypeDao {
-        return db.getExpenseTypeDao()
+    fun getExpenseItemDao(db : AppDatabase) : ExpenseItemDao {
+        return db.getExpenseItemDao()
     }
 
     @Provides
-    fun getExpenseItemDao(db : AppDatabase) : ExpenseItemDao {
-        return db.getExpenseItemDao()
+    fun getBackupTrackerDao(db : AppDatabase) : BackupTrackerDao {
+        return db.getBackupTrackerDao()
     }
 
     @Provides
