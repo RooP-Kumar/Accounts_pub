@@ -1,4 +1,4 @@
-package com.zen.accounts.ui.screens.main.addexpense.addexpenseitem
+package com.zen.accounts.ui.screens.main.addexpenseitem
 
 import com.zen.accounts.db.dao.ExpenseItemDao
 import com.zen.accounts.db.model.ExpenseItem
