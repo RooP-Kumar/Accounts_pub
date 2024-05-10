@@ -61,7 +61,8 @@ fun getRupeeString(amount: Double, showZero : Boolean = false) : String {
 }
 
 // <------------------ Date Formatter Pattern String ------------------>
-const val date_formatter_patter_string = "dd LLL, yyyy hh:mm a"
+const val date_formatter_pattern_with_time = "dd LLL, yyyy hh:mm a"
+const val date_formatter_pattern_without_time = "dd LLL, yyyy"
 
 // <------------------ Account Type Value Strings ------------------>
 const val total_amount_value = "At"

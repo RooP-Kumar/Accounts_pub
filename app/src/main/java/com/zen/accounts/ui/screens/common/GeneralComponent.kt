@@ -174,6 +174,8 @@ fun GeneralEditText(
 fun GeneralButton(
     text: String,
     modifier: Modifier? = null,
+    containerColor: Color = enabled_color,
+    disabledContainerColor: Color = disabled_color,
     enable: Boolean = true,
     onClick: () -> Unit
 ) {
@@ -183,8 +185,8 @@ fun GeneralButton(
                 .fillMaxWidth()
                 .padding(horizontal = generalPadding, vertical = halfGeneralPadding),
         colors = ButtonDefaults.buttonColors(
-            containerColor = enabled_color,
-            disabledContainerColor = disabled_color
+            containerColor = containerColor,
+            disabledContainerColor = disabledContainerColor
         ),
         enabled = enable,
         shape = RoundedCornerShape(generalPadding),

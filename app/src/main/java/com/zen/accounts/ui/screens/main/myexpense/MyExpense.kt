@@ -35,6 +35,8 @@ import com.zen.accounts.R
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.TopAppBar
+import com.zen.accounts.ui.screens.common.date_formatter_pattern_with_time
+import com.zen.accounts.ui.screens.common.date_formatter_pattern_without_time
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
@@ -49,6 +51,9 @@ import com.zen.accounts.utility.ExpenseItemLayout
 import com.zen.accounts.utility.customShadow
 import com.zen.accounts.utility.generalBorder
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class MyExpenseUiState(
     val expenseItemListAmountTextWidth : MutableState<Dp> = mutableStateOf(0.dp)
@@ -149,40 +154,18 @@ fun MyExpense(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = "items"
+                                    text = "items",
+                                    style = Typography.bodyMedium.copy(color = onBackground)
                                 )
 
                                 Text(
-                                    text = allExpense.value[it].items.size.toString()
+                                    text = allExpense.value[it].items.size.toString(),
+                                    style = Typography.bodyMedium.copy(color = onBackground)
                                 )
                             }
 
-//                            Column(
-//
-//                                modifier = Modifier
-//                                    .padding(top = generalPadding)
-//                                    .clip(shape = RoundedCornerShape(halfGeneralPadding))
-//                                    .background(surface)
-//                                    .padding(horizontal = generalPadding)
-//                                    .padding(top = generalPadding)
-//
-//                            ) {
-//
-//
-//
-//                                repeat(allExpense.value[it].items.size) { expenseItemInd ->
-//
-//                                   ExpenseItemLayout(
-//                                        expenseItem = allExpense.value[it].items[expenseItemInd],
-//                                        textStyle = Typography.bodyMedium.copy(color = onSurface)
-//                                    )
-//
-//                                }
-//
-//                            }
-
                             Text(
-                                text = DateStringConverter().dateToString(allExpense.value[it].date),
+                                text = dateString(allExpense.value[it].date),
                                 style = Typography.bodyMedium.copy(color = onBackground)
                             )
 
@@ -197,4 +180,9 @@ fun MyExpense(
 
 
 
+}
+
+private fun dateString(date : Date) : String {
+    val formatter = SimpleDateFormat(date_formatter_pattern_without_time, java.util.Locale.UK)
+    return formatter.format(date)
 }
