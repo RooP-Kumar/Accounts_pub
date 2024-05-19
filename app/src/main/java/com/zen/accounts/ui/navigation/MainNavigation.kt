@@ -118,11 +118,9 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
                 null
             }
         ) {
-            val addExpenseViewModel: AddExpenseViewModel = hiltViewModel()
             val settingViewModel: SettingViewModel = hiltViewModel()
             Setting(
                 appState = appState,
-                addExpenseViewModel = addExpenseViewModel,
                 settingViewModel = settingViewModel
             )
         }

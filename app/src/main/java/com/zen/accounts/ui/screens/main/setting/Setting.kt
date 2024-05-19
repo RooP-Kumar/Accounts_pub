@@ -123,7 +123,6 @@ data class SettingUiState(
 @Composable
 fun Setting(
     appState: AppState,
-    addExpenseViewModel: AddExpenseViewModel,
     settingViewModel: SettingViewModel
 ) {
     val context = LocalContext.current
