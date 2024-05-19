@@ -14,6 +14,14 @@ class ExpenseItemRepository @Inject constructor(
         expenseItemDao.insertExpenseItem(expenseItem)
     }
 
+    suspend fun updateExpenseItem(expenseItem: ExpenseItem) {
+        expenseItemDao.updateExpenseItem(expenseItem)
+    }
+
+    suspend fun deleteExpenseItem(id: Long) {
+        expenseItemDao.deleteExpenseItem(id)
+    }
+
     suspend fun clearExpenseItemTable() {
         expenseItemDao.deleteAllItems()
     }

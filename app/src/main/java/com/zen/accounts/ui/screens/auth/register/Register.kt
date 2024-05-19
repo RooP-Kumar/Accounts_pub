@@ -11,8 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Text
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -21,10 +20,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.text.input.KeyboardType
 import com.zen.accounts.db.model.User
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
+import com.zen.accounts.ui.screens.common.CustomKeyboardOptions
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralEditText
 import com.zen.accounts.ui.screens.common.GeneralSnackBar
@@ -124,14 +123,16 @@ private fun MainUI(
                 text = uiState.userName.value,
                 onValueChange = {uiState.userName.value = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholderText = enter_name
+                placeholderText = enter_name,
+                keyboardOptions = CustomKeyboardOptions.textEditor
             )
 
             GeneralEditText(
                 text = uiState.email.value,
                 onValueChange = {uiState.email.value = it},
                 modifier = Modifier.fillMaxWidth(),
-                placeholderText = enter_email
+                placeholderText = enter_email,
+                keyboardOptions = CustomKeyboardOptions.emailEditor
             )
 
             GeneralEditText(
@@ -139,9 +140,7 @@ private fun MainUI(
                 onValueChange = {uiState.phone.value = it},
                 modifier = Modifier.fillMaxWidth(),
                 placeholderText = enter_phone,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Phone
-                )
+                keyboardOptions = CustomKeyboardOptions.numberEditor
             )
 
             GeneralEditText(
@@ -149,9 +148,7 @@ private fun MainUI(
                 onValueChange = {uiState.password.value = it},
                 modifier = Modifier.fillMaxWidth(),
                 placeholderText = enter_pass,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Password
-                )
+                keyboardOptions = CustomKeyboardOptions.passwordEditor
             )
 
             Row(
@@ -174,9 +171,7 @@ private fun MainUI(
             }
 
             GeneralButton(
-                text = register_button_label,
-                modifier = Modifier.fillMaxWidth()
-                    .padding(horizontal = generalPadding)
+                text = register_button_label
             ) {
                 coroutineScope.launch {
                     viewModel.registerUser(

@@ -1,10 +1,9 @@
 package com.zen.accounts.api
 
-import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.zen.accounts.db.model.User
 import com.zen.accounts.api.resource.Response
+import com.zen.accounts.db.model.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

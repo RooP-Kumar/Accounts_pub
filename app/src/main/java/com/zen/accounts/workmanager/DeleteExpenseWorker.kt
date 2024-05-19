@@ -10,27 +10,26 @@ import com.zen.accounts.ui.screens.common.work_manager_input_data
 import com.zen.accounts.ui.screens.common.work_manager_output_data
 import com.zen.accounts.workmanager.worker_repository.WorkRepository
 
-class UploadExpenseWorker(
+class DeleteExpenseWorker(
     context : Context,
-    workParam : WorkerParameters,
-    private val repo : WorkRepository
-) : CoroutineWorker(context, workParam) {
+    workerParameters: WorkerParameters,
+    private val repo: WorkRepository
+) : CoroutineWorker(context, workerParameters){
     override suspend fun doWork(): Result {
         val uid = inputData.getString(work_manager_input_data)
         val outputData = Data.Builder()
         return if (uid != null) {
-            return when(val res = repo.uploadExpenseToFirebase(uid)) {
+            return when(val res = repo.deleteFromFirebase(uid)) {
                 is Resource.SUCCESS -> {
-                    repo.clearCreatedExpenseFromBackupTable()
-                    Result.success(workDataOf(work_manager_input_data to uid))
+                    repo.clearDeletedExpenseFromBackupTable()
+                    Result.success(workDataOf(work_manager_output_data to res.value.message))
                 }
                 is Resource.FAILURE -> {
-                    Result.failure(outputData.putString(work_manager_output_data, res.message).build())
+                    Result.failure(workDataOf(work_manager_output_data to res.message))
                 }
             }
         } else {
             Result.failure(outputData.putString(work_manager_output_data, "No user found.").build())
         }
     }
-
 }

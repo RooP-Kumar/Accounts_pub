@@ -32,6 +32,8 @@ const val register_screen_label = "Register"
 const val splash_screen_screen_label = "Splash Screen"
 
 // <------------------ Placeholder Text Strings ------------------>
+const val enter_title = "Title"
+const val enter_amount = "Amount"
 const val enter_name = "Name"
 const val enter_email = "Email"
 const val enter_phone = "Phone"
@@ -98,3 +100,7 @@ const val weekly_worker_name = "weekly worker name"
 const val monthly_worker_name = "monthly worker name"
 const val work_manager_input_data = "input data tag"
 const val work_manager_output_data = "output data tag"
+
+const val create_work = "create work"
+const val update_work = "update work"
+const val delete_work = "delete work"

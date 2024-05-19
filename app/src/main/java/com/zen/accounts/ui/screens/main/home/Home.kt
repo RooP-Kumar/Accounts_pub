@@ -9,14 +9,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -41,7 +38,6 @@ import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.viewmodels.HomeViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
@@ -57,9 +53,12 @@ fun Home(
     val coroutineScope = rememberCoroutineScope()
     val uiState = viewModel.homeUiState
     val allExpense = viewModel.allExpense.collectAsState(initial = listOf())
+
     DisposableEffect(key1 = allExpense.value.size) {
         if(allExpense.value.isNotEmpty())
-            allExpense.value.forEach { uiState.totalAmount.value += it.totalAmount }
+            allExpense.value.forEach {
+                uiState.totalAmount.value += it.totalAmount
+            }
         onDispose { uiState.totalAmount.value = 0.0 }
     }
     Column(
@@ -87,7 +86,9 @@ fun Home(
                 modifier = Modifier
                     .clip(shape = RoundedCornerShape(generalPadding))
                     .clickable {
-                        appState.navController.navigate(Screen.SettingScreen.route)
+                        coroutineScope.launch {
+                            appState.navController.navigate(Screen.SettingScreen.route)
+                        }
                     }
                     .padding(halfGeneralPadding),
                 tint = onBackground
@@ -115,52 +116,52 @@ fun Home(
             )
         }
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+        Row(
             modifier = Modifier
                 .padding(start = generalPadding)
         ) {
-            item {
-                GridItem(title = add_expense_screen_label) {
-                    coroutineScope.launch {
-                        appState.navController.navigate(Screen.AddExpenseScreen.route)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = generalPadding, end = generalPadding)
+                    .clickable {
+                        coroutineScope.launch {
+                            appState.navigate(Screen.AddExpenseScreen.route)
+                        }
                     }
-                }
+                    .clip(shape = RoundedCornerShape(generalPadding))
+                    .background(enabled_color)
+                    .padding(horizontal = generalPadding, vertical = generalPadding.times(2))
+            ) {
+                Text(
+                    text = add_expense_screen_label,
+                    style = Typography.bodySmall.copy(color = Color.White),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                )
             }
 
-            item {
-                GridItem(title = my_expense_screen_label) {
-                    coroutineScope.launch {
-                        appState.navController.navigate(Screen.MyExpenseScreen.route)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = generalPadding, end = generalPadding)
+                    .clickable {
+                        coroutineScope.launch {
+                            appState.navController.navigate(Screen.MyExpenseScreen.route)
+                        }
                     }
-                }
+                    .clip(shape = RoundedCornerShape(generalPadding))
+                    .background(enabled_color)
+                    .padding(horizontal = generalPadding, vertical = generalPadding.times(2))
+            ) {
+                Text(
+                    text = my_expense_screen_label,
+                    style = Typography.bodySmall.copy(color = Color.White),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                )
             }
+
         }
-    }
-}
-
-// Grid layout components
-
-@Composable
-fun GridItem(
-    title: String,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .padding(bottom = generalPadding, end = generalPadding)
-            .clickable {
-                onClick()
-            }
-            .clip(shape = RoundedCornerShape(generalPadding))
-            .background(enabled_color)
-            .padding(horizontal = generalPadding, vertical = generalPadding.times(2))
-    ) {
-        Text(
-            text = title,
-            style = Typography.bodySmall.copy(color = Color.White),
-            modifier = Modifier
-                .align(Alignment.Center)
-        )
     }
 }

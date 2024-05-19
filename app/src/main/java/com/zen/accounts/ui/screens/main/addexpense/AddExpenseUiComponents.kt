@@ -101,7 +101,7 @@ fun AddExpenseItemTitleSection(
 @Composable
 fun ExpenseItemListSection (
     appState : AppState,
-    allExpenseItem : List<ExpenseItem>,
+    allExpenseItem : ArrayList<ExpenseItem>,
     rightSideTitleHeight : MutableState<Dp>? = null,
     expenseItemListAmountTextWidth : MutableState<Dp>,
     localDensity: Density,

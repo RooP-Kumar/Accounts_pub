@@ -1,7 +1,6 @@
 package com.zen.accounts.db.model
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.zen.accounts.utility.DateStringConverter
@@ -12,9 +11,9 @@ import java.util.Date
 @TypeConverters(ListOfExpenseItemToStringConverter::class, DateStringConverter::class)
 data class Expense(
     @PrimaryKey
-    val id : Long = 0L,
-    val title : String = "",
-    val items : List<ExpenseItem> = listOf(),
-    val totalAmount : Double = 0.0,
+    var id : Long = 0L,
+    var title : String = "",
+    val items : ArrayList<ExpenseItem> = arrayListOf(),
+    var totalAmount : Double = 0.0,
     var date : Date = Date()
 )

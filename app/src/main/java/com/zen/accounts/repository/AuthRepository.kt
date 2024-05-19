@@ -1,6 +1,5 @@
 package com.zen.accounts.repository
 
-import android.util.Log
 import com.zen.accounts.api.AuthApi
 import com.zen.accounts.api.resource.Resource
 import com.zen.accounts.api.resource.Response
@@ -34,7 +33,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    private fun generateUID(user : User) : String {
+    fun generateUID(user : User) : String {
         val first = user.phone.substring(0, 5)
         var middleOne = ""
         for (i in 0..<user.name.length){

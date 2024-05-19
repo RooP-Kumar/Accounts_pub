@@ -11,7 +11,9 @@ class HomeViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository
 ) : ViewModel() {
     val allExpense get() = expenseRepository.allExpense
+
     val homeUiState by lazy {
         HomeUiState()
     }
+
 }
