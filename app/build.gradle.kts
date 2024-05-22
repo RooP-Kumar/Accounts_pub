@@ -54,6 +54,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.test:core-ktx:1.5.0")
     testImplementation("junit:junit:4.12")
     val navVersion = "2.7.7"
     val workVersion = "2.9.0"
@@ -113,17 +114,25 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-storage")
 
     // Lottie Animation
     implementation("com.airbnb.android:lottie-compose:4.0.0")
 
     // Work Manager
     implementation("androidx.work:work-runtime-ktx:$workVersion")
+    implementation("com.google.guava:guava:31.1-jre")
 
     // Image Cropper
     implementation("com.vanniktech:android-image-cropper:4.5.0")
 
-    // Hemcrest
+    // Coil
+    implementation("io.coil-kt:coil-compose:2.3.0")
+
+    // Testing Dependencies
+    // Work Manager Test
+    androidTestImplementation("androidx.work:work-testing:$workVersion")
+    // HemCrest Test
     implementation("org.hamcrest:hamcrest:2.2")
 
 }

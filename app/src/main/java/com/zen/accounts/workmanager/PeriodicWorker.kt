@@ -14,19 +14,15 @@ class PeriodicWorker(
     private val workerRepository: WorkerRepository
 ) : CoroutineWorker(context, workerParameters) {
     override suspend fun doWork(): Result {
+        Log.d("asdf", "doWork: Running")
         val uid = inputData.getString(work_manager_input_data)
         return if(uid != null) {
-            val requestIds = workerRepository.startUploadingNow(uid)
+            val requestIds = workerRepository.startUploadingNow(uid, true)
             workerRepository.getWorkInfoById(requestIds[0]).collectLatest {
-                Log.d("asdf", "doWork: create periodic work ----> ${it.state}")
             }
-
             workerRepository.getWorkInfoById(requestIds[1]).collectLatest {
-                Log.d("asdf", "doWork: update periodic work ----> ${it.state}")
             }
-
             workerRepository.getWorkInfoById(requestIds[2]).collectLatest {
-                Log.d("asdf", "doWork: delete periodic work ----> ${it.state}")
             }
             Result.success()
         } else {

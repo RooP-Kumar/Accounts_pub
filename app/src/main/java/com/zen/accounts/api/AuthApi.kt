@@ -1,7 +1,10 @@
 package com.zen.accounts.api
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import com.zen.accounts.api.resource.Response
 import com.zen.accounts.db.model.User
 import kotlinx.coroutines.CoroutineScope
@@ -63,7 +66,52 @@ class AuthApi @Inject constructor(){
         }
     }
 
-    suspend fun logout() {
+    suspend fun uploadProfilePic(user: User) : Response<Unit> = suspendCoroutine { continuation ->
+        val response = Response(value = Unit)
+        val db = FirebaseFirestore.getInstance()
+        val storage = FirebaseStorage.getInstance()
+        val storageRef = storage.getReference("user/${user.uid}/profile")
+
+        val docRef = db.collection("Users").document(user.uid)
+        user.profilePic?.let {imageBytes ->
+            storageRef.putBytes(imageBytes)
+                .continueWithTask { task ->
+                    if(!task.isSuccessful){
+                        task.exception?.let {
+                            throw it
+                        }
+                    }
+                    storageRef.downloadUrl
+                }
+                .addOnCompleteListener {task ->
+                    if(task.isSuccessful) {
+                        val imageUri = task.result
+                        docRef.update("profilePic", imageUri)
+                            .addOnSuccessListener {
+                                response.status = true
+                                response.message = "Profile pic is successfully uploaded."
+                                continuation.resume(response)
+                            }
+                            .addOnFailureListener {
+                                response.status = false
+                                response.message = "Something went wrong."
+                                continuation.resume(response)
+                            }
+                    } else {
+                        response.status = false
+                        response.message = "Something went wrong."
+                        continuation.resume(response)
+                    }
+                }
+                .addOnFailureListener {
+                    response.status = false
+                    response.message = "Something went wrong."
+                    continuation.resume(response)
+                }
+        }
+    }
+
+    fun logout() {
         val auth = FirebaseAuth.getInstance()
         auth.signOut()
     }

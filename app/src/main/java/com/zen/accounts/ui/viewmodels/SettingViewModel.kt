@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import com.zen.accounts.api.resource.Resource
 import com.zen.accounts.repository.AuthRepository
 import com.zen.accounts.repository.ExpenseItemRepository
 import com.zen.accounts.repository.ExpenseRepository
@@ -32,9 +34,6 @@ class SettingViewModel @Inject constructor(
     private val mediaStoreRepository: MediaStoreRepository
 ) : BaseViewmodel() {
     val settingUIState by lazy { SettingUiState() }
-    private val _uploadExpenseWorkerInfo: MutableStateFlow<List<WorkInfo>?> =
-        MutableStateFlow(listOf())
-    val uploadExpenseWorkerInfo: Flow<List<WorkInfo>?> get() = _uploadExpenseWorkerInfo
 
     fun logout() {
         viewModelScope.launch {
@@ -170,18 +169,11 @@ class SettingViewModel @Inject constructor(
         }
     }
 
-    fun saveImageToStorage(uri: Uri) : Deferred<Bitmap?> {
+    fun saveImageToStorage(uri: Uri): Deferred<Bitmap?> {
         return com.zen.accounts.utility.async {
             settingUIState.loadingState.value = LoadingState.LOADING
             val bitmap = mediaStoreRepository.saveImageToStorage(uri)
-            val imageBitmap = bitmap.await()
-            return@async if (imageBitmap != null) {
-                settingUIState.loadingState.value = LoadingState.SUCCESS
-                imageBitmap
-            } else {
-                settingUIState.loadingState.value = LoadingState.FAILURE
-                null
-            }
+            return@async bitmap.await()
         }
     }
 
@@ -189,6 +181,16 @@ class SettingViewModel @Inject constructor(
         io {
             dataStore.getUser()?.let {
                 dataStore.saveUser(it.copy(profilePic = imageData))
+                when (authRepository.uploadProfilePic(it.copy(profilePic = imageData))) {
+                    is Resource.SUCCESS -> {
+                        settingUIState.user.value = settingUIState.user.value?.copy(profilePic = imageData)
+                        settingUIState.loadingState.value = LoadingState.SUCCESS
+                    }
+
+                    is Resource.FAILURE -> {
+                        settingUIState.loadingState.value = LoadingState.FAILURE
+                    }
+                }
             }
         }
     }

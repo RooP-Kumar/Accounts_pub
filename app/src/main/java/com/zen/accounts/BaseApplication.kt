@@ -23,7 +23,7 @@ class BaseApplication: Application(), Configuration.Provider {
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
-            .setMinimumLoggingLevel(Log.INFO)
+            .setMinimumLoggingLevel(Log.DEBUG)
             .setWorkerFactory(
                 CombineWorkerFactory(repo)
             )
@@ -38,6 +38,7 @@ class CombineWorkerFactory(
         workerClassName: String,
         workerParameters: WorkerParameters
     ): ListenableWorker? {
+        Log.d("asdf", "Running in the Create worker factory function")
         return when(workerClassName) {
             UploadExpenseWorker::class.java.name -> {
                 UploadExpenseWorkerFactory(repo).createWorker(appContext, workerClassName, workerParameters)
@@ -49,9 +50,7 @@ class CombineWorkerFactory(
                 DeleteExpenseWorkerFactory(repo).createWorker(appContext, workerClassName, workerParameters)
             }
             PeriodicWorker::class.java.name -> {
-                PeriodicWorkerFactory(
-                    WorkerRepository(appContext)
-                ).createWorker(appContext, workerClassName, workerParameters)
+                PeriodicWorkerFactory(WorkerRepository(appContext)).createWorker(appContext, workerClassName, workerParameters)
             }
             else -> null
         }
@@ -66,7 +65,7 @@ class PeriodicWorkerFactory(
         appContext: Context,
         workerClassName: String,
         workerParameters: WorkerParameters
-    ): ListenableWorker? {
+    ): ListenableWorker {
         return PeriodicWorker(
             appContext,
             workerParameters,

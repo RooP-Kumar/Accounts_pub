@@ -4,9 +4,11 @@ import com.zen.accounts.api.AuthApi
 import com.zen.accounts.api.resource.Resource
 import com.zen.accounts.api.resource.Response
 import com.zen.accounts.db.model.User
+import com.zen.accounts.utility.io
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.coroutines.suspendCoroutine
 
 class AuthRepository @Inject constructor(
     private val authApi: AuthApi
@@ -28,8 +30,16 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun logout() {
-        withContext(Dispatchers.IO) {
+        io {
             authApi.logout()
+        }
+    }
+
+    suspend fun uploadProfilePic(user: User): Resource<Response<Unit>> {
+        return withContext(Dispatchers.IO) {
+            val res = authApi.uploadProfilePic(user)
+            if(res.status) Resource.SUCCESS(value = res)
+            else Resource.FAILURE(res.message)
         }
     }
 

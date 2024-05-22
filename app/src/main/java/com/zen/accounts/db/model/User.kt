@@ -1,5 +1,8 @@
 package com.zen.accounts.db.model
 
+import android.graphics.Bitmap
+import android.net.Uri
+
 data class User(
     var uid : String = "",
     var name: String = "",

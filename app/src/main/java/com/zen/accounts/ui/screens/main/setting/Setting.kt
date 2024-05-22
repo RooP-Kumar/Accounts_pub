@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -128,12 +130,14 @@ fun Setting(
     val context = LocalContext.current
     val uiState = settingViewModel.settingUIState
     LaunchedEffect(key1 = Unit) {
-        settingViewModel.getBackupPlan()
         if(uiState.user.value == null) {
-            appState.dataStore.getUser()?.let {
-                uiState.user.value = it
+            io {
+                appState.dataStore.getUser()?.let {
+                    uiState.user.value = it
+                }
             }
         }
+        settingViewModel.getBackupPlan()
     }
 
     LaunchedEffect(key1 = uiState.user.value) {
@@ -289,10 +293,10 @@ private fun MainUI(
                                         }
                                     }
                                 },
-                                onItemClick = {
-                                    uiState.backupDropDownText.value = it
+                                onItemClick = {backupPlan ->
+                                    uiState.backupDropDownText.value = backupPlan
                                     coroutineScope.launch(Dispatchers.IO) {
-                                        when (it) {
+                                        when (backupPlan) {
                                             is BackupPlan.Off -> {
                                                 settingViewModel.cancelAllWork()
                                             }
@@ -687,7 +691,6 @@ fun ImagePickerSection(
         modifier = Modifier
             .fillMaxWidth()
             .height(250.dp)
-            .generalBorder(backgroundColor = surface)
             .then(modifier),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically

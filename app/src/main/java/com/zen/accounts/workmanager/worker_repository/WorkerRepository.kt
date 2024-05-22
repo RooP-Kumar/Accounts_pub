@@ -1,6 +1,7 @@
 package com.zen.accounts.workmanager.worker_repository
 
 import android.content.Context
+import android.util.Log
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -18,22 +19,24 @@ import com.zen.accounts.ui.screens.common.single_work_request_tag
 import com.zen.accounts.ui.screens.common.weekly_work_request_tag
 import com.zen.accounts.ui.screens.common.weekly_worker_name
 import com.zen.accounts.ui.screens.common.work_manager_input_data
+import com.zen.accounts.utility.io
 import com.zen.accounts.workmanager.DeleteExpenseWorker
 import com.zen.accounts.workmanager.PeriodicWorker
 import com.zen.accounts.workmanager.UpdateExpenseWorker
 import com.zen.accounts.workmanager.UploadExpenseWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class WorkerRepository @Inject constructor(
-    @ApplicationContext private val context : Context
+    @ApplicationContext private val context: Context
 ) {
 
     companion object {
-        private lateinit var workManager : WorkManager
+        private lateinit var workManager: WorkManager
     }
 
     init {
@@ -46,7 +49,7 @@ class WorkerRepository @Inject constructor(
     }
 
     // Single Work Request
-    fun startUploadingNow(uid : String) : List<UUID> {
+    fun startUploadingNow(uid: String, calledFromTimePeriod: Boolean = false): List<UUID> {
         val inputData = workDataOf(work_manager_input_data to uid)
 
         val customConstraints = Constraints
@@ -73,7 +76,10 @@ class WorkerRepository @Inject constructor(
             .setInputData(inputData)
             .build()
 
-        workManager.cancelAllWork()
+        if (!calledFromTimePeriod) {
+            workManager.cancelAllWork()
+        }
+
         // Not recommended. Because create, update and delete can be done in single transaction.
         // I am doing it because of learning purpose
         // I wanted to learning chaining the work
@@ -87,7 +93,7 @@ class WorkerRepository @Inject constructor(
     }
 
     // Daily Work Request
-    fun startUploadingDaily(uid : String) {
+    fun startUploadingDaily(uid: String) {
         val inputData = Data.Builder()
             .putString(work_manager_input_data, uid)
             .build()
@@ -98,19 +104,42 @@ class WorkerRepository @Inject constructor(
             .setRequiresCharging(false)
             .build()
 
-        val request = PeriodicWorkRequestBuilder<PeriodicWorker>(repeatInterval = 1, repeatIntervalTimeUnit = TimeUnit.DAYS)
-            .addTag(daily_work_request_tag)
-            .setConstraints(customConstraints)
-            .setInputData(inputData)
-            .build()
+        io {
+            workManager.getWorkInfosForUniqueWorkFlow(daily_worker_name).collectLatest {
+                Log.d("asdf", "List ----> $it \n ${it.size}")
+                var createNewRequest = false
+                it?.let {list ->
+                    for(i in 0..<list.size) {
+                        val workInfo = list[i]
+                        if(workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING){
+                            createNewRequest = false
+                            break
+                        } else {
+                            createNewRequest = true
+                        }
+                    }
+                }
+                if (it == null || it.isEmpty() || createNewRequest) {
+                    val request = PeriodicWorkRequestBuilder<PeriodicWorker>(
+                        repeatInterval = 24,
+                        repeatIntervalTimeUnit = TimeUnit.HOURS
+                    )
+                        .addTag(daily_work_request_tag)
+                        .setConstraints(customConstraints)
+                        .setInputData(inputData)
+                        .build()
 
-        workManager.cancelAllWork()
-        workManager
-            .enqueueUniquePeriodicWork(
-                daily_worker_name,
-                ExistingPeriodicWorkPolicy.UPDATE,
-                request
-            )
+                    workManager
+                        .enqueueUniquePeriodicWork(
+                            daily_worker_name,
+                            ExistingPeriodicWorkPolicy.UPDATE,
+                            request
+                        )
+                }
+            }
+
+        }
+
 
     }
 
@@ -126,14 +155,14 @@ class WorkerRepository @Inject constructor(
             .setRequiresCharging(false)
             .build()
 
-        val request = PeriodicWorkRequestBuilder<PeriodicWorker>(repeatInterval = 7, repeatIntervalTimeUnit = TimeUnit.DAYS)
+        val request = PeriodicWorkRequestBuilder<PeriodicWorker>(
+            repeatInterval = 7 * 24,
+            repeatIntervalTimeUnit = TimeUnit.HOURS
+        )
             .addTag(weekly_work_request_tag)
             .setConstraints(customConstraints)
             .setInputData(inputData)
             .build()
-
-
-
 
         workManager.cancelAllWork()
         workManager.enqueueUniquePeriodicWork(
@@ -155,12 +184,14 @@ class WorkerRepository @Inject constructor(
             .setRequiresCharging(false)
             .build()
 
-        val request = PeriodicWorkRequestBuilder<PeriodicWorker>(repeatInterval = 30, repeatIntervalTimeUnit = TimeUnit.DAYS)
+        val request = PeriodicWorkRequestBuilder<PeriodicWorker>(
+            repeatInterval = 30 * 24,
+            repeatIntervalTimeUnit = TimeUnit.HOURS
+        )
             .addTag(monthly_work_request_tag)
             .setConstraints(customConstraints)
             .setInputData(inputData)
             .build()
-
 
         workManager.cancelAllWork()
         workManager.enqueueUniquePeriodicWork(

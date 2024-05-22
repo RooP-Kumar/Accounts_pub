@@ -30,10 +30,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -110,7 +112,10 @@ fun GeneralEditText(
     @DrawableRes trailingIcon: Int? = null,
     trailingIconClick: (() -> Unit)? = null
 ) {
-    val passwordVisible: MutableState<Boolean> = rememberSaveable { mutableStateOf(false) }
+    val mutablePasswordVisible = rememberSaveable {
+        mutableStateOf(keyboardOptions.keyboardType != KeyboardType.Password)
+    }
+    val passwordVisible = remember { derivedStateOf { mutablePasswordVisible.value } }
     val customSelectionColor = TextSelectionColors(
         handleColor = onBackground,
         backgroundColor = onBackground.copy(alpha = 0.4f)
@@ -172,7 +177,7 @@ fun GeneralEditText(
                             modifier = Modifier
                                 .align(Alignment.End)
                                 .clickable {
-                                    passwordVisible.value = !passwordVisible.value
+                                    mutablePasswordVisible.value = !mutablePasswordVisible.value
                                 },
                             tint = onSurface
                         )
