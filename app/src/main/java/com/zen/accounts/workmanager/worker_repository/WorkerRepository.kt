@@ -155,21 +155,41 @@ class WorkerRepository @Inject constructor(
             .setRequiresCharging(false)
             .build()
 
-        val request = PeriodicWorkRequestBuilder<PeriodicWorker>(
-            repeatInterval = 7 * 24,
-            repeatIntervalTimeUnit = TimeUnit.HOURS
-        )
-            .addTag(weekly_work_request_tag)
-            .setConstraints(customConstraints)
-            .setInputData(inputData)
-            .build()
+        io {
+            workManager.getWorkInfosForUniqueWorkFlow(weekly_work_request_tag).collectLatest {
+                Log.d("asdf", "List ----> $it \n ${it.size}")
+                var createNewRequest = false
+                it?.let { list ->
+                    for (i in 0..<list.size) {
+                        val workInfo = list[i]
+                        if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
+                            createNewRequest = false
+                            break
+                        } else {
+                            createNewRequest = true
+                        }
+                    }
+                }
+                if (it == null || it.isEmpty() || createNewRequest) {
+                    val request = PeriodicWorkRequestBuilder<PeriodicWorker>(
+                        repeatInterval = 7 * 24,
+                        repeatIntervalTimeUnit = TimeUnit.HOURS
+                    )
+                        .addTag(weekly_work_request_tag)
+                        .setConstraints(customConstraints)
+                        .setInputData(inputData)
+                        .build()
+                    workManager.enqueueUniquePeriodicWork(
+                        weekly_worker_name,
+                        ExistingPeriodicWorkPolicy.UPDATE,
+                        request
+                    )
+                }
 
-        workManager.cancelAllWork()
-        workManager.enqueueUniquePeriodicWork(
-            weekly_worker_name,
-            ExistingPeriodicWorkPolicy.UPDATE,
-            request
-        )
+            }
+        }
+
+
     }
 
     // Monthly Work Request
@@ -184,21 +204,41 @@ class WorkerRepository @Inject constructor(
             .setRequiresCharging(false)
             .build()
 
-        val request = PeriodicWorkRequestBuilder<PeriodicWorker>(
-            repeatInterval = 30 * 24,
-            repeatIntervalTimeUnit = TimeUnit.HOURS
-        )
-            .addTag(monthly_work_request_tag)
-            .setConstraints(customConstraints)
-            .setInputData(inputData)
-            .build()
+        io {
+            workManager.getWorkInfosForUniqueWorkFlow(monthly_work_request_tag).collectLatest {
+                Log.d("asdf", "List ----> $it \n ${it.size}")
+                var createNewRequest = false
+                it?.let { list ->
+                    for (i in 0..<list.size) {
+                        val workInfo = list[i]
+                        if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
+                            createNewRequest = false
+                            break
+                        } else {
+                            createNewRequest = true
+                        }
+                    }
+                }
+                if (it == null || it.isEmpty() || createNewRequest) {
+                    val request = PeriodicWorkRequestBuilder<PeriodicWorker>(
+                        repeatInterval = 30 * 24,
+                        repeatIntervalTimeUnit = TimeUnit.HOURS
+                    )
+                        .addTag(monthly_work_request_tag)
+                        .setConstraints(customConstraints)
+                        .setInputData(inputData)
+                        .build()
 
-        workManager.cancelAllWork()
-        workManager.enqueueUniquePeriodicWork(
-            monthly_worker_name,
-            ExistingPeriodicWorkPolicy.UPDATE,
-            request
-        )
+                    workManager.enqueueUniquePeriodicWork(
+                        monthly_worker_name,
+                        ExistingPeriodicWorkPolicy.UPDATE,
+                        request
+                    )
+                }
+
+            }
+        }
+
     }
 
     fun getWorkInfoById(id: UUID): Flow<WorkInfo> {

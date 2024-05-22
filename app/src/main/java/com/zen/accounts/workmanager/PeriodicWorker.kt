@@ -17,13 +17,7 @@ class PeriodicWorker(
         Log.d("asdf", "doWork: Running")
         val uid = inputData.getString(work_manager_input_data)
         return if(uid != null) {
-            val requestIds = workerRepository.startUploadingNow(uid, true)
-            workerRepository.getWorkInfoById(requestIds[0]).collectLatest {
-            }
-            workerRepository.getWorkInfoById(requestIds[1]).collectLatest {
-            }
-            workerRepository.getWorkInfoById(requestIds[2]).collectLatest {
-            }
+            workerRepository.startUploadingNow(uid, true)
             Result.success()
         } else {
             Result.failure()
