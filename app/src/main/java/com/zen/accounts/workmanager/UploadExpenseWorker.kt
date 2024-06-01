@@ -1,19 +1,19 @@
 package com.zen.accounts.workmanager
 
 import android.content.Context
-import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.zen.accounts.api.resource.Resource
-import com.zen.accounts.repository.ExpenseRepository
 import com.zen.accounts.ui.screens.common.work_manager_input_data
 import com.zen.accounts.ui.screens.common.work_manager_output_data
+import com.zen.accounts.workmanager.worker_repository.WorkRepository
 
 class UploadExpenseWorker(
-    val context : Context,
+    context : Context,
     workParam : WorkerParameters,
-    private val repo : ExpenseRepository
+    private val repo : WorkRepository
 ) : CoroutineWorker(context, workParam) {
     override suspend fun doWork(): Result {
         val uid = inputData.getString(work_manager_input_data)
@@ -21,8 +21,8 @@ class UploadExpenseWorker(
         return if (uid != null) {
             return when(val res = repo.uploadExpenseToFirebase(uid)) {
                 is Resource.SUCCESS -> {
-                    repo.clearBackupTable()
-                    Result.success()
+                    repo.clearCreatedExpenseFromBackupTable()
+                    Result.success(workDataOf(work_manager_input_data to uid))
                 }
                 is Resource.FAILURE -> {
                     Result.failure(outputData.putString(work_manager_output_data, res.message).build())

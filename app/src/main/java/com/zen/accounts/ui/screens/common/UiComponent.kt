@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,10 +25,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -42,8 +43,8 @@ import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
+import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.utility.generalBorder
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoadingDialog(
@@ -116,9 +117,7 @@ fun TopBarBackButton(appState: AppState) {
             .padding(start = generalPadding)
             .clip(RoundedCornerShape(generalPadding))
             .clickable {
-                coroutineScope.launch {
-                    appState.navController.popBackStack()
-                }
+                appState.navController.popBackStack()
             }
             .padding(halfGeneralPadding),
         tint = onBackground
@@ -129,12 +128,14 @@ fun TopBarBackButton(appState: AppState) {
 fun TopAppBar(
     appState: AppState,
     buttonEnableCondition: Boolean = false,
+    btnText : String = "Done",
+    painterResource : Painter? = null,
     onClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(75.dp),
+            .height(topBarHeight),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -149,9 +150,18 @@ fun TopAppBar(
                 .weight(1f)
         )
 
-        if (onClick != null) {
+        if (onClick != null && painterResource != null) {
+            IconButton(onClick = { onClick() }) {
+                Icon(
+                    painter = painterResource,
+                    contentDescription ="icon description",
+                    tint = onBackground
+                )
+            }
+
+        } else if(onClick != null){
             GeneralButton(
-                text = "Done",
+                text = btnText,
                 modifier = Modifier.padding(horizontal = generalPadding),
                 enable = buttonEnableCondition
             ) {
@@ -165,7 +175,7 @@ fun TopAppBar(
 fun GeneralDialog(
     showDialog : MutableState<Boolean>,
     dialogProperties: DialogProperties = DialogProperties(),
-    content : @Composable () -> Unit
+    content : @Composable ColumnScope.() -> Unit
 ) {
     AnimatedVisibility(visible = showDialog.value) {
         Dialog(
@@ -174,7 +184,13 @@ fun GeneralDialog(
             },
             dialogProperties
         ) {
-            content.invoke()
+            Column(
+                modifier = Modifier
+                    .generalBorder()
+                    .background(background)
+            ) {
+                content.invoke(this)
+            }
         }
     }
 }

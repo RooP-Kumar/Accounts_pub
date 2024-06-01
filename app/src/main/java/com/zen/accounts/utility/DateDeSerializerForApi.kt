@@ -3,14 +3,14 @@ package com.zen.accounts.utility
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import com.zen.accounts.ui.screens.common.date_formatter_patter_string
+import com.zen.accounts.ui.screens.common.date_formatter_pattern_with_time
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class DateDeSerializerForApi: JsonDeserializer<Date> {
-    private val formatter = SimpleDateFormat(date_formatter_patter_string, Locale.UK)
+    private val formatter = SimpleDateFormat(date_formatter_pattern_with_time, Locale.UK)
     override fun deserialize(
         json: JsonElement?,
         typeOfT: Type?,

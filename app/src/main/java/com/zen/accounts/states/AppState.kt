@@ -32,6 +32,16 @@ class AppState(context: Context) {
     // Holding navController for circulate throughout the whole application.
     var navController : NavHostController = NavHostController(context)
 
+    fun navigate(route : String) {
+        navController.navigate(route) {
+            launchSingleTop = true
+            restoreState = true
+            popUpTo(route) {
+                inclusive = true
+            }
+        }
+    }
+
     // User Data Store
     var dataStore = UserDataStore(context)
 

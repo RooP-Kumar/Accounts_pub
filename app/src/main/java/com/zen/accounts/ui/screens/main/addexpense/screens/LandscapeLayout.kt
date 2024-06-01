@@ -21,13 +21,13 @@ import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.screens.main.addexpense.AddExpenseItemTitleSection
-import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
 import com.zen.accounts.ui.screens.main.addexpense.ExpenseItemListSection
 import com.zen.accounts.ui.screens.main.addexpense.UpperTitleSection
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onSurface
+import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
 import java.util.Date
 
 @Composable
@@ -37,7 +37,7 @@ fun LandscapeLayout(
 ) {
     val uiState = viewModel.addExpenseUiState
     val localDensity = LocalDensity.current
-    val allExpenseItem = viewModel.allExpenseItem.collectAsState(initial = listOf())
+    val allExpenseItem = viewModel.allExpenseItem.collectAsState(initial = arrayListOf())
     val rightSideTitleHeight = remember {
         mutableStateOf(0.dp)
     }

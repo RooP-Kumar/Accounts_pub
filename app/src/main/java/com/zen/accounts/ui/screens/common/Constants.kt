@@ -13,18 +13,20 @@ const val add_expense_screen_route = "Add Expense Screen Route"
 const val expense_detail_screen_route = "Expense Details Screen Route"
 const val my_expense_screen_route = "My Expense Screen Route"
 const val home_screen_route = "Home Screen Route"
+const val monthly_expense_screen_route = "Monthly Expense Screen Route"
 const val setting_screen_route = "Setting Screen Route"
-const val logout_route = "Logout Route"
 const val add_expense_item_screen_route = "Add Expense item Route"
 
 // <------------------ Screen Routes Arguments Strings ------------------>
 const val expense_details_argument = "expense_details_arg"
+const val monthly_expense_argument = "monthly_expense_arg"
 
 // <------------------ Screen Label Strings ------------------>
 const val add_expense_item_screen_label = "Add Expense Item"
 const val add_expense_screen_label = "Add Expense"
 const val my_expense_screen_label = "My Expense"
 const val home_screen_label = "Home"
+const val monthly_expense_screen_label = "Monthly Expense"
 const val setting_screen_label = "Setting"
 const val expense_detail_screen_label = "Expense Details"
 const val login_screen_label = "Login"
@@ -32,6 +34,8 @@ const val register_screen_label = "Register"
 const val splash_screen_screen_label = "Splash Screen"
 
 // <------------------ Placeholder Text Strings ------------------>
+const val enter_title = "Title"
+const val enter_amount = "Amount"
 const val enter_name = "Name"
 const val enter_email = "Email"
 const val enter_phone = "Phone"
@@ -61,7 +65,8 @@ fun getRupeeString(amount: Double, showZero : Boolean = false) : String {
 }
 
 // <------------------ Date Formatter Pattern String ------------------>
-const val date_formatter_patter_string = "dd LLL, yyyy hh:mm a"
+const val date_formatter_pattern_with_time = "dd LLL, yyyy hh:mm a"
+const val date_formatter_pattern_without_time = "dd LLL, yyyy"
 
 // <------------------ Account Type Value Strings ------------------>
 const val total_amount_value = "At"
@@ -91,9 +96,23 @@ const val single_work_request_tag = "singleWorkRequestTag"
 const val daily_work_request_tag = "dailyWorkRequestTag"
 const val weekly_work_request_tag = "weeklyWorkRequestTag"
 const val monthly_work_request_tag = "monthlyWorkRequestTag"
+const val update_profile_work_request_tag = "updateProfileWorkRequestTag"
 const val single_worker_name = "single worker name"
+const val update_profile_worker_name = "update profile worker name"
 const val daily_worker_name = "daily worker name"
 const val weekly_worker_name = "weekly worker name"
 const val monthly_worker_name = "monthly worker name"
 const val work_manager_input_data = "input data tag"
 const val work_manager_output_data = "output data tag"
+
+const val create_work = "create work"
+const val update_work = "update work"
+const val delete_work = "delete work"
+
+// <------------------ Work Manager String ------------------>
+fun getDocPath(uid:String) : String {
+    return "Users/$uid"
+}
+fun getStoragePath(uid: String) : String {
+    return "User/$uid"
+}

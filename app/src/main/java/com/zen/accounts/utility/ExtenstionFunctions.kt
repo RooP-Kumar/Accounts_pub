@@ -1,36 +1,26 @@
 package com.zen.accounts.utility
 
 import android.content.Context
-import android.graphics.BlurMaskFilter
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.DrawStyle
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.platform.inspectable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
-import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.normalPadding
-import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.roundedCornerShape
 import com.zen.accounts.ui.theme.shadowColor
 
 @Composable
@@ -66,9 +56,16 @@ fun Modifier.customShadow(
 @Composable
 fun Modifier.generalBorder(
     color: Color = shadowColor,
-    borderRadius: Dp = generalPadding,
+    borderRadiusX: Dp = generalPadding,
+    borderRadiusY: Dp = generalPadding,
     width: Dp = 0.5.dp,
+    backgroundColor: Color = background
 ): Modifier = this.drawBehind {
+
+    /**
+    * Please use it before background, otherwise it will not work properly.
+    * */
+
     val shadowColor = android.graphics.Color.toArgb(color.value.toLong())
     val widthPx = width.toPx()
     this.drawIntoCanvas {
@@ -80,13 +77,40 @@ fun Modifier.generalBorder(
             -1 * widthPx,
             this.size.width + widthPx,
             this.size.height + widthPx,
-            borderRadius.toPx(),
-            borderRadius.toPx(),
+            borderRadiusX.toPx(),
+            borderRadiusY.toPx(),
             paint
         )
     }
 }.clip(shape = RoundedCornerShape(generalPadding))
+    .background(backgroundColor)
 
+@Composable
+fun Modifier.generalCircleBorder(
+    size: Dp = 0.5.dp,
+    color: Color = shadowColor,
+    backgroundColor : Color = background
+): Modifier = this.drawBehind {
+
+    /**
+     * Please use it before background, otherwise it will not work properly.
+     * */
+
+    val shadowColor = android.graphics.Color.toArgb(color.value.toLong())
+    val radius = size.toPx() / 2
+    this.drawIntoCanvas {
+        val paint = Paint()
+        val frameworkPaint = paint.asFrameworkPaint()
+        frameworkPaint.color = shadowColor
+        it.drawCircle(
+            Offset(radius, radius),
+            radius+2,
+            paint
+        )
+    }
+}
+    .clip(CircleShape)
+    .background(backgroundColor)
 
 fun Context.toast(msg : String) {
     Toast.makeText(this, msg, Toast.LENGTH_LONG).show()

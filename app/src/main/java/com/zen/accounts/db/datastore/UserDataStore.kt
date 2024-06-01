@@ -1,24 +1,26 @@
 package com.zen.accounts.db.datastore
 
 import android.content.Context
-import android.service.autofill.UserData
-import androidx.core.os.bundleOf
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.zen.accounts.db.model.User
-import com.zen.accounts.ui.screens.common.*
+import com.zen.accounts.ui.screens.common.BackupPlan
+import com.zen.accounts.ui.screens.common.backup_plan
+import com.zen.accounts.ui.screens.common.datastore_name
+import com.zen.accounts.ui.screens.common.system_in_dark_mode
+import com.zen.accounts.ui.screens.common.user_data_store_key
 import com.zen.accounts.utility.backupPlanToString
 import com.zen.accounts.utility.stringToBackupPlan
 import com.zen.accounts.utility.stringToUser
 import com.zen.accounts.utility.userToString
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class UserDataStore(private val context : Context) {
@@ -87,9 +89,7 @@ class UserDataStore(private val context : Context) {
         context.dataStore.edit { preferences ->
             val userString = preferences[USER_DATA_STORE_KEY]
             if(userString != null) {
-                val user = stringToUser(userString)
-                user.isAuthenticated = false
-                preferences[USER_DATA_STORE_KEY] = userToString(user)
+                preferences[USER_DATA_STORE_KEY] = userToString(User())
             }
         }
     }

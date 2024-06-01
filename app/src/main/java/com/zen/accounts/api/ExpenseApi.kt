@@ -1,7 +1,6 @@
 
 package com.zen.accounts.api
 
-import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zen.accounts.api.resource.Response
 import com.zen.accounts.api.retrofit.ExpenseService
@@ -43,6 +42,27 @@ class ExpenseApi @Inject constructor(
                 response.value = it.toObjects(Expense::class.java)
                 response.status = true
                 response.message = "Success!"
+                continuation.resume(response)
+            }
+            .addOnFailureListener {
+                response.status = false
+                response.message = it.message.toString()
+                continuation.resume(response)
+            }
+    }
+
+    suspend fun deleteFromFirebase(uid: String, expenseIds: List<Long>) : Response<Unit> = suspendCoroutine { continuation ->
+        val response = Response(value = Unit)
+        val db = FirebaseFirestore.getInstance()
+        val colRef = db.collection("Users").document(uid).collection("expenses")
+        db.runTransaction { trans ->
+            expenseIds.forEach {id ->
+                trans.delete(colRef.document(id.toString()))
+            }
+        }
+            .addOnSuccessListener {
+                response.status = true
+                response.message = it.toString()
                 continuation.resume(response)
             }
             .addOnFailureListener {

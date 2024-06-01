@@ -13,8 +13,11 @@ val Pink80 = Color(0xFFEFB8C8)
 // colors
 val disabled_color = Color(0xFFD7C1FE)
 val enabled_color = Color(0xFF6002EE)
+val light_enabled_color = Color(0xFF751AFD)
 val text_color = Color(0xFF545454)
 val border_color = Color(0xFFD1D1D1)
+val green_color = Color(0xFF2ED573)
+val red_color = Color(0xFFFF4757)
 
 // surface colors
 val lightSurface = Color(0xFFF6F6F6)
@@ -42,3 +45,4 @@ val editTextCursorColor @Composable get() =
 
 val onSurface @Composable get() =
     if (getAppState(context = LocalContext.current).darkMode.value ?: isSystemInDarkTheme()) Color(0xFFFFFFFF) else Color(0xFF000000)
+

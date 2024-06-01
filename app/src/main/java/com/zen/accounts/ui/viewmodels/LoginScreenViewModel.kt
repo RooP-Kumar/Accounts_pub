@@ -1,16 +1,12 @@
 package com.zen.accounts.ui.viewmodels
 
-import android.content.Context
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zen.accounts.api.resource.Resource
-import com.zen.accounts.db.datastore.UserDataStore
 import com.zen.accounts.repository.AuthRepository
 import com.zen.accounts.repository.ExpenseRepository
 import com.zen.accounts.ui.screens.auth.login.LoginUiState
 import com.zen.accounts.ui.screens.common.LoadingState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
