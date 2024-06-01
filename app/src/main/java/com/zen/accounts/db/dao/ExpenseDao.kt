@@ -30,8 +30,33 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE id = :id")
     fun getExpense(id : Long) : Flow<Expense>
-    @Query("SELECT e.id, e.title,e.items, e.totalAmount,e.date,b.operation as operation FROM expenses e LEFT JOIN backup_tracker b ON e.id = b.expenseId")
+    @Query(
+        "SELECT e.id, " +
+                "e.title,e.items, " +
+                "e.totalAmount," +
+                "e.date," +
+                "b.operation as operation " +
+                "FROM expenses e " +
+                "LEFT JOIN " +
+                "backup_tracker b " +
+                "ON e.id = b.expenseId " +
+                "ORDER BY e.id DESC" // e.id is Long value of currentTime in millis at the time of creation of the record.
+    )
     fun getAllExpensesWithStatus() : Flow<List<ExpenseWithOperation>>
+    @Query(
+        "SELECT e.id, " +
+                "e.title,e.items, " +
+                "e.totalAmount," +
+                "e.date," +
+                "b.operation as operation " +
+                "FROM expenses e " +
+                "LEFT JOIN " +
+                "backup_tracker b " +
+                "ON e.id = b.expenseId " +
+                "WHERE SUBSTRING(e.date, 4, 3) = :date " +
+                "ORDER BY e.id DESC"
+    )
+    fun getMonthlyExpensesWithStatus(date: String) : Flow<List<ExpenseWithOperation>>
 
     @Query("SELECT * FROM expenses")
     fun getAllExpenses() : Flow<List<Expense>>

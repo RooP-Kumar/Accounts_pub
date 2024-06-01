@@ -1,4 +1,4 @@
-package com.zen.accounts.ui.screens.main.expenseDetail
+package com.zen.accounts.ui.screens.main.expense_detail
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background

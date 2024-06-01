@@ -38,6 +38,8 @@ import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.viewmodels.HomeViewModel
+import com.zen.accounts.utility.io
+import com.zen.accounts.utility.main
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
@@ -52,11 +54,11 @@ fun Home(
 
     val coroutineScope = rememberCoroutineScope()
     val uiState = viewModel.homeUiState
-    val allExpense = viewModel.allExpense.collectAsState(initial = listOf())
+    val monthlyExpense = viewModel.monthlyExpense.collectAsState(initial = listOf())
 
-    DisposableEffect(key1 = allExpense.value.size) {
-        if(allExpense.value.isNotEmpty())
-            allExpense.value.forEach {
+    DisposableEffect(key1 = monthlyExpense.value.size) {
+        if(monthlyExpense.value.isNotEmpty())
+            monthlyExpense.value.forEach {
                 uiState.totalAmount.value += it.totalAmount
             }
         onDispose { uiState.totalAmount.value = 0.0 }
@@ -99,6 +101,11 @@ fun Home(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(generalPadding)
+                .clickable {
+                    main {
+                        appState.navigate(Screen.MonthlyExpenseScreen.route)
+                    }
+                }
                 .clip(RoundedCornerShape(generalPadding))
                 .background(disabled_color)
                 .padding(horizontal = generalPadding, vertical = generalPadding.times(2)),
@@ -146,8 +153,8 @@ fun Home(
                     .weight(1f)
                     .padding(bottom = generalPadding, end = generalPadding)
                     .clickable {
-                        coroutineScope.launch {
-                            appState.navController.navigate(Screen.MyExpenseScreen.route)
+                        main {
+                            appState.navigate(Screen.MyExpenseScreen.route)
                         }
                     }
                     .clip(shape = RoundedCornerShape(generalPadding))

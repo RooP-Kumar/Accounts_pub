@@ -9,6 +9,11 @@ import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 
 object Utility {
 
@@ -39,5 +44,15 @@ object Utility {
                 context.toast("Something went wrong. Please try again later.")
             }
         }
+    }
+
+    fun getUserDocRef(uid: String) : DocumentReference {
+        val db = FirebaseFirestore.getInstance()
+        return db.document("Users/$uid")
+    }
+
+    fun getStorageRef(uid: String) : StorageReference {
+        val storage = FirebaseStorage.getInstance()
+        return storage.getReference("User/$uid")
     }
 }

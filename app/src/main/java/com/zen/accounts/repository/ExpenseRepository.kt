@@ -7,6 +7,7 @@ import com.zen.accounts.db.dao.ExpenseDao
 import com.zen.accounts.db.dao.ExpenseWithOperation
 import com.zen.accounts.db.model.BackupTracker
 import com.zen.accounts.db.model.Expense
+import com.zen.accounts.utility.DateStringConverter
 import com.zen.accounts.utility.io
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -18,9 +19,13 @@ class ExpenseRepository @Inject constructor(
     private val expenseDao: ExpenseDao,
     private val backupTrackerDao: BackupTrackerDao,
     private val expenseApi: ExpenseApi
-) {
+) : BaseRepository() {
 
     val allExpense : Flow<List<ExpenseWithOperation>> = expenseDao.getAllExpensesWithStatus()
+
+    val monthlyExpense : Flow<List<ExpenseWithOperation>> = expenseDao.getMonthlyExpensesWithStatus(
+        DateStringConverter().dateToString(Date(System.currentTimeMillis())).substring(3, 6)
+    )
     suspend fun insertExpenseIntoRoom(expense: Expense) {
         expenseDao.insertExpense(expense)
         backupTrackerDao.insertBackupTracker(

@@ -47,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +68,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.zen.accounts.R
 import com.zen.accounts.db.model.User
 import com.zen.accounts.states.AppState
@@ -103,6 +107,7 @@ import com.zen.accounts.utility.generalCircleBorder
 import com.zen.accounts.utility.io
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
@@ -130,13 +135,6 @@ fun Setting(
     val context = LocalContext.current
     val uiState = settingViewModel.settingUIState
     LaunchedEffect(key1 = Unit) {
-        if(uiState.user.value == null) {
-            io {
-                appState.dataStore.getUser()?.let {
-                    uiState.user.value = it
-                }
-            }
-        }
         settingViewModel.getBackupPlan()
     }
 
@@ -145,6 +143,9 @@ fun Setting(
         val profilePic = user?.profilePic
         if(user != null && profilePic != null) {
             uiState.profilePic.value = BitmapFactory.decodeByteArray(profilePic, 0, profilePic.size)
+        } else {
+            delay(200)
+            uiState.user.value = appState.dataStore.getUser()
         }
     }
 
@@ -348,7 +349,7 @@ private fun MainUI(
                                     )
                             ) {
                                 coroutineScope.launch {
-                                    val currentUser = settingViewModel.dataStore.getUser()
+                                    val currentUser = appState.dataStore.getUser()
                                     if (currentUser != null && currentUser.isAuthenticated)
                                         uiState.showLogoutPopUp.value = true
                                     else
@@ -584,6 +585,21 @@ fun ProfileSection(
     showImagePickerOption: MutableState<Boolean>,
     profilePicBitmap : MutableState<Bitmap?>
 ) {
+    var name = "John Doe"
+    var mobile = "1234567890"
+    var email = "johndoe@example.com"
+
+    if(user.value != null) {
+        if (user.value!!.name.isNotEmpty()) {
+            name = user.value!!.name
+        }
+        if (user.value!!.phone.isNotEmpty()) {
+            mobile = user.value!!.phone
+        }
+        if (user.value!!.email.isNotEmpty()) {
+            email = user.value!!.email
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -601,33 +617,14 @@ fun ProfileSection(
                 }
                 .background(Color.LightGray)
         ) {
-            androidx.compose.animation.AnimatedVisibility(
-                visible = user.value?.profilePic == null,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_person),
-                    contentDescription = "person icon",
-                    tint = onBackground,
-                    modifier = Modifier
-                        .size(120.dp)
-                        .align(Alignment.Center)
-                )
-            }
-
-            androidx.compose.animation.AnimatedVisibility(
-                visible = profilePicBitmap.value != null,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Image(
-                    bitmap = profilePicBitmap.value!!.asImageBitmap(),
-                    contentDescription = "profile picture",
-                    modifier = Modifier
-                        .size(120.dp)
-                )
-            }
+            AsyncImage(
+                model = profilePicBitmap.value,
+                contentDescription = "profile image",
+                placeholder = painterResource(id = R.drawable.ic_person),
+                error = painterResource(id = R.drawable.ic_person),
+                modifier = Modifier
+                    .size(120.dp)
+            )
 
             Text(
                 text = "Edit",
@@ -643,21 +640,17 @@ fun ProfileSection(
 
 
         Text(
-            text = if (user.value?.name.orEmpty().isEmpty()) "John Doe" else user.value?.name!!,
+            text = name,
             textAlign = TextAlign.Center,
             style = Typography.bodyMedium.copy(color = onBackground)
         )
         Text(
-            text = "+91 ${
-                if (user.value?.name.orEmpty().isEmpty()) "123456789" else user.value?.phone!!
-            }",
+            text = "+91 $mobile",
             textAlign = TextAlign.Center,
             style = Typography.bodyMedium.copy(color = onBackground)
         )
         Text(
-            text = if (user.value?.name.orEmpty()
-                    .isEmpty()
-            ) "example@example.com" else user.value?.email!!,
+            text = email,
             textAlign = TextAlign.Center,
             style = Typography.bodyMedium.copy(color = onBackground)
         )
@@ -674,9 +667,7 @@ fun ImagePickerSection(
     val launcher = Utility.imagePicker {
         io {
             val bitmap = settingViewModel.saveImageToStorage(it)
-            val bos = ByteArrayOutputStream()
-            bitmap.await()?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
-            settingViewModel.uploadUserProfilePicture(bos.toByteArray())
+            bitmap.await()?.let { it1 -> settingViewModel.uploadUserProfilePicture(it1) }
         }
     }
 

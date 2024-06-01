@@ -1,6 +1,7 @@
 package com.zen.accounts.repository
 
 import com.zen.accounts.api.AuthApi
+import com.zen.accounts.api.ProfileApi
 import com.zen.accounts.api.resource.Resource
 import com.zen.accounts.api.resource.Response
 import com.zen.accounts.db.model.User
@@ -11,8 +12,9 @@ import javax.inject.Inject
 import kotlin.coroutines.suspendCoroutine
 
 class AuthRepository @Inject constructor(
-    private val authApi: AuthApi
-) {
+    private val authApi: AuthApi,
+    private val profileApi: ProfileApi
+) : BaseRepository() {
     suspend fun registerUser(user: User, pass: String) : Resource<Response<String>> {
         return withContext(Dispatchers.IO) {
             val res = authApi.registerUsingEmailAndPassword(generateUID(user), pass, user)
@@ -35,11 +37,16 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun uploadProfilePic(user: User): Resource<Response<Unit>> {
+    suspend fun uploadProfilePic(): Resource<Response<Unit>> {
+        val user = dataStore.getUser()
         return withContext(Dispatchers.IO) {
-            val res = authApi.uploadProfilePic(user)
-            if(res.status) Resource.SUCCESS(value = res)
-            else Resource.FAILURE(res.message)
+            if(user != null) {
+                val res = profileApi.updateProfilePic(user)
+                if (res.status) Resource.SUCCESS(value = res)
+                else Resource.FAILURE(res.message)
+            } else {
+                Resource.FAILURE("Invalid User")
+            }
         }
     }
 

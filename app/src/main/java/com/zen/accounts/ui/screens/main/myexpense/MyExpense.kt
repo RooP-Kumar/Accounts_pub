@@ -1,5 +1,6 @@
 package com.zen.accounts.ui.screens.main.myexpense
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -68,7 +69,7 @@ import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.date_formatter_pattern_without_time
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.screens.main.addexpense.HorizontalLineOnBackground
-import com.zen.accounts.ui.screens.main.expenseDetail.ExpenseItemDeleteDialog
+import com.zen.accounts.ui.screens.main.expense_detail.ExpenseItemDeleteDialog
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.enabled_color
@@ -102,10 +103,14 @@ data class MyExpenseUiState(
 @Composable
 fun MyExpense(
     appState: AppState,
-    viewModel: MyExpenseViewModel
+    viewModel: MyExpenseViewModel,
+    isMonthlyExpense: Boolean
 ) {
     val uiState = viewModel.myExpenseUiState
-    val allExpense = viewModel.allExpense.collectAsState(initial = listOf())
+    val allExpense =
+        if (!isMonthlyExpense) viewModel.allExpense.collectAsState(initial = listOf())
+        else viewModel.monthlyExpense.collectAsState(initial = listOf())
+
     BackHandler(uiState.showSelectCheckbox.value) {
         uiState.totalSelectedItem.value = 1
         launch {
@@ -286,6 +291,7 @@ fun MyExpense(
                                                         for (i in 0..<uiState.checkBoxList.size) {
                                                             uiState.checkBoxList[i] =
                                                                 uiState.selectAll.value
+
                                                         }
                                                     }
                                                 }

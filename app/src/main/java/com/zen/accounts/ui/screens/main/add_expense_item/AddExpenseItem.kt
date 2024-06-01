@@ -1,4 +1,4 @@
-package com.zen.accounts.ui.screens.main.addexpenseitem
+package com.zen.accounts.ui.screens.main.add_expense_item
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column

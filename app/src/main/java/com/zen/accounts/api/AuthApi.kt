@@ -2,11 +2,16 @@ package com.zen.accounts.api
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.childEvents
+import com.google.firebase.database.database
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.zen.accounts.api.resource.Response
 import com.zen.accounts.db.model.User
+import com.zen.accounts.utility.io
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,8 +52,9 @@ class AuthApi @Inject constructor(){
     suspend fun loginUsingEmailAndPassword(email: String, pass : String) : Response<User> = suspendCoroutine { continuation ->
         val response = Response(value = User())
         val db = FirebaseFirestore.getInstance()
+        val dbRef = Firebase.database.reference
         val auth = FirebaseAuth.getInstance()
-        CoroutineScope(Dispatchers.IO).launch {
+        io {
             val authResult = auth.signInWithEmailAndPassword(email, pass).await()
             val uidMapResult = db.collection("uidmap").document(authResult.user?.uid!!).get().await()
             if(!authResult.user?.isEmailVerified!!) {
@@ -59,9 +65,24 @@ class AuthApi @Inject constructor(){
                 val userUid = uidMapResult.get("uid").toString()
                 db.collection("Users").document(userUid).update("authenticated", true, "uid", userUid)
                 val userResult = db.collection("Users").document(userUid).get().await()
-                response.value = userResult.toObject(User::class.java)!!
-                response.status = true
-                continuation.resume(response)
+                val retrievedUser = userResult.toObject(User::class.java)
+                retrievedUser?.let {retrievedUserFromCloud ->
+                    retrievedUserFromCloud.profilePicFirebaseFormat?.let {url ->
+                        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(url)
+                        storageRef.getBytes(12527200L)
+                            .addOnSuccessListener { bytes ->
+                                response.value = retrievedUser.copy(profilePic = bytes, profilePicFirebaseFormat = null)
+                                response.status = true
+                                continuation.resume(response)
+                            }
+                            .addOnFailureListener {
+                                response.status = false
+                                response.message = it.message.toString()
+                                continuation.resume(response)
+                            }
+                    }
+
+                }
             }
         }
     }
@@ -69,24 +90,14 @@ class AuthApi @Inject constructor(){
     suspend fun uploadProfilePic(user: User) : Response<Unit> = suspendCoroutine { continuation ->
         val response = Response(value = Unit)
         val db = FirebaseFirestore.getInstance()
-        val storage = FirebaseStorage.getInstance()
-        val storageRef = storage.getReference("user/${user.uid}/profile")
 
         val docRef = db.collection("Users").document(user.uid)
-        user.profilePic?.let {imageBytes ->
-            storageRef.putBytes(imageBytes)
-                .continueWithTask { task ->
-                    if(!task.isSuccessful){
-                        task.exception?.let {
-                            throw it
-                        }
-                    }
-                    storageRef.downloadUrl
-                }
-                .addOnCompleteListener {task ->
-                    if(task.isSuccessful) {
-                        val imageUri = task.result
-                        docRef.update("profilePic", imageUri)
+        user.profilePic?.let {
+            val storageRef = FirebaseStorage.getInstance().getReference("user/${user.uid}/profile")
+            storageRef.putBytes(it)
+                .addOnSuccessListener {uploadTask ->
+                    uploadTask.storage.downloadUrl.addOnSuccessListener {uri ->
+                        docRef.update("profilePicFirebaseFormat", uri.toString())
                             .addOnSuccessListener {
                                 response.status = true
                                 response.message = "Profile pic is successfully uploaded."
@@ -94,19 +105,10 @@ class AuthApi @Inject constructor(){
                             }
                             .addOnFailureListener {
                                 response.status = false
-                                response.message = "Something went wrong."
+                                response.message = it.message.toString()
                                 continuation.resume(response)
                             }
-                    } else {
-                        response.status = false
-                        response.message = "Something went wrong."
-                        continuation.resume(response)
                     }
-                }
-                .addOnFailureListener {
-                    response.status = false
-                    response.message = "Something went wrong."
-                    continuation.resume(response)
                 }
         }
     }

@@ -16,6 +16,9 @@ import com.zen.accounts.ui.screens.common.expense_details_argument
 import com.zen.accounts.ui.screens.common.home_screen_route
 import com.zen.accounts.ui.screens.common.login_screen_label
 import com.zen.accounts.ui.screens.common.login_screen_route
+import com.zen.accounts.ui.screens.common.monthly_expense_argument
+import com.zen.accounts.ui.screens.common.monthly_expense_screen_label
+import com.zen.accounts.ui.screens.common.monthly_expense_screen_route
 import com.zen.accounts.ui.screens.common.my_expense_screen_label
 import com.zen.accounts.ui.screens.common.my_expense_screen_route
 import com.zen.accounts.ui.screens.common.register_screen_label
@@ -57,6 +60,7 @@ sealed class Screen(val route : String, val title: String) {
     }
     data object Home : Screen(home_screen_route, my_expense_screen_label)
     data object SettingScreen : Screen(setting_screen_route, setting_screen_label)
+    data object MonthlyExpenseScreen : Screen(monthly_expense_screen_route, monthly_expense_screen_label)
 }
 
 fun getScreenRouteWithTitle() : List<Screen> {
@@ -68,6 +72,7 @@ fun getScreenRouteWithTitle() : List<Screen> {
         Screen.Home,
         Screen.AddExpenseScreen,
         Screen.SettingScreen,
-        Screen.ExpenseDetailScreen
+        Screen.ExpenseDetailScreen,
+        Screen.MonthlyExpenseScreen
     )
 }

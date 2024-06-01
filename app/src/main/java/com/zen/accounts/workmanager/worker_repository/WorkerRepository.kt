@@ -5,23 +5,29 @@ import android.util.Log
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.zen.accounts.db.model.User
 import com.zen.accounts.ui.screens.common.daily_work_request_tag
 import com.zen.accounts.ui.screens.common.daily_worker_name
 import com.zen.accounts.ui.screens.common.monthly_work_request_tag
 import com.zen.accounts.ui.screens.common.monthly_worker_name
 import com.zen.accounts.ui.screens.common.single_work_request_tag
+import com.zen.accounts.ui.screens.common.update_profile_work_request_tag
+import com.zen.accounts.ui.screens.common.update_profile_worker_name
 import com.zen.accounts.ui.screens.common.weekly_work_request_tag
 import com.zen.accounts.ui.screens.common.weekly_worker_name
 import com.zen.accounts.ui.screens.common.work_manager_input_data
 import com.zen.accounts.utility.io
+import com.zen.accounts.utility.userToString
 import com.zen.accounts.workmanager.DeleteExpenseWorker
 import com.zen.accounts.workmanager.PeriodicWorker
+import com.zen.accounts.workmanager.ProfileUpdateWorker
 import com.zen.accounts.workmanager.UpdateExpenseWorker
 import com.zen.accounts.workmanager.UploadExpenseWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -46,6 +52,27 @@ class WorkerRepository @Inject constructor(
     // Cancel All Worker
     fun cancelAllWorker() {
         workManager.cancelAllWork()
+    }
+
+    fun updateProfile(): UUID {
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val request = OneTimeWorkRequestBuilder<ProfileUpdateWorker>()
+            .addTag(update_profile_work_request_tag)
+            .setConstraints(constraints)
+            .build()
+
+        workManager.beginUniqueWork(
+            update_profile_worker_name,
+            ExistingWorkPolicy.REPLACE,
+            request
+        ).enqueue()
+
+        return request.id
     }
 
     // Single Work Request
@@ -106,7 +133,6 @@ class WorkerRepository @Inject constructor(
 
         io {
             workManager.getWorkInfosForUniqueWorkFlow(daily_worker_name).collectLatest {
-                Log.d("asdf", "List ----> $it \n ${it.size}")
                 var createNewRequest = false
                 it?.let {list ->
                     for(i in 0..<list.size) {
@@ -157,7 +183,6 @@ class WorkerRepository @Inject constructor(
 
         io {
             workManager.getWorkInfosForUniqueWorkFlow(weekly_work_request_tag).collectLatest {
-                Log.d("asdf", "List ----> $it \n ${it.size}")
                 var createNewRequest = false
                 it?.let { list ->
                     for (i in 0..<list.size) {
@@ -206,7 +231,6 @@ class WorkerRepository @Inject constructor(
 
         io {
             workManager.getWorkInfosForUniqueWorkFlow(monthly_work_request_tag).collectLatest {
-                Log.d("asdf", "List ----> $it \n ${it.size}")
                 var createNewRequest = false
                 it?.let { list ->
                     for (i in 0..<list.size) {
@@ -243,9 +267,5 @@ class WorkerRepository @Inject constructor(
 
     fun getWorkInfoById(id: UUID): Flow<WorkInfo> {
         return workManager.getWorkInfoByIdFlow(id)
-    }
-
-    fun getWorkInfoByTag(tag: String): Flow<List<WorkInfo>?> {
-        return workManager.getWorkInfosByTagFlow(tag)
     }
 }

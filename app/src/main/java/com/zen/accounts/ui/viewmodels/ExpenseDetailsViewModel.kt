@@ -3,7 +3,7 @@ package com.zen.accounts.ui.viewmodels
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.repository.ExpenseRepository
-import com.zen.accounts.ui.screens.main.expenseDetail.ExpenseDetailUIState
+import com.zen.accounts.ui.screens.main.expense_detail.ExpenseDetailUIState
 import com.zen.accounts.utility.io
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

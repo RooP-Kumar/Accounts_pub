@@ -19,6 +19,7 @@ class MyExpenseViewModel @Inject constructor(
     private val expenseItemRepository: ExpenseItemRepository
 ) : ViewModel() {
     val allExpense : Flow<List<ExpenseWithOperation>> = expenseRepository.allExpense
+    val monthlyExpense : Flow<List<ExpenseWithOperation>> = expenseRepository.monthlyExpense
     val myExpenseUiState by lazy { MyExpenseUiState() }
     var variable = 0
     fun deleteExpenses(expenses : List<Expense>) {
