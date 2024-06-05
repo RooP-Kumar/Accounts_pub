@@ -6,7 +6,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.zen.accounts.ui.screens.common.work_manager_input_data
 import com.zen.accounts.workmanager.worker_repository.WorkerRepository
-import kotlinx.coroutines.flow.collectLatest
 
 class PeriodicWorker(
     context : Context,

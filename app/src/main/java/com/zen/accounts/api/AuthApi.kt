@@ -1,20 +1,13 @@
 package com.zen.accounts.api
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.childEvents
 import com.google.firebase.database.database
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.zen.accounts.api.resource.Response
 import com.zen.accounts.db.model.User
 import com.zen.accounts.utility.io
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.resume

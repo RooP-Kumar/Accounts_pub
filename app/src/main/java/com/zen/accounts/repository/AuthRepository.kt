@@ -9,7 +9,6 @@ import com.zen.accounts.utility.io
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.coroutines.suspendCoroutine
 
 class AuthRepository @Inject constructor(
     private val authApi: AuthApi,

@@ -2,12 +2,9 @@ package com.zen.accounts.ui.viewmodels
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
-import com.zen.accounts.api.resource.Resource
 import com.zen.accounts.repository.AuthRepository
 import com.zen.accounts.repository.ExpenseItemRepository
 import com.zen.accounts.repository.ExpenseRepository
@@ -22,8 +19,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
@@ -116,34 +111,36 @@ class SettingViewModel @Inject constructor(
                 val requestIds =
                     workerRepository.startUploadingNow(user.uid)
                 workerRepository.getWorkInfoById(requestIds[2]).collectLatest {
-                    when (it.state) {
-                        WorkInfo.State.SUCCEEDED -> {
-                            if (fromLogoutConfirmation) {
-                                expenseRepository.clearExpenseTable()
-                                expenseItemRepository.clearExpenseItemTable()
-                                authRepository.logout()
-                                expenseRepository.dataStore.logoutUser()
+                    it?.let {
+                        when (it.state) {
+                            WorkInfo.State.SUCCEEDED -> {
+                                if (fromLogoutConfirmation) {
+                                    expenseRepository.clearExpenseTable()
+                                    expenseItemRepository.clearExpenseItemTable()
+                                    authRepository.logout()
+                                    expenseRepository.dataStore.logoutUser()
+                                }
+                                delay(200)
+                                settingUIState.backupDropDownText.value = BackupPlan.Off
+                                settingUIState.backupLoadingState.value = LoadingState.SUCCESS
                             }
-                            delay(200)
-                            settingUIState.backupDropDownText.value = BackupPlan.Off
-                            settingUIState.backupLoadingState.value = LoadingState.SUCCESS
-                        }
 
-                        WorkInfo.State.FAILED -> {
-                            delay(500)
-                            settingUIState.backupDropDownText.value = BackupPlan.Off
-                            settingUIState.backupLoadingState.value = LoadingState.FAILURE
-                        }
+                            WorkInfo.State.FAILED -> {
+                                delay(500)
+                                settingUIState.backupDropDownText.value = BackupPlan.Off
+                                settingUIState.backupLoadingState.value = LoadingState.FAILURE
+                            }
 
-                        WorkInfo.State.RUNNING -> {
-                            settingUIState.backupLoadingState.value = LoadingState.LOADING
-                        }
+                            WorkInfo.State.RUNNING -> {
+                                settingUIState.backupLoadingState.value = LoadingState.LOADING
+                            }
 
-                        WorkInfo.State.BLOCKED -> {
-                            settingUIState.backupLoadingState.value = LoadingState.LOADING
-                        }
+                            WorkInfo.State.BLOCKED -> {
+                                settingUIState.backupLoadingState.value = LoadingState.LOADING
+                            }
 
-                        else -> {}
+                            else -> {}
+                        }
                     }
                 }
             }
@@ -197,23 +194,26 @@ class SettingViewModel @Inject constructor(
                 expenseRepository.dataStore.saveUser(it.copy(profilePic = bos.toByteArray()))
                 settingUIState.profilePic.value = imageBitmap
                 settingUIState.loadingState.value = LoadingState.SUCCESS
+                settingUIState.showImagePickerOption.value = false
                 val requestId = workerRepository.updateProfile()
                 workerRepository.getWorkInfoById(requestId)
-                    .collectLatest { workInfo ->
-                        val outputData = workInfo.outputData.getString(work_manager_output_data)
-                        when (workInfo.state) {
+                    .collectLatest {workInfo ->
+                        workInfo?.let {
+                            val outputData = workInfo.outputData.getString(work_manager_output_data)
+                            when (workInfo.state) {
 
-                            WorkInfo.State.SUCCEEDED -> {
-                                settingUIState.showSnackBarText.value = outputData.toString()
-                                showSnackBar()
+                                WorkInfo.State.SUCCEEDED -> {
+                                    settingUIState.showSnackBarText.value = outputData.toString()
+                                    showSnackBar()
+                                }
+
+                                WorkInfo.State.FAILED -> {
+                                    settingUIState.showSnackBarText.value = outputData.toString()
+                                    showSnackBar()
+                                }
+
+                                else -> {}
                             }
-
-                            WorkInfo.State.FAILED -> {
-                                settingUIState.showSnackBarText.value = outputData.toString()
-                                showSnackBar()
-                            }
-
-                            else -> {}
                         }
                     }
             }

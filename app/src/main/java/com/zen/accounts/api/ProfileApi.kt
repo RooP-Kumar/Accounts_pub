@@ -1,14 +1,10 @@
 package com.zen.accounts.api
 
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import com.zen.accounts.api.resource.Response
 import com.zen.accounts.db.model.User
+import com.zen.accounts.utility.Utility
 import com.zen.accounts.utility.io
 import kotlinx.coroutines.tasks.await
-import com.zen.accounts.api.resource.Response
-import com.zen.accounts.ui.screens.common.getDocPath
-import com.zen.accounts.ui.screens.common.getStoragePath
-import com.zen.accounts.utility.Utility
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine

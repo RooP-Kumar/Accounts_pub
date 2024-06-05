@@ -16,7 +16,6 @@ import com.zen.accounts.ui.screens.common.expense_details_argument
 import com.zen.accounts.ui.screens.common.home_screen_route
 import com.zen.accounts.ui.screens.common.login_screen_label
 import com.zen.accounts.ui.screens.common.login_screen_route
-import com.zen.accounts.ui.screens.common.monthly_expense_argument
 import com.zen.accounts.ui.screens.common.monthly_expense_screen_label
 import com.zen.accounts.ui.screens.common.monthly_expense_screen_route
 import com.zen.accounts.ui.screens.common.my_expense_screen_label
