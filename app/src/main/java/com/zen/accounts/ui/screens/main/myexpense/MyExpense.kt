@@ -36,6 +36,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -94,7 +95,7 @@ data class MyExpenseUiState(
     val showSelectCheckbox: MutableState<Boolean> = mutableStateOf(false),
     val checkBoxList: SnapshotStateList<Boolean> = mutableStateListOf(),
     val selectAll: MutableState<Boolean> = mutableStateOf(false),
-    val totalSelectedItem: MutableState<Int> = mutableIntStateOf(1),
+    val totalSelectedItem: MutableState<Int> = mutableIntStateOf(0),
     val loadingState: MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
     val showDeleteDialog: MutableState<Boolean> = mutableStateOf(false),
     val showExpenseList: MutableState<Boolean> = mutableStateOf(false),
@@ -110,6 +111,7 @@ fun MyExpense(
     val allExpense =
         if (!isMonthlyExpense) viewModel.allExpense.collectAsState(initial = listOf())
         else viewModel.monthlyExpense.collectAsState(initial = listOf())
+
 
     BackHandler(uiState.showSelectCheckbox.value) {
         uiState.totalSelectedItem.value = 1
@@ -131,11 +133,14 @@ fun MyExpense(
     }
     LaunchedEffect(key1 = uiState.totalSelectedItem.value) {
         if (allExpense.value.isNotEmpty())
+            Log.d(
+                "asdf",
+                "MyExpense: totalselecteditem launcheffect ---> ${allExpense.value.size} ${uiState.totalSelectedItem.value}"
+            )
             uiState.selectAll.value = uiState.totalSelectedItem.value == allExpense.value.size
     }
 
     LoadingDialog(loadingState = uiState.loadingState)
-
 
     Column(
         modifier = Modifier
@@ -223,7 +228,6 @@ fun MyExpense(
                                                 uiState.totalSelectedItem.value =
                                                     if (uiState.selectAll.value) allExpense.value.size else 0
                                                 launch {
-
                                                     for (i in 0..<uiState.checkBoxList.size) {
                                                         uiState.checkBoxList[i] =
                                                             uiState.selectAll.value
@@ -238,11 +242,9 @@ fun MyExpense(
 
                                 Column {
                                     AnimatedVisibility(
-                                        visible = uiState.showSelectCheckbox.value, enter = fadeIn(
-                                            tween(tweenAnimDuration)
-                                        ), exit = fadeOut(
-                                            tween(tweenAnimDuration)
-                                        )
+                                        visible = uiState.showSelectCheckbox.value,
+                                        enter = fadeIn() + slideInVertically (tween(300)) { value -> -1 * value },
+                                        exit = fadeOut() + slideOutVertically (tween(300)) { value -> -1 * value }
                                     ) {
                                         Row(
                                             modifier = Modifier
@@ -324,10 +326,13 @@ fun MyExpense(
                                                     remember { MutableInteractionSource() }
                                                 val longPressed =
                                                     interactionSource.collectIsPressedAsState()
-                                                if (longPressed.value) {
-                                                    uiState.showSelectCheckbox.value = true
-                                                    uiState.checkBoxList.apply {
-                                                        this[ind] = true
+                                                if (longPressed.value && !uiState.showSelectCheckbox.value) {
+                                                    LaunchedEffect(key1 = Unit) {
+                                                        uiState.showSelectCheckbox.value = true
+                                                        uiState.checkBoxList.apply {
+                                                            this[ind] = true
+                                                            uiState.totalSelectedItem.value += 1
+                                                        }
                                                     }
                                                 }
                                                 Row(
