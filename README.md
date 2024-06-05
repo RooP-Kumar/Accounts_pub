@@ -12,3 +12,5 @@ A Simple Application, which keeps track of all my expenses.
 > - Jetpack Compose
 > 
 > - Navigation Component
+>   
+> - WorkManager For Background Task
