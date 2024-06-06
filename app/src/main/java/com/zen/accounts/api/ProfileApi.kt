@@ -18,22 +18,26 @@ class ProfileApi @Inject constructor() {
         val profileRef = storageRef.child("profile")
 
         io {
-            val uploadTask = profileRef.putBytes(user.profilePic!!).await()
-            if(uploadTask.task.isSuccessful){
-                val imageDownloadUrl = uploadTask.storage.downloadUrl.await()
-                docRef.update("profilePicFirebaseFormat", imageDownloadUrl)
-                    .addOnSuccessListener {
-                        response.message = "Profile successfully uploaded into cloud."
-                        response.status = false
-                        continuation.resume(response)
-                    }
-                    .addOnFailureListener {
-                        response.message = it.message.toString()
-                        response.status = false
-                        continuation.resume(response)
-                    }
-            } else {
-                response.message = "File did not upload to the cloud !"
+            try {
+                val uploadTask = profileRef.putBytes(user.profilePic!!).await()
+                if (uploadTask.task.isSuccessful) {
+                    val imageDownloadUrl = uploadTask.storage.downloadUrl.await()
+                    docRef.update("profilePicFirebaseFormat", imageDownloadUrl)
+                        .addOnSuccessListener {
+                            response.message = "Profile successfully uploaded into cloud."
+                            response.status = false
+                            continuation.resume(response)
+                        }
+                        .addOnFailureListener {
+                            response.message = it.message.toString()
+                            response.status = false
+                            continuation.resume(response)
+                        }
+                } else {
+                    throw  Exception("File did not upload to the cloud !")
+                }
+            } catch (e: Exception) {
+                response.message = e.message.toString()
                 response.status = false
                 continuation.resume(response)
             }
