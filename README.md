@@ -14,3 +14,8 @@ A Simple Application, which keeps track of all my expenses.
 > - Navigation Component
 >   
 > - WorkManager For Background Task
+
+- Working -->
+  -  Logo
+  -  Splash Screen
+  -  Landscape screen
