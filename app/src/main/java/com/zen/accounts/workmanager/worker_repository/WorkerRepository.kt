@@ -1,7 +1,6 @@
 package com.zen.accounts.workmanager.worker_repository
 
 import android.content.Context
-import android.util.Log
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -12,7 +11,6 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.zen.accounts.db.model.User
 import com.zen.accounts.ui.screens.common.daily_work_request_tag
 import com.zen.accounts.ui.screens.common.daily_worker_name
 import com.zen.accounts.ui.screens.common.monthly_work_request_tag
@@ -24,7 +22,6 @@ import com.zen.accounts.ui.screens.common.weekly_work_request_tag
 import com.zen.accounts.ui.screens.common.weekly_worker_name
 import com.zen.accounts.ui.screens.common.work_manager_input_data
 import com.zen.accounts.utility.io
-import com.zen.accounts.utility.userToString
 import com.zen.accounts.workmanager.DeleteExpenseWorker
 import com.zen.accounts.workmanager.PeriodicWorker
 import com.zen.accounts.workmanager.ProfileUpdateWorker
@@ -265,7 +262,7 @@ class WorkerRepository @Inject constructor(
 
     }
 
-    fun getWorkInfoById(id: UUID): Flow<WorkInfo> {
+    fun getWorkInfoById(id: UUID): Flow<WorkInfo?> {
         return workManager.getWorkInfoByIdFlow(id)
     }
 }

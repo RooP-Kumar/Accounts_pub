@@ -1,10 +1,5 @@
 package com.zen.accounts.db.model
 
-import android.util.Base64
-import android.util.Log
-import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.tasks.await
-
 
 data class User(
     var uid: String = "",

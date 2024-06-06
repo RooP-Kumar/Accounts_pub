@@ -1,6 +1,5 @@
 package com.zen.accounts.ui.screens.main.myexpense
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -36,7 +35,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -133,10 +131,6 @@ fun MyExpense(
     }
     LaunchedEffect(key1 = uiState.totalSelectedItem.value) {
         if (allExpense.value.isNotEmpty())
-            Log.d(
-                "asdf",
-                "MyExpense: totalselecteditem launcheffect ---> ${allExpense.value.size} ${uiState.totalSelectedItem.value}"
-            )
             uiState.selectAll.value = uiState.totalSelectedItem.value == allExpense.value.size
     }
 
