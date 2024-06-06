@@ -19,22 +19,8 @@ import java.util.concurrent.Executors
 
 
 class DailyUploadTesting {
-    private lateinit var context: Context
-    private lateinit var executor : Executor
-
-    @Before
-    fun setUp() {
-        context = ApplicationProvider.getApplicationContext()
-        executor = Executors.newSingleThreadExecutor()
-        val config = androidx.work.Configuration.Builder()
-            .setMinimumLoggingLevel(Log.DEBUG)
-            .setExecutor(executor)
-            .build()
-        
-    }
-
     @Test
-    fun startUploadingDaily() {
-
+    fun addition_isCorrect() {
+        assertEquals(4, 2 + 2)
     }
 }
