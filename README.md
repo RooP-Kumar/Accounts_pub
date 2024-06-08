@@ -16,6 +16,5 @@ A Simple Application, which keeps track of all my expenses.
 > - WorkManager For Background Task
 
 - Working -->
-  -  Logo
   -  Splash Screen
   -  Landscape screen
