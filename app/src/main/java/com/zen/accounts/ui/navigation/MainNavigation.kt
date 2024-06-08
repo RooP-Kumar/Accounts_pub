@@ -67,7 +67,8 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
             route = Screen.Home.route
         ) {
             val viewModel: HomeViewModel = hiltViewModel()
-            Home(appState = appState, viewModel)
+            val settingViewModel: SettingViewModel = hiltViewModel()
+            Home(appState = appState, viewModel, settingViewModel)
         }
 
         composable(
