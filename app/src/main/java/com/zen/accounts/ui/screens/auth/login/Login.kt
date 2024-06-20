@@ -2,6 +2,7 @@ package com.zen.accounts.ui.screens.auth.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.CustomKeyboardOptions
@@ -29,6 +33,7 @@ import com.zen.accounts.ui.screens.common.GeneralEditText
 import com.zen.accounts.ui.screens.common.GeneralSnackBar
 import com.zen.accounts.ui.screens.common.LoadingDialog
 import com.zen.accounts.ui.screens.common.LoadingState
+import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.did_not_have_account
 import com.zen.accounts.ui.screens.common.enter_email
 import com.zen.accounts.ui.screens.common.enter_pass
@@ -42,6 +47,7 @@ import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.normalPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.shadowColor
+import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.LoginScreenViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -95,6 +101,7 @@ private fun MainUI(
     val uiState = viewModel.loginUiState
     val user = appState.dataStore.getUser.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
+    val screenWidth = LocalConfiguration.current.screenWidthDp
 
     LoadingDialog(loadingState = uiState.loadingState)
 
@@ -103,64 +110,67 @@ private fun MainUI(
             .fillMaxSize()
             .background(background)
     ) {
+
+        TopAppBar(appState = appState)
+
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .align(Alignment.Center)
-                .padding(horizontal = generalPadding)
-                .shadow(
-                    elevation = halfGeneralPadding,
-                    shape = RoundedCornerShape(generalPadding),
-                    ambientColor = shadowColor,
-                    spotColor = shadowColor
-                )
-                .background(background)
-                .padding(vertical = halfGeneralPadding)
+                .padding(top = topBarHeight),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
 
-            GeneralEditText(
-                text = uiState.emailUsernamePhone.value,
-                onValueChange = { uiState.emailUsernamePhone.value = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholderText = enter_email,
-                keyboardOptions = CustomKeyboardOptions.textEditor
-            )
-
-            GeneralEditText(
-                text = uiState.password.value,
-                onValueChange = { uiState.password.value = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholderText = enter_pass,
-                keyboardOptions = CustomKeyboardOptions.passwordEditor
-            )
-
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = generalPadding, vertical = normalPadding)
+            Column(
+                modifier = if(screenWidth > 500) Modifier.width(500.dp) else Modifier
             ) {
-                Text(
-                    text = did_not_have_account,
-                    style = Typography.bodySmall.copy(color = onBackground)
+                GeneralEditText(
+                    text = uiState.emailUsernamePhone.value,
+                    onValueChange = { uiState.emailUsernamePhone.value = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholderText = enter_email,
+                    keyboardOptions = CustomKeyboardOptions.textEditor
                 )
-                Spacer(modifier = Modifier.width(normalPadding))
-                Text(
-                    text = register_button_label,
-                    style = Typography.bodySmall.copy(color = Purple80),
+
+                GeneralEditText(
+                    text = uiState.password.value,
+                    onValueChange = { uiState.password.value = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholderText = enter_pass,
+                    keyboardOptions = CustomKeyboardOptions.passwordEditor
+                )
+
+                Row(
                     modifier = Modifier
-                        .clickable {
-                            coroutineScope.launch {
-                                appState.navigate(Screen.RegisterScreen.route)
+                        .padding(horizontal = generalPadding, vertical = normalPadding)
+                ) {
+                    Text(
+                        text = did_not_have_account,
+                        style = Typography.bodySmall.copy(color = onBackground)
+                    )
+                    Spacer(modifier = Modifier.width(normalPadding))
+                    Text(
+                        text = register_button_label,
+                        style = Typography.bodySmall.copy(color = Purple80),
+                        modifier = Modifier
+                            .clickable {
+                                coroutineScope.launch {
+                                    appState.navigate(Screen.RegisterScreen.route)
+                                }
                             }
-                        }
-                )
-            }
+                    )
+                }
 
-            GeneralButton(
-                text = login_button_label
-            ) {
-                val email = uiState.emailUsernamePhone.value.trim()
-                val pass = uiState.password.value.trim()
-                viewModel.loginUser(email, pass)
+                GeneralButton(
+                    text = login_button_label,
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = generalPadding)
+                ) {
+                    val email = uiState.emailUsernamePhone.value.trim()
+                    val pass = uiState.password.value.trim()
+                    viewModel.loginUser(email, pass)
+                }
             }
         }
 

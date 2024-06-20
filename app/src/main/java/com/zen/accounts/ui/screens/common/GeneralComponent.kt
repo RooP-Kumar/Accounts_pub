@@ -25,10 +25,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -67,6 +68,7 @@ import com.zen.accounts.ui.theme.normalTextSize
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.placeholder
+import com.zen.accounts.ui.theme.roundedCornerShape
 import com.zen.accounts.ui.theme.surface
 
 data object CustomKeyboardOptions {
@@ -254,7 +256,9 @@ fun GeneralDropDown(
     onItemClick : (BackupPlan) -> Unit
 ) {
     val localDensity = LocalDensity.current
+    val screenWidth = LocalConfiguration.current.screenWidthDp
     val dropDownHeight : MutableState<Dp> = remember { mutableStateOf(0.dp) }
+    val dropDownEdittextHeight : MutableState<Dp> = remember { mutableStateOf(0.dp) }
     val dropDownRowWidth = rememberSaveable(saver = dpSaver) { mutableStateOf(0.dp) }
     val dropDownIcon = rememberSaveable { mutableIntStateOf(R.drawable.ic_drop_down) }
     val text = remember {
@@ -263,6 +267,14 @@ fun GeneralDropDown(
 
     if(!enable){
         value.value = BackupPlan.Off
+    }
+
+    LaunchedEffect(key1 = showDropDown.value) {
+        if(showDropDown.value) {
+            dropDownIcon.intValue = R.drawable.ic_drop_up
+        } else {
+            dropDownIcon.intValue = R.drawable.ic_drop_down
+        }
     }
 
     Row(
@@ -274,6 +286,8 @@ fun GeneralDropDown(
                 .onGloballyPositioned {
                     dropDownRowWidth.value =
                         with(localDensity) { it.size.width.toDp() }
+                    dropDownEdittextHeight.value =
+                        with(localDensity) { it.size.height.toDp() }
                 }
             ,
             enable = false,
@@ -288,6 +302,7 @@ fun GeneralDropDown(
             trailingIconClick = {
                 if(enable)
                     showDropDown.value = !showDropDown.value
+                onClick()
             }
         )
 
@@ -296,16 +311,26 @@ fun GeneralDropDown(
             onDismissRequest = {
                 showDropDown.value = false
             },
-            modifier = Modifier.size(width = dropDownRowWidth.value - generalPadding.times(2), height = dropDownHeight.value),
-            offset = DpOffset(dropDownRowWidth.value / 2 - (dropDownRowWidth.value - generalPadding.times(2))/2, (-4).dp)
+            modifier = Modifier
+                .size(
+                    width = dropDownRowWidth.value - generalPadding.times(2),
+                    height = dropDownHeight.value
+                )
+                .background(surface)
+            ,
+            offset =
+                if (screenWidth <= 500) DpOffset(dropDownRowWidth.value / 2 - (dropDownRowWidth.value - generalPadding.times(2))/2, (-4).dp)
+                else DpOffset(-dropDownRowWidth.value + generalPadding.times(2), 0.dp)
         ) {
             for (i in valueList.indices) {
                 DropdownMenuItem(
                     text = {
                         Text(
                             text = valueList[i].label,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            style = Typography.bodyMedium.copy(color = onSurface)
                         )
                     },
                     onClick = {
@@ -327,21 +352,21 @@ fun GeneralDropDown(
 fun GeneralSnackBar(
     visible : MutableState<Boolean>,
     text : String,
-    modifier: Modifier
+    modifier: Modifier = Modifier,
+    containerColor: Color = surface,
+    contentColor : Color = onSurface
 ) {
     AnimatedVisibility(
+        modifier = modifier
+            .padding(generalPadding)
+            .clip(roundedCornerShape),
         visible = visible.value,
         enter = slideInVertically(initialOffsetY = { -300 }) + fadeIn(),
         exit = fadeOut() + slideOutVertically(targetOffsetY = { -300 })
     ) {
-        Snackbar(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(generalPadding)
-                .then(modifier),
-            containerColor = surface,
-            contentColor = onSurface,
-            shape = RoundedCornerShape(generalPadding)
+                .background(containerColor)
         ) {
             Text(
                 text = text,
@@ -349,7 +374,7 @@ fun GeneralSnackBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(generalPadding),
-                style = Typography.bodyMedium.copy(color = onSurface)
+                style = Typography.bodyMedium.copy(color = contentColor)
             )
         }
     }

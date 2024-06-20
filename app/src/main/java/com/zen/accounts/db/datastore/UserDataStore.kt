@@ -4,13 +4,16 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.byteArrayPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.gson.Gson
 import com.zen.accounts.db.model.User
 import com.zen.accounts.ui.screens.common.BackupPlan
 import com.zen.accounts.ui.screens.common.backup_plan
 import com.zen.accounts.ui.screens.common.datastore_name
+import com.zen.accounts.ui.screens.common.profile_pic
 import com.zen.accounts.ui.screens.common.system_in_dark_mode
 import com.zen.accounts.ui.screens.common.user_data_store_key
 import com.zen.accounts.utility.backupPlanToString
@@ -31,6 +34,7 @@ class UserDataStore(private val context : Context) {
         val USER_DATA_STORE_KEY = stringPreferencesKey(user_data_store_key)
         val SYSTEM_IN_DARK_MODE = booleanPreferencesKey(system_in_dark_mode)
         val BACKUP_PLAN = stringPreferencesKey(backup_plan)
+        val PROFILE_PIC = byteArrayPreferencesKey(profile_pic)
     }
 
     val  getUser : Flow<User?> = context.dataStore.data
@@ -39,15 +43,6 @@ class UserDataStore(private val context : Context) {
             if (userString != null) stringToUser(userString) else null
         }
 
-    suspend fun getUser() : User? {
-        return withContext(Dispatchers.IO) {
-            val preferences = context.dataStore.data.firstOrNull()
-            if (preferences != null) {
-                val userString = preferences[USER_DATA_STORE_KEY]
-                if (userString != null) stringToUser(userString) else null
-            } else null
-        }
-    }
 
     val isInDarkMode : Flow<Boolean?> = context.dataStore.data.map {
         it[SYSTEM_IN_DARK_MODE]
@@ -73,11 +68,54 @@ class UserDataStore(private val context : Context) {
         }
     }
 
-    suspend fun saveUser(user : User) {
-        context.dataStore.edit { preferences ->
-            preferences[USER_DATA_STORE_KEY] = userToString(user)
+    suspend fun getUser() : User? {
+        return withContext(Dispatchers.IO) {
+            val preferences = context.dataStore.data.firstOrNull()
+            if (preferences != null) {
+                val userString = preferences[USER_DATA_STORE_KEY]
+                if (userString != null) stringToUser(userString) else null
+            } else null
         }
     }
+
+    suspend fun saveUser(user : User) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_DATA_STORE_KEY] = userToString(user) // profilePic = null because gonna remove this property in future. so that already existing user's app should not crash.
+        }
+    }
+
+    suspend fun saveProfilePic(image: ByteArray) {
+        context.dataStore.edit {preferences ->
+            preferences[PROFILE_PIC] = image
+        }
+    }
+
+    suspend fun getProfilePic() : ByteArray? {
+        return withContext(Dispatchers.IO) {
+            val preferences = context.dataStore.data.firstOrNull()
+            if (preferences != null) {
+                preferences[PROFILE_PIC]
+            } else null
+        }
+    }
+
+    suspend fun removeProfilePic() {
+        withContext(Dispatchers.IO) {
+            context.dataStore.edit { pref ->
+                pref[PROFILE_PIC] = ByteArray(0)
+            }
+        }
+    }
+
+    val getProfilePic: Flow<ByteArray?> = context.dataStore.data
+        .map { pref ->
+            val image = pref[PROFILE_PIC]
+            if((image?.size ?: 0) == 0){
+                null
+            } else {
+                image
+            }
+        }
 
     suspend fun saveIsDarkMode(data : Boolean) {
         context.dataStore.edit {preferences ->
@@ -92,6 +130,7 @@ class UserDataStore(private val context : Context) {
                 preferences[USER_DATA_STORE_KEY] = userToString(User())
             }
         }
+        removeProfilePic()
     }
 
 }

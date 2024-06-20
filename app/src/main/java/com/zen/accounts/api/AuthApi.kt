@@ -42,8 +42,8 @@ class AuthApi @Inject constructor(){
             }
     }
 
-    suspend fun loginUsingEmailAndPassword(email: String, pass : String) : Response<User> = suspendCoroutine { continuation ->
-        val response = Response(value = User())
+    suspend fun loginUsingEmailAndPassword(email: String, pass : String) : Response<Pair<User, ByteArray>> = suspendCoroutine { continuation ->
+        val response = Response(value = Pair(User(), ByteArray(0)))
         val db = FirebaseFirestore.getInstance()
         val dbRef = Firebase.database.reference
         val auth = FirebaseAuth.getInstance()
@@ -64,7 +64,7 @@ class AuthApi @Inject constructor(){
                         val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(url)
                         storageRef.getBytes(12527200L)
                             .addOnSuccessListener { bytes ->
-                                response.value = retrievedUser.copy(profilePic = bytes, profilePicFirebaseFormat = null)
+                                response.value = Pair(retrievedUser.copy(profilePicFirebaseFormat = null), bytes)
                                 response.status = true
                                 continuation.resume(response)
                             }
@@ -80,31 +80,31 @@ class AuthApi @Inject constructor(){
         }
     }
 
-    suspend fun uploadProfilePic(user: User) : Response<Unit> = suspendCoroutine { continuation ->
-        val response = Response(value = Unit)
-        val db = FirebaseFirestore.getInstance()
-
-        val docRef = db.collection("Users").document(user.uid)
-        user.profilePic?.let {
-            val storageRef = FirebaseStorage.getInstance().getReference("user/${user.uid}/profile")
-            storageRef.putBytes(it)
-                .addOnSuccessListener {uploadTask ->
-                    uploadTask.storage.downloadUrl.addOnSuccessListener {uri ->
-                        docRef.update("profilePicFirebaseFormat", uri.toString())
-                            .addOnSuccessListener {
-                                response.status = true
-                                response.message = "Profile pic is successfully uploaded."
-                                continuation.resume(response)
-                            }
-                            .addOnFailureListener {
-                                response.status = false
-                                response.message = it.message.toString()
-                                continuation.resume(response)
-                            }
-                    }
-                }
-        }
-    }
+//    suspend fun uploadProfilePic(user: User) : Response<Unit> = suspendCoroutine { continuation ->
+//        val response = Response(value = Unit)
+//        val db = FirebaseFirestore.getInstance()
+//
+//        val docRef = db.collection("Users").document(user.uid)
+//        user.profilePic?.let {
+//            val storageRef = FirebaseStorage.getInstance().getReference("user/${user.uid}/profile")
+//            storageRef.putBytes(it)
+//                .addOnSuccessListener {uploadTask ->
+//                    uploadTask.storage.downloadUrl.addOnSuccessListener {uri ->
+//                        docRef.update("profilePicFirebaseFormat", uri.toString())
+//                            .addOnSuccessListener {
+//                                response.status = true
+//                                response.message = "Profile pic is successfully uploaded."
+//                                continuation.resume(response)
+//                            }
+//                            .addOnFailureListener {
+//                                response.status = false
+//                                response.message = it.message.toString()
+//                                continuation.resume(response)
+//                            }
+//                    }
+//                }
+//        }
+//    }
 
     fun logout() {
         val auth = FirebaseAuth.getInstance()

@@ -1,23 +1,43 @@
 package com.zen.accounts.ui.screens.common
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DrawerDefaults
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.NavigationDrawerItemColors
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,9 +45,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.dismiss
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -37,14 +71,20 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zen.accounts.R
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.getScreenRouteWithTitle
+import com.zen.accounts.ui.screens.main.home.landscape.HomeLandscapeScreen
+import com.zen.accounts.ui.screens.main.home.portrait.HomePortraitScreen
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
+import com.zen.accounts.ui.theme.roundedCornerShape
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.utility.generalBorder
+import com.zen.accounts.utility.main
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @Composable
 fun LoadingDialog(
@@ -132,43 +172,104 @@ fun TopAppBar(
     painterResource : Painter? = null,
     onClick: (() -> Unit)? = null
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(topBarHeight),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
-        TopBarBackButton(appState = appState)
-
-        Text(
-            text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
-                ?: "",
-            style = Typography.bodyLarge.copy(onBackground),
+    if(screenWidth <= 500.dp) {
+        Row(
             modifier = Modifier
-                .padding(generalPadding)
-                .weight(1f)
-        )
+                .fillMaxWidth()
+                .height(topBarHeight)
+            ,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
-        if (onClick != null && painterResource != null) {
-            IconButton(onClick = { onClick() }) {
+            TopBarBackButton(appState = appState)
+
+            Text(
+                text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
+                    ?: "",
+                style = Typography.bodyLarge.copy(onBackground),
+                modifier = Modifier
+                    .padding(generalPadding)
+                    .weight(1f)
+            )
+
+            if (onClick != null && painterResource != null) {
+                IconButton(onClick = { onClick() }) {
+                    Icon(
+                        painter = painterResource,
+                        contentDescription ="icon description",
+                        tint = onBackground
+                    )
+                }
+
+            } else if(onClick != null){
+                GeneralButton(
+                    text = btnText,
+                    modifier = Modifier.padding(horizontal = generalPadding),
+                    enable = buttonEnableCondition
+                ) {
+                    onClick()
+                }
+            }
+        }
+    } else {
+        val coroutineScope = rememberCoroutineScope()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(topBarHeight)
+            ,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {
+                if(appState.drawerState.value != null) {
+                    if(appState.drawerState.value!!.isClosed)
+                        coroutineScope.launch {
+                            appState.drawerState.value!!.open()
+                        }
+                    else
+                        coroutineScope.launch {
+                            appState.drawerState.value!!.open()
+                        }
+                }
+            }) {
                 Icon(
-                    painter = painterResource,
-                    contentDescription ="icon description",
-                    tint = onBackground
+                    painter = painterResource(R.drawable.ic_menu),
+                    contentDescription = "menu icon"
                 )
             }
 
-        } else if(onClick != null){
-            GeneralButton(
-                text = btnText,
-                modifier = Modifier.padding(horizontal = generalPadding),
-                enable = buttonEnableCondition
-            ) {
-                onClick()
+            Text(
+                text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
+                    ?: "",
+                style = Typography.bodyLarge.copy(onBackground),
+                modifier = Modifier
+                    .padding(generalPadding)
+                    .weight(1f)
+            )
+
+            if (onClick != null && painterResource != null) {
+                IconButton(onClick = { onClick() }) {
+                    Icon(
+                        painter = painterResource,
+                        contentDescription ="icon description",
+                        tint = onBackground
+                    )
+                }
+
+            } else if(onClick != null){
+                GeneralButton(
+                    text = btnText,
+                    modifier = Modifier.padding(horizontal = generalPadding),
+                    enable = buttonEnableCondition
+                ) {
+                    onClick()
+                }
             }
         }
     }
+
 }
 
 @Composable
@@ -194,3 +295,4 @@ fun GeneralDialog(
         }
     }
 }
+

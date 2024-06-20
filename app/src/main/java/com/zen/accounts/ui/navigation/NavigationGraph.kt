@@ -3,6 +3,7 @@ package com.zen.accounts.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.zen.accounts.R
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.screens.auth.splash.Splash
@@ -13,7 +14,9 @@ import com.zen.accounts.ui.screens.common.add_expense_screen_route
 import com.zen.accounts.ui.screens.common.expense_detail_screen_label
 import com.zen.accounts.ui.screens.common.expense_detail_screen_route
 import com.zen.accounts.ui.screens.common.expense_details_argument
+import com.zen.accounts.ui.screens.common.home_screen_label
 import com.zen.accounts.ui.screens.common.home_screen_route
+import com.zen.accounts.ui.screens.common.login_button_label
 import com.zen.accounts.ui.screens.common.login_screen_label
 import com.zen.accounts.ui.screens.common.login_screen_route
 import com.zen.accounts.ui.screens.common.monthly_expense_screen_label
@@ -24,6 +27,7 @@ import com.zen.accounts.ui.screens.common.register_screen_label
 import com.zen.accounts.ui.screens.common.register_screen_route
 import com.zen.accounts.ui.screens.common.setting_screen_label
 import com.zen.accounts.ui.screens.common.setting_screen_route
+import com.zen.accounts.ui.screens.common.small_logout_button_label
 import com.zen.accounts.ui.screens.common.splash_route
 import com.zen.accounts.ui.screens.common.splash_screen_route
 import com.zen.accounts.ui.screens.common.splash_screen_screen_label
@@ -57,9 +61,11 @@ sealed class Screen(val route : String, val title: String) {
             return "$expense_detail_screen_route/${expenseToString(data)}"
         }
     }
-    data object Home : Screen(home_screen_route, my_expense_screen_label)
+    data object Home : Screen(home_screen_route, home_screen_label)
     data object SettingScreen : Screen(setting_screen_route, setting_screen_label)
     data object MonthlyExpenseScreen : Screen(monthly_expense_screen_route, monthly_expense_screen_label)
+
+    data object logout : Screen(small_logout_button_label, small_logout_button_label) // only for landscape logout button in drawer layout.
 }
 
 fun getScreenRouteWithTitle() : List<Screen> {
@@ -73,5 +79,30 @@ fun getScreenRouteWithTitle() : List<Screen> {
         Screen.SettingScreen,
         Screen.ExpenseDetailScreen,
         Screen.MonthlyExpenseScreen
+    )
+}
+
+// only for landscape mode
+fun getScreenRouteWithIcon(isLogin : Boolean) : List<Pair<Screen, Int>> {
+    return listOf(
+        Pair(
+            Screen.Home,
+            R.drawable.ic_home
+        ),
+        Pair(
+            Screen.SettingScreen,
+            R.drawable.ic_setting
+        ),
+        if(isLogin) {
+            Pair(
+                Screen.logout,
+                R.drawable.ic_logout
+            )
+        } else {
+            Pair(
+                Screen.LoginScreen,
+                R.drawable.ic_login
+            )
+        }
     )
 }
