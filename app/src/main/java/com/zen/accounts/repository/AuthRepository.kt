@@ -7,7 +7,6 @@ import com.zen.accounts.api.resource.Response
 import com.zen.accounts.db.model.User
 import com.zen.accounts.utility.io
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 

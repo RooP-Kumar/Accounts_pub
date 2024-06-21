@@ -7,10 +7,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import com.zen.accounts.db.datastore.UserDataStore
-import com.zen.accounts.db.model.User
 import com.zen.accounts.ui.screens.common.home_screen_route
 
 @Composable

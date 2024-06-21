@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.byteArrayPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.google.gson.Gson
 import com.zen.accounts.db.model.User
 import com.zen.accounts.ui.screens.common.BackupPlan
 import com.zen.accounts.ui.screens.common.backup_plan

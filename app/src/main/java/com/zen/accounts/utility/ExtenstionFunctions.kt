@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.platform.inspectable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.shadowColor

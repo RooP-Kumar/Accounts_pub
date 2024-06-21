@@ -1,6 +1,5 @@
 package com.zen.accounts.ui.screens.main.expense_detail
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

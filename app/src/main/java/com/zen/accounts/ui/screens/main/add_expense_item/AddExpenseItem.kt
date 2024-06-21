@@ -13,11 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,22 +37,17 @@ import com.zen.accounts.ui.screens.common.GeneralSnackBar
 import com.zen.accounts.ui.screens.common.LoadingDialog
 import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.TopAppBar
-import com.zen.accounts.ui.screens.common.TopBarBackButton
-import com.zen.accounts.ui.screens.common.add_expense_item_screen_label
 import com.zen.accounts.ui.screens.common.add_item_button_label
-import com.zen.accounts.ui.screens.common.getQuantityAmountRelation
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.surface
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
 import com.zen.accounts.utility.Utility
-import com.zen.accounts.utility.toast
 import kotlinx.coroutines.launch
 
 

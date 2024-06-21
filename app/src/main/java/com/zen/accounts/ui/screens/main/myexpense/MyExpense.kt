@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -66,7 +65,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zen.accounts.R
 import com.zen.accounts.db.dao.ExpenseWithOperation
-import com.zen.accounts.db.model.Expense
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.LoadingDialog
@@ -80,7 +78,6 @@ import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
-import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.light_enabled_color
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface

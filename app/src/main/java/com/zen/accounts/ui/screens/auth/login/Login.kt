@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,8 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.zen.accounts.states.AppState
@@ -43,10 +40,8 @@ import com.zen.accounts.ui.theme.Purple80
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
-import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.normalPadding
 import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.shadowColor
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.LoginScreenViewModel
 import kotlinx.coroutines.delay

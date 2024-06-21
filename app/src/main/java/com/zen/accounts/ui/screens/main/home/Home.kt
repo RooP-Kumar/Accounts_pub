@@ -1,10 +1,8 @@
 package com.zen.accounts.ui.screens.main.home
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -17,9 +15,6 @@ import com.zen.accounts.ui.screens.main.home.landscape.HomeLandscapeScreen
 import com.zen.accounts.ui.screens.main.home.portrait.HomePortraitScreen
 import com.zen.accounts.ui.viewmodels.HomeViewModel
 import com.zen.accounts.ui.viewmodels.SettingViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 
 data class HomeUiState(
     val totalAmount : MutableState<Double> = mutableDoubleStateOf(0.0),
