@@ -3,7 +3,6 @@ package com.zen.accounts.ui.screens.main.setting
 
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -36,7 +35,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -44,6 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -52,10 +52,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -64,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.zen.accounts.R
 import com.zen.accounts.db.model.User
 import com.zen.accounts.states.AppState
@@ -89,33 +93,34 @@ import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
+import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.roundedCornerShape
 import com.zen.accounts.ui.theme.surface
 import com.zen.accounts.ui.theme.tweenAnimDuration
 import com.zen.accounts.ui.viewmodels.SettingViewModel
+import com.zen.accounts.utility.LoadingScreen
 import com.zen.accounts.utility.Utility
 import com.zen.accounts.utility.generalBorder
 import com.zen.accounts.utility.generalCircleBorder
 import com.zen.accounts.utility.io
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
 data class SettingUiState(
-    val user : MutableState<User?> = mutableStateOf(null),
     val showBackupDropDown: MutableState<Boolean> = mutableStateOf(false),
     val backupDropDownText: MutableState<BackupPlan> = mutableStateOf(BackupPlan.Off),
     val showSnackBar: MutableState<Boolean> = mutableStateOf(false),
     val showSnackBarJob: MutableState<Job?> = mutableStateOf(null),
     val showSnackBarText: MutableState<String> = mutableStateOf(""),
+    val showSnackBarColor: MutableState<Color> = mutableStateOf(red_color),
     val loadingState: MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
     val backupLoadingState: MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
     val showLogoutPopUp: MutableState<Boolean> = mutableStateOf(false),
     val showConfirmationPopUp: MutableState<Boolean> = mutableStateOf(false),
     val showImagePickerOption: MutableState<Boolean> = mutableStateOf(false),
-    val profilePic: MutableState<Bitmap?> = mutableStateOf(null),
+    val profilePic: MutableState<Bitmap?> = mutableStateOf(null)
 )
 
 @Composable
@@ -123,21 +128,10 @@ fun Setting(
     appState: AppState,
     settingViewModel: SettingViewModel
 ) {
-    val context = LocalContext.current
     val uiState = settingViewModel.settingUIState
+
     LaunchedEffect(key1 = Unit) {
         settingViewModel.getBackupPlan()
-    }
-
-    LaunchedEffect(key1 = uiState.user.value) {
-        val user = uiState.user.value
-        val profilePic = user?.profilePic
-        if(user != null && profilePic != null) {
-            uiState.profilePic.value = BitmapFactory.decodeByteArray(profilePic, 0, profilePic.size)
-        } else {
-            delay(200)
-            uiState.user.value = appState.dataStore.getUser()
-        }
     }
 
     LoadingDialog(loadingState = uiState.loadingState)
@@ -156,21 +150,25 @@ private fun MainUI(
     val uiState = settingViewModel.settingUIState
     val coroutineScope = rememberCoroutineScope()
     val darkSwitchOn = appState.darkMode.value ?: isSystemInDarkTheme()
+    val screenWidth = LocalConfiguration.current.screenWidthDp
     BackHandler(uiState.showImagePickerOption.value) {
         uiState.showImagePickerOption.value = false
     }
 
     var rotation by remember { mutableFloatStateOf(0f) }
     val infiniteTransition = rememberInfiniteTransition(label = "backup indicator label")
-    rotation = infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            tween(1000),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation label"
-    ).value
+
+    if(uiState.backupLoadingState.value == LoadingState.LOADING){
+        rotation = infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                tween(1000),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "rotation label"
+        ).value
+    }
 
     ScreenDialogs(
         settingViewModel
@@ -178,6 +176,7 @@ private fun MainUI(
 
     Box(
         modifier = Modifier.fillMaxSize()
+            .pointerInput(Unit) {}
     ) {
         Column(
             modifier = Modifier
@@ -188,179 +187,178 @@ private fun MainUI(
                 appState = appState
             )
 
-            Crossfade(
-                targetState = uiState.user.value,
-                label = "main screen",
-                animationSpec = tween(tweenAnimDuration)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
             ) {
-                if(it != null) {
-                    Column(
-                        modifier = Modifier
-                            .background(background),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        ProfileSection(
-                            uiState.user,
-                            uiState.showImagePickerOption,
-                            uiState.profilePic
-                        )
-
-                        Row(
+                val user = settingViewModel.user.collectAsState(initial = null)
+                Crossfade(
+                    targetState = user.value,
+                    animationSpec = tween(500),
+                    label = "main screen"
+                ) {
+                    if(it == null) {
+                        LoadingScreen()
+                    } else {
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(generalPadding),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                                .fillMaxSize()
+                                .background(background),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(
-                                text = "Dark Mode",
-                                style = Typography.bodyMedium.copy(color = onBackground)
-                            )
-
-                            Switch(
-                                checked = darkSwitchOn,
-                                onCheckedChange = {
-                                    coroutineScope.launch {
-                                        appState.dataStore.saveIsDarkMode(!darkSwitchOn)
-                                    }
-                                },
-                                colors = SwitchDefaults.colors().copy(
-                                    checkedBorderColor = onBackground,
-                                    checkedThumbColor = onBackground,
-                                    checkedTrackColor = enabled_color,
-                                    uncheckedBorderColor = enabled_color,
-                                    uncheckedThumbColor = enabled_color,
-                                    uncheckedTrackColor = disabled_color
-                                )
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = generalPadding, bottom = generalPadding),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Backup",
-                                style = Typography.bodyMedium.copy(color = onBackground)
-                            )
-
-                            Spacer(modifier = Modifier.weight(1f))
-
-                            AnimatedVisibility(
-                                visible = uiState.backupLoadingState.value == LoadingState.LOADING,
-                                modifier = Modifier,
-                                enter = fadeIn(),
-                                exit = fadeOut()
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_sync),
-                                    "backup indicator",
-                                    modifier = Modifier
-                                        .size(20.dp)
-                                        .graphicsLayer {
-                                            rotationZ = rotation
-                                        }
+                            if(screenWidth <= 500) {
+                                ProfileSection(
+                                    user,
+                                    uiState.showImagePickerOption,
+                                    uiState.profilePic
                                 )
                             }
 
-                            GeneralDropDown(
-                                modifier = Modifier.width(160.dp),
-                                value = uiState.backupDropDownText,
-                                showDropDown = uiState.showBackupDropDown,
-                                valueList = BackupPlan.getAllBackupPlan(),
-                                enable = uiState.user.value != null && uiState.user.value!!.isAuthenticated,
-                                onClick = {
-                                    if (uiState.user.value == null || (uiState.user.value != null && !uiState.user.value!!.isAuthenticated)) {
-                                        uiState.showSnackBarText.value =
-                                            "Please login to use backup"
-                                        coroutineScope.launch {
-                                            if (uiState.showSnackBarJob.value == null || (uiState.showSnackBarJob.value != null && !uiState.showSnackBarJob.value!!.isActive)) {
-                                                uiState.showSnackBarJob.value =
-                                                    coroutineScope.launch(Dispatchers.IO) {
-                                                        settingViewModel.showSnackBar()
-                                                    }
-                                            }
-                                        }
-                                    }
-                                },
-                                onItemClick = {backupPlan ->
-                                    uiState.backupDropDownText.value = backupPlan
-                                    coroutineScope.launch(Dispatchers.IO) {
-                                        when (backupPlan) {
-                                            is BackupPlan.Off -> {
-                                                settingViewModel.cancelAllWork()
-                                            }
-
-                                            is BackupPlan.Now -> {
-                                                settingViewModel.startSingleUploadRequest()
-                                                settingViewModel.updateBackupPlan()
-                                            }
-
-                                            is BackupPlan.Daily -> {
-                                                settingViewModel.startDailyUploadRequest()
-                                                settingViewModel.updateBackupPlan()
-                                            }
-
-                                            is BackupPlan.Weekly -> {
-                                                settingViewModel.startWeeklyUploadRequest()
-                                                settingViewModel.updateBackupPlan()
-                                            }
-
-                                            is BackupPlan.Monthly -> {
-                                                settingViewModel.startMonthlyUploadRequest()
-                                                settingViewModel.updateBackupPlan()
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = generalPadding, bottom = generalPadding),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = if (uiState.user.value != null && uiState.user.value!!.isAuthenticated) small_logout_button_label else login_screen_label,
-                                style = Typography.bodyMedium.copy(color = onBackground)
-                            )
-
-                            GeneralButton(
-                                text = if (uiState.user.value != null && uiState.user.value!!.isAuthenticated) logout_button_label else login_button_label,
+                            Row(
                                 modifier = Modifier
-                                    .width(160.dp)
-                                    .padding(
-                                        horizontal = generalPadding,
-                                        vertical = halfGeneralPadding
-                                    )
+                                    .fillMaxWidth()
+                                    .padding(generalPadding),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                coroutineScope.launch {
-                                    val currentUser = appState.dataStore.getUser()
-                                    if (currentUser != null && currentUser.isAuthenticated)
-                                        uiState.showLogoutPopUp.value = true
-                                    else
-                                        appState.navController.navigate(auth_route)
+                                Text(
+                                    text = "Dark Mode",
+                                    style = Typography.bodyMedium.copy(color = onBackground)
+                                )
+
+                                Switch(
+                                    checked = darkSwitchOn,
+                                    onCheckedChange = {
+                                        coroutineScope.launch {
+                                            appState.dataStore.saveIsDarkMode(!darkSwitchOn)
+                                        }
+                                    },
+                                    colors = SwitchDefaults.colors().copy(
+                                        checkedBorderColor = onBackground,
+                                        checkedThumbColor = onBackground,
+                                        checkedTrackColor = enabled_color,
+                                        uncheckedBorderColor = enabled_color,
+                                        uncheckedThumbColor = enabled_color,
+                                        uncheckedTrackColor = disabled_color
+                                    )
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = generalPadding, bottom = generalPadding),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Backup",
+                                    style = Typography.bodyMedium.copy(color = onBackground)
+                                )
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                AnimatedVisibility(
+                                    visible = uiState.backupLoadingState.value == LoadingState.LOADING,
+                                    modifier = Modifier,
+                                    enter = fadeIn(),
+                                    exit = fadeOut()
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_sync),
+                                        "backup indicator",
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .graphicsLayer {
+                                                rotationZ = rotation
+                                            }
+                                    )
                                 }
 
+                                GeneralDropDown(
+                                    modifier = Modifier.width(160.dp),
+                                    value = uiState.backupDropDownText,
+                                    showDropDown = uiState.showBackupDropDown,
+                                    valueList = BackupPlan.getAllBackupPlan(),
+                                    enable = user.value!!.isAuthenticated,
+                                    onClick = {
+                                        if (user.value!!.uid.isEmpty() && !user.value!!.isAuthenticated) {
+                                            uiState.showSnackBarText.value =
+                                                "Please login to use backup"
+                                            coroutineScope.launch {
+                                                if (uiState.showSnackBarJob.value == null || (uiState.showSnackBarJob.value != null && !uiState.showSnackBarJob.value!!.isActive)) {
+                                                    uiState.showSnackBarJob.value =
+                                                        coroutineScope.launch(Dispatchers.IO) {
+                                                            Utility.showSnackBar(uiState.showSnackBar)
+                                                        }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    onItemClick = { backupPlan ->
+                                        uiState.backupDropDownText.value = backupPlan
+                                        coroutineScope.launch(Dispatchers.IO) {
+                                            when (backupPlan) {
+                                                is BackupPlan.Off -> {
+                                                    settingViewModel.cancelAllWork()
+                                                }
+
+                                                is BackupPlan.Now -> {
+                                                    settingViewModel.startSingleUploadRequest()
+                                                    settingViewModel.updateBackupPlan()
+                                                }
+
+                                                is BackupPlan.Daily -> {
+                                                    settingViewModel.startDailyUploadRequest()
+                                                    settingViewModel.updateBackupPlan()
+                                                }
+
+                                                is BackupPlan.Weekly -> {
+                                                    settingViewModel.startWeeklyUploadRequest()
+                                                    settingViewModel.updateBackupPlan()
+                                                }
+
+                                                is BackupPlan.Monthly -> {
+                                                    settingViewModel.startMonthlyUploadRequest()
+                                                    settingViewModel.updateBackupPlan()
+                                                }
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = generalPadding, bottom = generalPadding),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (user.value!!.isAuthenticated) small_logout_button_label else login_screen_label,
+                                    style = Typography.bodyMedium.copy(color = onBackground)
+                                )
+
+                                GeneralButton(
+                                    text = if (user.value!!.isAuthenticated) logout_button_label else login_button_label,
+                                    modifier = Modifier
+                                        .width(160.dp)
+                                        .padding(
+                                            horizontal = generalPadding,
+                                            vertical = halfGeneralPadding
+                                        )
+                                ) {
+                                    coroutineScope.launch {
+                                        val currentUser = appState.dataStore.getUser()
+                                        if (currentUser != null && currentUser.isAuthenticated)
+                                            uiState.showLogoutPopUp.value = true
+                                        else
+                                            appState.navController.navigate(auth_route)
+                                    }
+
+                                }
                             }
                         }
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .background(background)
-                                .align(Alignment.Center),
-                            color = onBackground
-                        )
                     }
                 }
             }
@@ -383,13 +381,14 @@ private fun MainUI(
         GeneralSnackBar(
             visible = uiState.showSnackBar,
             text = uiState.showSnackBarText.value,
-            modifier = Modifier.align(Alignment.TopCenter)
+            modifier = Modifier.align(Alignment.TopCenter),
+            containerColor = uiState.showSnackBarColor.value
         )
     }
 }
 
 @Composable
-private fun ScreenDialogs(
+fun ScreenDialogs(
     settingViewModel: SettingViewModel
 ) {
     val uiState = settingViewModel.settingUIState
@@ -410,6 +409,7 @@ private fun ScreenDialogs(
                 }
             }
             .zIndex(-100f) // because should not be visible on the screen
+            .alpha(0f)
     ) {
         Column(
             Modifier.fillMaxWidth(),
@@ -573,25 +573,25 @@ private fun ScreenDialogs(
 
 @Composable
 fun ProfileSection(
-    user: MutableState<User?>,
+    user: State<User?>,
     showImagePickerOption: MutableState<Boolean>,
-    profilePicBitmap : MutableState<Bitmap?>
+    profilePicBitmap: MutableState<Bitmap?>
 ) {
     var name = "John Doe"
     var mobile = "1234567890"
     var email = "johndoe@example.com"
 
-    if(user.value != null) {
-        if (user.value!!.name.isNotEmpty()) {
-            name = user.value!!.name
-        }
-        if (user.value!!.phone.isNotEmpty()) {
-            mobile = user.value!!.phone
-        }
-        if (user.value!!.email.isNotEmpty()) {
-            email = user.value!!.email
-        }
+
+    if (user.value != null && user.value!!.name.isNotEmpty()) {
+        name = user.value!!.name
     }
+    if (user.value != null && user.value!!.phone.isNotEmpty()) {
+        mobile = user.value!!.phone
+    }
+    if (user.value != null && user.value!!.email.isNotEmpty()) {
+        email = user.value!!.email
+    }
+
 
     Column(
         modifier = Modifier
@@ -610,7 +610,10 @@ fun ProfileSection(
                 .background(Color.LightGray)
         ) {
             AsyncImage(
-                model = profilePicBitmap.value,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(profilePicBitmap.value)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "profile image",
                 placeholder = painterResource(id = R.drawable.ic_person),
                 error = painterResource(id = R.drawable.ic_person),

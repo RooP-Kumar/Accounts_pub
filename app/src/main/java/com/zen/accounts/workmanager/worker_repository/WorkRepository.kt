@@ -17,7 +17,7 @@ class WorkRepository @Inject constructor(
     suspend fun uploadExpenseToFirebase(uid : String) : Resource<Response<Unit>> {
         val expenseList = expenseDao.getCreatedExpenses()
         if(expenseList.isEmpty()) {
-            return Resource.SUCCESS(Response(Unit, true, message = "Expense are already backup"))
+            return Resource.SUCCESS(Response(Unit, true, message = "Expense are already backup."))
         }
         return withContext(Dispatchers.IO) {
             val res = expenseApi.uploadToFirebase(uid, expenseList)
@@ -29,7 +29,7 @@ class WorkRepository @Inject constructor(
     suspend fun updateExpenseToFirebase(uid: String) : Resource<Response<Unit>> {
         val expenseList = expenseDao.getUpdatedExpenses()
         if(expenseList.isEmpty()) {
-            return Resource.SUCCESS(Response(Unit, true, "no any updated expense was found."))
+            return Resource.SUCCESS(Response(Unit, true, "Expense are already backup."))
         }
         return withContext(Dispatchers.IO) {
             val res = expenseApi.uploadToFirebase(uid, expenseList)
@@ -41,7 +41,7 @@ class WorkRepository @Inject constructor(
     suspend fun deleteFromFirebase(uid: String) : Resource<Response<Unit>> {
         val expenseIds = backupTrackerDao.getDeletedExpensesId()
         if(expenseIds.isEmpty()) {
-            return Resource.SUCCESS(Response(Unit, true, "no deleted expense was found"))
+            return Resource.SUCCESS(Response(Unit, true, "Expense are already backup."))
         }
         return withContext(Dispatchers.IO) {
             val res = expenseApi.deleteFromFirebase(uid, expenseIds)

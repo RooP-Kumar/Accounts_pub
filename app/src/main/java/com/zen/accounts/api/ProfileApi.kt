@@ -10,7 +10,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class ProfileApi @Inject constructor() {
-    suspend fun updateProfilePic(user: User) : Response<Unit> = suspendCoroutine { continuation ->
+    suspend fun updateProfilePic(user: User, profilePic : ByteArray) : Response<Unit> = suspendCoroutine { continuation ->
         val response = Response(value = Unit)
         val docRef = Utility.getUserDocRef(user.uid)
 
@@ -19,13 +19,13 @@ class ProfileApi @Inject constructor() {
 
         io {
             try {
-                val uploadTask = profileRef.putBytes(user.profilePic!!).await()
+                val uploadTask = profileRef.putBytes(profilePic).await()
                 if (uploadTask.task.isSuccessful) {
                     val imageDownloadUrl = uploadTask.storage.downloadUrl.await()
                     docRef.update("profilePicFirebaseFormat", imageDownloadUrl)
                         .addOnSuccessListener {
                             response.message = "Profile successfully uploaded into cloud."
-                            response.status = false
+                            response.status = true
                             continuation.resume(response)
                         }
                         .addOnFailureListener {

@@ -1,12 +1,15 @@
 package com.zen.accounts.states
 
 import android.content.Context
+import androidx.compose.material3.DrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.navigation.NavHostController
 import com.zen.accounts.db.datastore.UserDataStore
+import com.zen.accounts.ui.screens.common.home_screen_route
 
 @Composable
 @Stable
@@ -42,11 +45,21 @@ class AppState(context: Context) {
         }
     }
 
+    fun drawerNavigate(route : String) {
+        navController.navigate(route) {
+            launchSingleTop = true
+            restoreState = true
+            popUpTo(home_screen_route) {
+                inclusive = false
+            }
+        }
+    }
+
     // User Data Store
     var dataStore = UserDataStore(context)
 
     // Drawer State
-    var drawerState : MutableState<Boolean>? = null
+    var drawerState : MutableState<DrawerState?> = mutableStateOf(null)
 
     // Dark Mode
     lateinit var darkMode : State<Boolean?>

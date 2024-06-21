@@ -1,10 +1,12 @@
 package com.zen.accounts.ui.viewmodels
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
+import com.zen.accounts.db.model.User
 import com.zen.accounts.repository.AuthRepository
 import com.zen.accounts.repository.ExpenseItemRepository
 import com.zen.accounts.repository.ExpenseRepository
@@ -13,13 +15,20 @@ import com.zen.accounts.ui.screens.common.BackupPlan
 import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.work_manager_output_data
 import com.zen.accounts.ui.screens.main.setting.SettingUiState
+import com.zen.accounts.ui.theme.green_color
+import com.zen.accounts.ui.theme.red_color
+import com.zen.accounts.utility.Utility
 import com.zen.accounts.utility.io
 import com.zen.accounts.workmanager.worker_repository.WorkerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -33,6 +42,36 @@ class SettingViewModel @Inject constructor(
     private val mediaStoreRepository: MediaStoreRepository
 ) : ViewModel() {
     val settingUIState by lazy { SettingUiState() }
+    private val _user = MutableStateFlow<User?>(null)
+    val user : StateFlow<User?> get() = _user
+
+
+    init {
+        viewModelScope.launch {
+            expenseRepository.dataStore.getUser
+                .flowOn(Dispatchers.IO)
+                .map {
+                    it ?: User()
+                }
+                .collect {
+                    delay(1000)
+                    _user.value = it
+                }
+        }
+
+        viewModelScope.launch {
+            expenseRepository.dataStore.getProfilePic
+                .flowOn(Dispatchers.IO)
+                .map {
+                    it?.let {
+                        BitmapFactory.decodeByteArray(it, 0, it.size)
+                    }
+                }
+                .collect {
+                    settingUIState.profilePic.value = it
+                }
+        }
+    }
 
     fun logout() {
         viewModelScope.launch {
@@ -43,13 +82,13 @@ class SettingViewModel @Inject constructor(
                     expenseItemRepository.clearExpenseItemTable()
                     authRepository.logout()
                     expenseRepository.dataStore.logoutUser()
-                    user.value = null
                     profilePic.value = null
 
                     delay(500)
                     loadingState.value = LoadingState.SUCCESS
                     showSnackBarText.value = "Logout Successfully"
-                    showSnackBar()
+                    showSnackBarColor.value = green_color
+                    Utility.showSnackBar(showSnackBar)
                 } else {
                     loadingState.value = LoadingState.IDLE
                     showConfirmationPopUp.value = true
@@ -70,17 +109,6 @@ class SettingViewModel @Inject constructor(
                     authRepository.logout()
                     expenseRepository.dataStore.logoutUser()
                 }
-            }
-        }
-    }
-
-    fun showSnackBar() {
-        viewModelScope.launch {
-            settingUIState.apply {
-                delay(200)
-                showSnackBar.value = true
-                delay(2500)
-                showSnackBar.value = false
             }
         }
     }
@@ -114,21 +142,29 @@ class SettingViewModel @Inject constructor(
                     it?.let {
                         when (it.state) {
                             WorkInfo.State.SUCCEEDED -> {
+                                settingUIState.backupLoadingState.value = LoadingState.SUCCESS
+                                settingUIState.showSnackBarText.value = it.outputData.getString(work_manager_output_data).toString()
+                                settingUIState.showSnackBarColor.value = green_color
+                                Utility.showSnackBar(settingUIState.showSnackBar)
                                 if (fromLogoutConfirmation) {
+                                    settingUIState.loadingState.value = LoadingState.LOADING
                                     expenseRepository.clearExpenseTable()
                                     expenseItemRepository.clearExpenseItemTable()
                                     authRepository.logout()
                                     expenseRepository.dataStore.logoutUser()
+                                    delay(200)
+                                    settingUIState.loadingState.value = LoadingState.SUCCESS
                                 }
-                                delay(200)
                                 settingUIState.backupDropDownText.value = BackupPlan.Off
-                                settingUIState.backupLoadingState.value = LoadingState.SUCCESS
                             }
 
                             WorkInfo.State.FAILED -> {
                                 delay(500)
                                 settingUIState.backupDropDownText.value = BackupPlan.Off
                                 settingUIState.backupLoadingState.value = LoadingState.FAILURE
+                                settingUIState.showSnackBarText.value = it.outputData.getString(work_manager_output_data).toString()
+                                settingUIState.showSnackBarColor.value = green_color
+                                Utility.showSnackBar(settingUIState.showSnackBar)
                             }
 
                             WorkInfo.State.RUNNING -> {
@@ -191,7 +227,7 @@ class SettingViewModel @Inject constructor(
             val bos = ByteArrayOutputStream()
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos)
             expenseRepository.dataStore.getUser()?.let {
-                expenseRepository.dataStore.saveUser(it.copy(profilePic = bos.toByteArray()))
+                expenseRepository.dataStore.saveProfilePic(bos.toByteArray())
                 settingUIState.profilePic.value = imageBitmap
                 settingUIState.loadingState.value = LoadingState.SUCCESS
                 settingUIState.showImagePickerOption.value = false
@@ -204,12 +240,14 @@ class SettingViewModel @Inject constructor(
 
                                 WorkInfo.State.SUCCEEDED -> {
                                     settingUIState.showSnackBarText.value = outputData.toString()
-                                    showSnackBar()
+                                    settingUIState.showSnackBarColor.value = green_color
+                                    Utility.showSnackBar(settingUIState.showSnackBar)
                                 }
 
                                 WorkInfo.State.FAILED -> {
                                     settingUIState.showSnackBarText.value = outputData.toString()
-                                    showSnackBar()
+                                    settingUIState.showSnackBarColor.value = red_color
+                                    Utility.showSnackBar(settingUIState.showSnackBar)
                                 }
 
                                 else -> {}

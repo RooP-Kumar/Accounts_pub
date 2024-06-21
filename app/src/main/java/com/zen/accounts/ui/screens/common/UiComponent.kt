@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -45,6 +46,7 @@ import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.utility.generalBorder
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoadingDialog(
@@ -132,43 +134,104 @@ fun TopAppBar(
     painterResource : Painter? = null,
     onClick: (() -> Unit)? = null
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(topBarHeight),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
-        TopBarBackButton(appState = appState)
-
-        Text(
-            text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
-                ?: "",
-            style = Typography.bodyLarge.copy(onBackground),
+    if(screenWidth <= 500.dp) {
+        Row(
             modifier = Modifier
-                .padding(generalPadding)
-                .weight(1f)
-        )
+                .fillMaxWidth()
+                .height(topBarHeight)
+            ,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
-        if (onClick != null && painterResource != null) {
-            IconButton(onClick = { onClick() }) {
+            TopBarBackButton(appState = appState)
+
+            Text(
+                text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
+                    ?: "",
+                style = Typography.bodyLarge.copy(onBackground),
+                modifier = Modifier
+                    .padding(generalPadding)
+                    .weight(1f)
+            )
+
+            if (onClick != null && painterResource != null) {
+                IconButton(onClick = { onClick() }) {
+                    Icon(
+                        painter = painterResource,
+                        contentDescription ="icon description",
+                        tint = onBackground
+                    )
+                }
+
+            } else if(onClick != null){
+                GeneralButton(
+                    text = btnText,
+                    modifier = Modifier.padding(horizontal = generalPadding),
+                    enable = buttonEnableCondition
+                ) {
+                    onClick()
+                }
+            }
+        }
+    } else {
+        val coroutineScope = rememberCoroutineScope()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(topBarHeight)
+            ,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {
+                if(appState.drawerState.value != null) {
+                    if(appState.drawerState.value!!.isClosed)
+                        coroutineScope.launch {
+                            appState.drawerState.value!!.open()
+                        }
+                    else
+                        coroutineScope.launch {
+                            appState.drawerState.value!!.open()
+                        }
+                }
+            }) {
                 Icon(
-                    painter = painterResource,
-                    contentDescription ="icon description",
-                    tint = onBackground
+                    painter = painterResource(R.drawable.ic_menu),
+                    contentDescription = "menu icon"
                 )
             }
 
-        } else if(onClick != null){
-            GeneralButton(
-                text = btnText,
-                modifier = Modifier.padding(horizontal = generalPadding),
-                enable = buttonEnableCondition
-            ) {
-                onClick()
+            Text(
+                text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
+                    ?: "",
+                style = Typography.bodyLarge.copy(onBackground),
+                modifier = Modifier
+                    .padding(generalPadding)
+                    .weight(1f)
+            )
+
+            if (onClick != null && painterResource != null) {
+                IconButton(onClick = { onClick() }) {
+                    Icon(
+                        painter = painterResource,
+                        contentDescription ="icon description",
+                        tint = onBackground
+                    )
+                }
+
+            } else if(onClick != null){
+                GeneralButton(
+                    text = btnText,
+                    modifier = Modifier.padding(horizontal = generalPadding),
+                    enable = buttonEnableCondition
+                ) {
+                    onClick()
+                }
             }
         }
     }
+
 }
 
 @Composable
@@ -194,3 +257,4 @@ fun GeneralDialog(
         }
     }
 }
+

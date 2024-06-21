@@ -50,6 +50,7 @@ const val datastore_name = "user data store"
 const val user_data_store_key = "user data store key"
 const val system_in_dark_mode = "system in dark mode"
 const val backup_plan = "backup plan"
+const val profile_pic = "profile img"
 
 // <------------------ Buttons Label Strings ------------------>
 const val login_button_label = "LOGIN"

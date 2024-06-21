@@ -39,9 +39,8 @@ fun Splash(
     appState: AppState
 ) {
     val splashScreenAutoCloseCoroutine = rememberCoroutineScope()
-
     val lottieComposition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.logo_anim)
+        LottieCompositionSpec.RawRes(R.raw.logo_animation)
     )
 
     val progress by animateLottieCompositionAsState(

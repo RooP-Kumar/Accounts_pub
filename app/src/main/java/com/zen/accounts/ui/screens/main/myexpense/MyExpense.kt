@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
@@ -37,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -50,6 +53,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -60,6 +64,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zen.accounts.R
+import com.zen.accounts.db.dao.ExpenseWithOperation
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.LoadingDialog
@@ -73,7 +78,6 @@ import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
-import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.light_enabled_color
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
@@ -106,6 +110,7 @@ fun MyExpense(
     isMonthlyExpense: Boolean
 ) {
     val uiState = viewModel.myExpenseUiState
+    val screenWidth = LocalConfiguration.current.screenWidthDp
     val allExpense =
         if (!isMonthlyExpense) viewModel.allExpense.collectAsState(initial = listOf())
         else viewModel.monthlyExpense.collectAsState(initial = listOf())
@@ -121,7 +126,6 @@ fun MyExpense(
         }
         uiState.showSelectCheckbox.value = false
     }
-    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = allExpense.value) {
         if (allExpense.value.isNotEmpty())
@@ -146,6 +150,7 @@ fun MyExpense(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .pointerInput(Unit) {}
                 .background(background)
         ) {
             if (!uiState.showExpenseList.value) {
@@ -237,8 +242,8 @@ fun MyExpense(
                                 Column {
                                     AnimatedVisibility(
                                         visible = uiState.showSelectCheckbox.value,
-                                        enter = fadeIn() + slideInVertically (tween(300)) { value -> -1 * value },
-                                        exit = fadeOut() + slideOutVertically (tween(300)) { value -> -1 * value }
+                                        enter = fadeIn() + slideInVertically(tween(300)) { value -> -1 * value },
+                                        exit = fadeOut() + slideOutVertically(tween(300)) { value -> -1 * value }
                                     ) {
                                         Row(
                                             modifier = Modifier
@@ -308,156 +313,42 @@ fun MyExpense(
                                         enter = slideInVertically(tween(tweenAnimDuration - 100)) { it + screenHeight },
                                         exit = slideOutVertically(tween(tweenAnimDuration)) { screenHeight }
                                     ) {
-                                        LazyColumn(
-                                            modifier = Modifier
-                                                .padding(horizontal = generalPadding)
-                                        ) {
+                                        if (screenWidth <= 500) {
+                                            LazyColumn(
+                                                modifier = Modifier
+                                                    .padding(end = generalPadding)
+                                            ) {
 
-                                            items(
-                                                allExpense.value.size,
-                                                key = { allExpense.value[it].id }) { ind ->
-                                                val interactionSource =
-                                                    remember { MutableInteractionSource() }
-                                                val longPressed =
-                                                    interactionSource.collectIsPressedAsState()
-                                                if (longPressed.value && !uiState.showSelectCheckbox.value) {
-                                                    LaunchedEffect(key1 = Unit) {
-                                                        uiState.showSelectCheckbox.value = true
-                                                        uiState.checkBoxList.apply {
-                                                            this[ind] = true
-                                                            uiState.totalSelectedItem.value += 1
-                                                        }
-                                                    }
-                                                }
-                                                Row(
-                                                    modifier = Modifier
-                                                        .padding(vertical = halfGeneralPadding)
-                                                        .generalBorder()
-                                                        .clickable(
-                                                            interactionSource = interactionSource,
-                                                            indication = LocalIndication.current,
-                                                            onClick = {
-                                                                if (!uiState.showSelectCheckbox.value) {
-                                                                    coroutineScope.launch {
-                                                                        appState.navigate(
-                                                                            Screen.ExpenseDetailScreen.getRoute(
-                                                                                allExpense.value[ind].toExpense()
-                                                                            )
-                                                                        )
-                                                                    }
-                                                                } else {
-                                                                    if (!longPressed.value)
-                                                                        uiState.checkBoxList
-                                                                            .also {
-                                                                                it[ind] = !it[ind]
-                                                                                uiState.totalSelectedItem.value += if (it[ind]) 1 else -1
-                                                                            }
-                                                                }
-                                                            }
-                                                        )
-                                                        .background(surface)
-                                                        .padding(vertical = generalPadding)
-                                                        .padding(end = generalPadding),
-                                                    verticalAlignment = Alignment.CenterVertically
-
-                                                ) {
-
-                                                    AnimatedVisibility(
-                                                        visible = uiState.showSelectCheckbox.value
-                                                    ) {
-                                                        RadioButton(
-                                                            selected = uiState.checkBoxList[ind],
-                                                            onClick = {
-                                                                uiState.checkBoxList.also {
-                                                                    it[ind] = !it[ind]
-                                                                }
-                                                                uiState.totalSelectedItem.value += if (uiState.checkBoxList[ind]) 1 else -1
-                                                            },
-                                                            colors = RadioButtonDefaults.colors()
-                                                                .copy(
-                                                                    selectedColor = light_enabled_color,
-                                                                    unselectedColor = onSurface
-                                                                )
-                                                        )
-                                                    }
-
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .weight(1f)
-                                                            .padding(start = if (uiState.showSelectCheckbox.value) 0.dp else generalPadding)
-                                                    ) {
-                                                        Row(
-                                                            modifier = Modifier
-                                                                .fillMaxWidth(),
-                                                            horizontalArrangement = Arrangement.SpaceBetween
-                                                        ) {
-                                                            Text(
-                                                                text = allExpense.value[ind].title,
-                                                                style = Typography.bodyLarge.copy(
-                                                                    color = onSurface
-                                                                ),
-                                                                modifier = Modifier
-                                                            )
-                                                            if (allExpense.value[ind].operation != null && allExpense.value[ind].operation?.isNotEmpty()!!) {
-                                                                Icon(
-                                                                    painter = painterResource(id = R.drawable.ic_sync),
-                                                                    contentDescription = "sync icon",
-                                                                    modifier = Modifier
-                                                                        .size(20.dp),
-                                                                    tint = enabled_color
-                                                                )
-                                                            }
-                                                        }
-
-                                                        Row(
-                                                            modifier = Modifier
-                                                                .fillMaxWidth()
-                                                                .padding(vertical = generalPadding),
-                                                            verticalAlignment = Alignment.CenterVertically,
-                                                            horizontalArrangement = Arrangement.SpaceBetween
-                                                        ) {
-                                                            Text(
-                                                                text = "items",
-                                                                style = Typography.bodyMedium.copy(
-                                                                    color = onSurface
-                                                                )
-                                                            )
-
-                                                            Text(
-                                                                text = allExpense.value[ind].items.size.toString(),
-                                                                style = Typography.bodyMedium.copy(
-                                                                    color = onSurface
-                                                                )
-                                                            )
-                                                        }
-
-                                                        Row(
-                                                            modifier = Modifier
-                                                                .fillMaxWidth(),
-                                                            horizontalArrangement = Arrangement.SpaceBetween
-                                                        ) {
-
-                                                            Text(
-                                                                text = dateString(allExpense.value[ind].date),
-                                                                style = Typography.bodyMedium.copy(
-                                                                    color = onSurface
-                                                                )
-                                                            )
-
-                                                            Text(
-                                                                text = getRupeeString(allExpense.value[ind].totalAmount),
-                                                                style = Typography.bodyLarge.copy(
-                                                                    color = onSurface
-                                                                )
-                                                            )
-
-                                                        }
-                                                    }
-
+                                                items(
+                                                    allExpense.value.size,
+                                                    key = { allExpense.value[it].id }) { ind ->
+                                                    ListItemLayout(
+                                                        appState = appState,
+                                                        uiState = uiState,
+                                                        allExpense = allExpense,
+                                                        ind = ind
+                                                    )
                                                 }
 
                                             }
+                                        } else {
+                                            LazyVerticalGrid(
+                                                columns = GridCells.Fixed(2),
+                                                modifier = Modifier
+                                                    .padding(end = generalPadding)
+                                            ) {
+                                                items(
+                                                    allExpense.value.size,
+                                                    key = { allExpense.value[it].id }) { ind ->
+                                                    ListItemLayout(
+                                                        appState = appState,
+                                                        uiState = uiState,
+                                                        allExpense = allExpense,
+                                                        ind = ind
+                                                    )
+                                                }
 
+                                            }
                                         }
                                     }
                                 }
@@ -500,4 +391,154 @@ fun MyExpense(
 private fun dateString(date: Date): String {
     val formatter = SimpleDateFormat(date_formatter_pattern_without_time, java.util.Locale.UK)
     return formatter.format(date)
+}
+
+@Composable
+private fun ListItemLayout(
+    appState: AppState,
+    uiState: MyExpenseUiState,
+    allExpense: State<List<ExpenseWithOperation>>,
+    ind: Int
+) {
+    val interactionSource =
+        remember { MutableInteractionSource() }
+    val longPressed =
+        interactionSource.collectIsPressedAsState()
+    val coroutineScope = rememberCoroutineScope()
+    if (longPressed.value && !uiState.showSelectCheckbox.value) {
+        LaunchedEffect(key1 = Unit) {
+            uiState.showSelectCheckbox.value = true
+            uiState.checkBoxList.apply {
+                this[ind] = true
+                uiState.totalSelectedItem.value += 1
+            }
+        }
+    }
+    Row(
+        modifier = Modifier
+            .padding(top = generalPadding, start = generalPadding, bottom = if (ind == allExpense.value.size-1 || (ind == allExpense.value.size-2 && LocalConfiguration.current.screenWidthDp > 500 && allExpense.value.size-2%2 == 0)) generalPadding else 0.dp)
+            .generalBorder()
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClick = {
+                    if (!uiState.showSelectCheckbox.value) {
+                        coroutineScope.launch {
+                            appState.navigate(
+                                Screen.ExpenseDetailScreen.getRoute(
+                                    allExpense.value[ind].toExpense()
+                                )
+                            )
+                        }
+                    } else {
+                        if (!longPressed.value)
+                            uiState.checkBoxList
+                                .also {
+                                    it[ind] =
+                                        !it[ind]
+                                    uiState.totalSelectedItem.value += if (it[ind]) 1 else -1
+                                }
+                    }
+                }
+            )
+            .background(surface)
+            .padding(vertical = generalPadding)
+            .padding(end = generalPadding),
+        verticalAlignment = Alignment.CenterVertically
+
+    ) {
+
+        AnimatedVisibility(
+            visible = uiState.showSelectCheckbox.value
+        ) {
+            RadioButton(
+                selected = uiState.checkBoxList[ind],
+                onClick = {
+                    uiState.checkBoxList.also {
+                        it[ind] = !it[ind]
+                    }
+                    uiState.totalSelectedItem.value += if (uiState.checkBoxList[ind]) 1 else -1
+                },
+                colors = RadioButtonDefaults.colors()
+                    .copy(
+                        selectedColor = light_enabled_color,
+                        unselectedColor = onSurface
+                    )
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = if (uiState.showSelectCheckbox.value) 0.dp else generalPadding)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = allExpense.value[ind].title,
+                    style = Typography.bodyLarge.copy(
+                        color = onSurface
+                    ),
+                    modifier = Modifier
+                )
+                if (allExpense.value[ind].operation != null && allExpense.value[ind].operation?.isNotEmpty()!!) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_sync),
+                        contentDescription = "sync icon",
+                        modifier = Modifier
+                            .size(20.dp),
+                        tint = enabled_color
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = generalPadding),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "items",
+                    style = Typography.bodyMedium.copy(
+                        color = onSurface
+                    )
+                )
+
+                Text(
+                    text = allExpense.value[ind].items.size.toString(),
+                    style = Typography.bodyMedium.copy(
+                        color = onSurface
+                    )
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+
+                Text(
+                    text = dateString(allExpense.value[ind].date),
+                    style = Typography.bodyMedium.copy(
+                        color = onSurface
+                    )
+                )
+
+                Text(
+                    text = getRupeeString(allExpense.value[ind].totalAmount),
+                    style = Typography.bodyLarge.copy(
+                        color = onSurface
+                    )
+                )
+
+            }
+        }
+
+    }
 }

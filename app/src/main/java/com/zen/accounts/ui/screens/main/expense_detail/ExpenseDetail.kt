@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
@@ -32,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -104,12 +108,13 @@ private fun MainUI(
     val uiState = expenseDetailsViewModel.expenseDetailsUiState
     val coroutineScope = rememberCoroutineScope()
     val expendedItemInd = remember { mutableIntStateOf(-1) }
-    val context = LocalContext.current
+    val screenWidth = LocalConfiguration.current.screenWidthDp
     val isExpenseTitle = remember { mutableStateOf(false) }
 
     ExpenseItemEditDialog(
         showDialog = uiState.showEditDialog,
         isExpenseTitle = isExpenseTitle.value,
+        getExpenseTitle = { uiState.expense.value.title },
         expenseItem = if(expendedItemInd.intValue == -1) ExpenseItem()  else uiState.expense.value.items[expendedItemInd.intValue]
     ) {updatedExpenseItem, updatedExpenseTitle->
         uiState.expense.value.title = updatedExpenseTitle ?: uiState.expense.value.title
@@ -142,6 +147,7 @@ private fun MainUI(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {}
             .background(background)
     ) {
         Column(
@@ -183,30 +189,60 @@ private fun MainUI(
             HorizontalLineOnBackground()
 
             val listState = rememberLazyListState()
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = generalPadding)
-                    .padding(top = halfGeneralPadding, bottom = halfGeneralPadding),
-                state = listState
-            ) {
-                items(uiState.expenseItems.size, key = { uiState.expenseItems[it].id }) { expenseItemInd ->
-                    ExpenseItemListLayout(
-                        expenseItem = uiState.expenseItems[expenseItemInd],
-                        expendedItemInd.intValue == expenseItemInd,
-                        uiState.showEditDialog,
-                        uiState.showDeleteDialog
-                    ) {
-                        coroutineScope.launch {
-                            expendedItemInd.intValue = if(expendedItemInd.intValue == expenseItemInd){
-                                -1
-                            } else {
-                                expenseItemInd
+
+            if(screenWidth <= 500) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = generalPadding),
+                    state = listState
+                ) {
+                    items(uiState.expenseItems.size, key = { uiState.expenseItems[it].id }) { expenseItemInd ->
+                        ExpenseItemListLayout(
+                            expenseItem = uiState.expenseItems[expenseItemInd],
+                            expendedItemInd.intValue == expenseItemInd,
+                            uiState.showEditDialog,
+                            uiState.showDeleteDialog,
+                            uiState.expenseItems.size-1 == expenseItemInd
+                        ) {
+                            coroutineScope.launch {
+                                expendedItemInd.intValue = if(expendedItemInd.intValue == expenseItemInd){
+                                    -1
+                                } else {
+                                    expenseItemInd
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .padding(end = generalPadding)
+                ) {
+                    items(uiState.expenseItems.size, key = { uiState.expenseItems[it].id }) { expenseItemInd ->
+                        ExpenseItemListLayout(
+                            expenseItem = uiState.expenseItems[expenseItemInd],
+                            expendedItemInd.intValue == expenseItemInd,
+                            uiState.showEditDialog,
+                            uiState.showDeleteDialog,
+                            uiState.expenseItems.size-2 == expenseItemInd || uiState.expenseItems.size-1 == expenseItemInd
+                        ) {
+                            isExpenseTitle.value = false
+                            coroutineScope.launch {
+                                expendedItemInd.intValue = if(expendedItemInd.intValue == expenseItemInd){
+                                    -1
+                                } else {
+                                    expenseItemInd
+                                }
                             }
                         }
                     }
                 }
             }
+
+
         }
     }
 }
@@ -217,12 +253,17 @@ fun ExpenseItemListLayout(
     expend : Boolean,
     showEditDialog: MutableState<Boolean>,
     showDeleteDialog: MutableState<Boolean>,
+    isLast : Boolean,
     onItemClick : () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = halfGeneralPadding, bottom = halfGeneralPadding)
+            .padding(
+                top = generalPadding,
+                start = generalPadding,
+                bottom = if (isLast) generalPadding else 0.dp
+            )
             .generalBorder(width = 0.2.dp)
             .clickable {
                 onItemClick()
@@ -314,6 +355,7 @@ fun ExpenseItemEditDialog(
     showDialog : MutableState<Boolean>,
     expenseItem: ExpenseItem,
     isExpenseTitle : Boolean = false,
+    getExpenseTitle : () -> String,
     onSave : (ExpenseItem?, String?) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
@@ -322,6 +364,10 @@ fun ExpenseItemEditDialog(
 
     title = expenseItem.itemTitle
     amount = expenseItem.itemAmount.toString()
+
+    if(isExpenseTitle) {
+        title = getExpenseTitle()
+    }
 
     GeneralDialog(
         showDialog = showDialog
