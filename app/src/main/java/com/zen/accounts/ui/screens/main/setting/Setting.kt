@@ -100,6 +100,7 @@ import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.light_enabled_color
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
+import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.roundedCornerShape
 import com.zen.accounts.ui.theme.surface
 import com.zen.accounts.ui.theme.tweenAnimDuration
@@ -124,6 +125,7 @@ data class SettingUiState(
     val showSnackBar: MutableState<Boolean> = mutableStateOf(false),
     val showSnackBarJob: MutableState<Job?> = mutableStateOf(null),
     val showSnackBarText: MutableState<String> = mutableStateOf(""),
+    val showSnackBarColor: MutableState<Color> = mutableStateOf(red_color),
     val loadingState: MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
     val backupLoadingState: MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
     val showLogoutPopUp: MutableState<Boolean> = mutableStateOf(false),
@@ -390,7 +392,8 @@ private fun MainUI(
         GeneralSnackBar(
             visible = uiState.showSnackBar,
             text = uiState.showSnackBarText.value,
-            modifier = Modifier.align(Alignment.TopCenter)
+            modifier = Modifier.align(Alignment.TopCenter),
+            containerColor = uiState.showSnackBarColor.value
         )
     }
 }

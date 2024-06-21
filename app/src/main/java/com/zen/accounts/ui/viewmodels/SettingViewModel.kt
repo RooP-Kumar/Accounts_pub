@@ -16,6 +16,8 @@ import com.zen.accounts.ui.screens.common.BackupPlan
 import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.work_manager_output_data
 import com.zen.accounts.ui.screens.main.setting.SettingUiState
+import com.zen.accounts.ui.theme.green_color
+import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.utility.Utility
 import com.zen.accounts.utility.io
 import com.zen.accounts.workmanager.worker_repository.WorkerRepository
@@ -86,6 +88,7 @@ class SettingViewModel @Inject constructor(
                     delay(500)
                     loadingState.value = LoadingState.SUCCESS
                     showSnackBarText.value = "Logout Successfully"
+                    showSnackBarColor.value = green_color
                     Utility.showSnackBar(showSnackBar)
                 } else {
                     loadingState.value = LoadingState.IDLE
@@ -141,6 +144,9 @@ class SettingViewModel @Inject constructor(
                         when (it.state) {
                             WorkInfo.State.SUCCEEDED -> {
                                 settingUIState.backupLoadingState.value = LoadingState.SUCCESS
+                                settingUIState.showSnackBarText.value = it.outputData.getString(work_manager_output_data).toString()
+                                settingUIState.showSnackBarColor.value = green_color
+                                Utility.showSnackBar(settingUIState.showSnackBar)
                                 if (fromLogoutConfirmation) {
                                     settingUIState.loadingState.value = LoadingState.LOADING
                                     expenseRepository.clearExpenseTable()
@@ -157,6 +163,9 @@ class SettingViewModel @Inject constructor(
                                 delay(500)
                                 settingUIState.backupDropDownText.value = BackupPlan.Off
                                 settingUIState.backupLoadingState.value = LoadingState.FAILURE
+                                settingUIState.showSnackBarText.value = it.outputData.getString(work_manager_output_data).toString()
+                                settingUIState.showSnackBarColor.value = green_color
+                                Utility.showSnackBar(settingUIState.showSnackBar)
                             }
 
                             WorkInfo.State.RUNNING -> {
@@ -232,11 +241,13 @@ class SettingViewModel @Inject constructor(
 
                                 WorkInfo.State.SUCCEEDED -> {
                                     settingUIState.showSnackBarText.value = outputData.toString()
+                                    settingUIState.showSnackBarColor.value = green_color
                                     Utility.showSnackBar(settingUIState.showSnackBar)
                                 }
 
                                 WorkInfo.State.FAILED -> {
                                     settingUIState.showSnackBarText.value = outputData.toString()
+                                    settingUIState.showSnackBarColor.value = red_color
                                     Utility.showSnackBar(settingUIState.showSnackBar)
                                 }
 

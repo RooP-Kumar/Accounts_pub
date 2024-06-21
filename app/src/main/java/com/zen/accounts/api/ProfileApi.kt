@@ -25,7 +25,7 @@ class ProfileApi @Inject constructor() {
                     docRef.update("profilePicFirebaseFormat", imageDownloadUrl)
                         .addOnSuccessListener {
                             response.message = "Profile successfully uploaded into cloud."
-                            response.status = false
+                            response.status = true
                             continuation.resume(response)
                         }
                         .addOnFailureListener {

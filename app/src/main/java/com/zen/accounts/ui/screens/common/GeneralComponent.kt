@@ -56,18 +56,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.zen.accounts.R
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.disabled_color
 import com.zen.accounts.ui.theme.editTextCursorColor
 import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
+import com.zen.accounts.ui.theme.green_color
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.normalPadding
 import com.zen.accounts.ui.theme.normalTextSize
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.placeholder
+import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.roundedCornerShape
 import com.zen.accounts.ui.theme.surface
 
@@ -356,8 +359,15 @@ fun GeneralSnackBar(
     containerColor: Color = surface,
     contentColor : Color = onSurface
 ) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+    var textColor = contentColor
+    if(containerColor == green_color || containerColor == red_color) {
+        textColor = Color.White
+    }
     AnimatedVisibility(
         modifier = modifier
+            .zIndex(100f)
+            .padding(horizontal =if(screenWidth <= 500) generalPadding  else  150.dp)
             .padding(generalPadding)
             .clip(roundedCornerShape),
         visible = visible.value,
@@ -374,7 +384,7 @@ fun GeneralSnackBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(generalPadding),
-                style = Typography.bodyMedium.copy(color = contentColor)
+                style = Typography.bodyMedium.copy(color = textColor)
             )
         }
     }

@@ -157,11 +157,7 @@ private fun MainUi(
         GeneralSnackBar(
             visible = uiState.snackbarState,
             text = uiState.snackbarText.value,
-            modifier = Modifier
-                .padding(horizontal =if(screenWidth <= 500) generalPadding  else  150.dp)
-                .zIndex(100f),
-            containerColor = red_color,
-            contentColor = Color.White
+            containerColor = red_color
         )
 
         Row(
