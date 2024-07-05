@@ -54,7 +54,6 @@ import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.enter_amount
 import com.zen.accounts.ui.screens.common.enter_title
 import com.zen.accounts.ui.screens.common.getRupeeString
-import com.zen.accounts.ui.screens.main.addexpense.HorizontalLineOnBackground
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
@@ -62,6 +61,7 @@ import com.zen.accounts.ui.theme.green_color
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.red_color
+import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.viewmodels.ExpenseDetailsViewModel
 import com.zen.accounts.utility.generalBorder
 import com.zen.accounts.utility.main
@@ -186,15 +186,17 @@ private fun MainUI(
                 )
             }
             Spacer(modifier = Modifier.height(halfGeneralPadding))
-            HorizontalLineOnBackground()
-
             val listState = rememberLazyListState()
+            val tempModifier = Modifier
+                .fillMaxSize()
+                .padding(generalPadding)
+                .generalBorder()
+                .padding(end = generalPadding)
 
             if(screenWidth <= 500) {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = generalPadding),
+                    modifier = tempModifier
+                    ,
                     state = listState
                 ) {
                     items(uiState.expenseItems.size, key = { uiState.expenseItems[it].id }) { expenseItemInd ->
@@ -218,8 +220,7 @@ private fun MainUI(
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
-                    modifier = Modifier
-                        .padding(end = generalPadding)
+                    modifier = tempModifier
                 ) {
                     items(uiState.expenseItems.size, key = { uiState.expenseItems[it].id }) { expenseItemInd ->
                         ExpenseItemListLayout(
@@ -264,11 +265,11 @@ fun ExpenseItemListLayout(
                 start = generalPadding,
                 bottom = if (isLast) generalPadding else 0.dp
             )
-            .generalBorder(width = 0.2.dp)
+            .generalBorder()
             .clickable {
                 onItemClick()
             }
-            .background(background),
+            .background(secondary_color),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -323,7 +324,7 @@ fun ExpenseItemListLayout(
                     Row(
                         modifier = Modifier
                             .weight(1f)
-                            .generalBorder(color = onBackground)
+                            .generalBorder()
                             .clickable {
                                 showDeleteDialog.value = true
                             }
@@ -378,8 +379,7 @@ fun ExpenseItemEditDialog(
                 title = it
             },
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = halfGeneralPadding),
+                .fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(
                 KeyboardCapitalization.Sentences,

@@ -55,13 +55,13 @@ import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
-import com.zen.accounts.ui.theme.border_color
-import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
+import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.red_color
+import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.text_color
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
@@ -75,8 +75,8 @@ data class AddExpenseUiState(
     val expenseItemListAmountTextWidth: MutableState<Dp> = mutableStateOf(0.dp),
     val totalExpenseAmount: MutableState<Double> = mutableDoubleStateOf(0.0),
     val loadingState : MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
-    val snackbarText : MutableState<String> = mutableStateOf(""),
-    val snackbarState : MutableState<Boolean> = mutableStateOf(false),
+    val snackBarText : MutableState<String> = mutableStateOf(""),
+    val snackBarState : MutableState<Boolean> = mutableStateOf(false),
 )
 
 @Composable
@@ -131,7 +131,6 @@ private fun MainUi(
                 .alpha(0f)
         )
     }
-
     // End
 
     Box(
@@ -154,8 +153,8 @@ private fun MainUi(
         }
 
         GeneralSnackBar(
-            visible = uiState.snackbarState,
-            text = uiState.snackbarText.value,
+            visible = uiState.snackBarState,
+            text = uiState.snackBarText.value,
             containerColor = red_color
         )
 
@@ -250,8 +249,8 @@ fun ItemListLayout(
                 .fillMaxSize()
                 .background(background)
                 .clip(RoundedCornerShape(generalPadding))
-                .padding(halfGeneralPadding)
-                .generalBorder(color = border_color, width = 0.2.dp)
+                .padding(start = generalPadding, end = generalPadding, bottom = generalPadding, top = halfGeneralPadding)
+                .generalBorder(width = 0.2.dp)
         ) {
             if (allExpenseItems.isEmpty()) {
                 val lottieComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.empty_list))
@@ -274,16 +273,19 @@ fun ItemListLayout(
                 }
 
             } else {
-                LazyColumn {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(top = halfGeneralPadding)
+                ) {
                     itemsIndexed(allExpenseItems) {index, item ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(
-                                    top = generalPadding,
-                                    start = generalPadding,
-                                    end = generalPadding
-                                ),
+                                .padding(start = generalPadding, end = generalPadding, top = halfGeneralPadding, bottom = halfGeneralPadding)
+                                .generalBorder()
+                                .background(secondary_color)
+                                .padding(generalPadding)
+                            ,
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -305,13 +307,6 @@ fun ItemListLayout(
                             )
                         }
 
-                        if(index != allExpenseItems.size - 1) {
-                            HorizontalLineOnBackground(
-                                modifier = Modifier
-                                    .padding(horizontal = generalPadding)
-                                    .padding(top = generalPadding)
-                            )
-                        }
                     }
                 }
             }
@@ -320,10 +315,10 @@ fun ItemListLayout(
         FloatingActionButton(
             onClick = { appState.navController.navigate(Screen.AddExpenseItemScreen.route) },
             shape = RoundedCornerShape(50),
-            containerColor = enabled_color,
+            containerColor = primary_color,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = generalPadding, end = generalPadding)
+                .padding(bottom = halfGeneralPadding, end = halfGeneralPadding)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_add),
@@ -342,11 +337,11 @@ fun addExpense(
 ) {
 
     if(allExpenseItem.value.isEmpty()) {
-        uiState.snackbarText.value = "Please! add expense item."
-        Utility.showSnackBar(uiState.snackbarState)
+        uiState.snackBarText.value = "Please! add expense item."
+        Utility.showSnackBar(uiState.snackBarState)
     } else if(uiState.title.value.isEmpty()) {
-        uiState.snackbarText.value = "Please! add title."
-        Utility.showSnackBar(uiState.snackbarState)
+        uiState.snackBarText.value = "Please! add title."
+        Utility.showSnackBar(uiState.snackBarState)
     } else {
         val tempExpense = Expense(
             id = System.currentTimeMillis(),

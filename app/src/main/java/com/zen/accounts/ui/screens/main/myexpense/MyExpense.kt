@@ -26,13 +26,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -52,11 +54,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -72,16 +79,15 @@ import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.date_formatter_pattern_without_time
 import com.zen.accounts.ui.screens.common.getRupeeString
-import com.zen.accounts.ui.screens.main.addexpense.HorizontalLineOnBackground
 import com.zen.accounts.ui.screens.main.expense_detail.ExpenseItemDeleteDialog
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
-import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
-import com.zen.accounts.ui.theme.light_enabled_color
+import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
-import com.zen.accounts.ui.theme.surface
+import com.zen.accounts.ui.theme.primary_color
+import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.tweenAnimDuration
 import com.zen.accounts.ui.viewmodels.MyExpenseViewModel
 import com.zen.accounts.utility.generalBorder
@@ -176,7 +182,7 @@ fun MyExpense(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_sync),
                             contentDescription = "Rotating Icon",
-                            tint = light_enabled_color,
+                            tint = primary_color,
                             modifier = Modifier
                                 .size(48.dp)
                                 .graphicsLayer {
@@ -260,7 +266,8 @@ fun MyExpense(
                                                 },
                                                 interactionSource = selectAllInteractionSource,
                                                 colors = RadioButtonDefaults.colors().copy(
-                                                    selectedColor = light_enabled_color
+                                                    selectedColor = primary_color,
+                                                    unselectedColor = primary_color
                                                 )
                                             )
 
@@ -270,53 +277,69 @@ fun MyExpense(
                                             )
 
                                             Spacer(modifier = Modifier.weight(1f))
-                                            IconButton(
-                                                onClick = {
-                                                    uiState.showDeleteDialog.value = true
-                                                }
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .clickable{
+                                                        uiState.showDeleteDialog.value = true
+                                                    }
+                                                    .background(secondary_color)
                                             ) {
                                                 Icon(
                                                     painter = painterResource(id = R.drawable.ic_bin),
                                                     contentDescription = "delete icon",
-                                                    tint = light_enabled_color
+                                                    modifier = Modifier
+                                                        .align(Alignment.Center)
+                                                        .padding(8.dp)
+                                                    ,
+                                                    tint = primary_color
                                                 )
                                             }
-
-
-                                            IconButton(
-                                                onClick = {
-                                                    uiState.showSelectCheckbox.value = false
-                                                    uiState.selectAll.value = false
-                                                    uiState.totalSelectedItem.value = 0
-                                                    launch {
-                                                        for (i in 0..<uiState.checkBoxList.size) {
-                                                            uiState.checkBoxList[i] =
-                                                                uiState.selectAll.value
-
+                                            Spacer(modifier = Modifier.width(generalPadding))
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .clickable {
+                                                        uiState.showSelectCheckbox.value = false
+                                                        uiState.selectAll.value = false
+                                                        uiState.totalSelectedItem.value = 0
+                                                        launch {
+                                                            for (i in 0..<uiState.checkBoxList.size) {
+                                                                uiState.checkBoxList[i] =
+                                                                    uiState.selectAll.value
+                                                            }
                                                         }
                                                     }
-                                                }
+                                                    .background(secondary_color)
                                             ) {
                                                 Icon(
                                                     painter = painterResource(id = R.drawable.ic_close),
                                                     contentDescription = "delete icon",
-                                                    tint = light_enabled_color
+                                                    modifier = Modifier
+                                                        .align(Alignment.Center)
+                                                        .padding(6.dp)
+                                                    ,
+                                                    tint = primary_color
                                                 )
                                             }
                                         }
                                     }
-
-                                    HorizontalLineOnBackground()
 
                                     AnimatedVisibility(
                                         visible = animateShowList.value,
                                         enter = slideInVertically(tween(tweenAnimDuration - 100)) { it + screenHeight },
                                         exit = slideOutVertically(tween(tweenAnimDuration)) { screenHeight }
                                     ) {
+                                        val tempModifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(generalPadding)
+                                            .generalBorder()
+                                            .padding(end = generalPadding)
                                         if (screenWidth <= 500) {
                                             LazyColumn(
-                                                modifier = Modifier
-                                                    .padding(end = generalPadding)
+                                                modifier = tempModifier
                                             ) {
 
                                                 items(
@@ -334,8 +357,7 @@ fun MyExpense(
                                         } else {
                                             LazyVerticalGrid(
                                                 columns = GridCells.Fixed(2),
-                                                modifier = Modifier
-                                                    .padding(end = generalPadding)
+                                                modifier = tempModifier
                                             ) {
                                                 items(
                                                     allExpense.value.size,
@@ -416,7 +438,11 @@ private fun ListItemLayout(
     }
     Row(
         modifier = Modifier
-            .padding(top = generalPadding, start = generalPadding, bottom = if (ind == allExpense.value.size-1 || (ind == allExpense.value.size-2 && LocalConfiguration.current.screenWidthDp > 500 && allExpense.value.size-2%2 == 0)) generalPadding else 0.dp)
+            .padding(
+                top = generalPadding,
+                start = generalPadding,
+                bottom = if (ind == allExpense.value.size - 1 || (ind == allExpense.value.size - 2 && LocalConfiguration.current.screenWidthDp > 500 && allExpense.value.size - 2 % 2 == 0)) generalPadding else 0.dp
+            )
             .generalBorder()
             .clickable(
                 interactionSource = interactionSource,
@@ -441,7 +467,7 @@ private fun ListItemLayout(
                     }
                 }
             )
-            .background(surface)
+            .background(secondary_color)
             .padding(vertical = generalPadding)
             .padding(end = generalPadding),
         verticalAlignment = Alignment.CenterVertically
@@ -461,8 +487,8 @@ private fun ListItemLayout(
                 },
                 colors = RadioButtonDefaults.colors()
                     .copy(
-                        selectedColor = light_enabled_color,
-                        unselectedColor = onSurface
+                        selectedColor = primary_color,
+                        unselectedColor = primary_color
                     )
             )
         }
@@ -475,47 +501,56 @@ private fun ListItemLayout(
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = allExpense.value[ind].title,
-                    style = Typography.bodyLarge.copy(
-                        color = onSurface
-                    ),
-                    modifier = Modifier
-                )
-                if (allExpense.value[ind].operation != null && allExpense.value[ind].operation?.isNotEmpty()!!) {
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_sync),
+                        painter = painterResource(id = R.drawable.ic_clock),
                         contentDescription = "sync icon",
                         modifier = Modifier
-                            .size(20.dp),
-                        tint = enabled_color
+                            .size(12.dp),
+                        tint = Color(0xFF8C8C8C)
+                    )
+                    Spacer(modifier = Modifier.width(halfGeneralPadding))
+                    Text(
+                        text = dateString(allExpense.value[ind].date),
+                        style = Typography.bodySmall.copy(
+                            color = Color.Gray
+                        )
                     )
                 }
+
+
+                    Row(
+                        modifier = Modifier
+                            .alpha(if (allExpense.value[ind].operation != null && allExpense.value[ind].operation?.isNotEmpty()!!) 1f else 0f)
+                            .clip(CircleShape)
+                            .background(primary_color)
+                            .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
+                        ,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_sync),
+                            contentDescription = "sync icon",
+                            modifier = Modifier
+                                .size(12.dp),
+                            tint = secondary_color
+                        )
+                        Spacer(modifier = Modifier.width(halfGeneralPadding))
+                        Text(
+                            text = allExpense.value[ind].operation.toString().capitalize(Locale.current),
+                            style = Typography.bodySmall.copy(color = secondary_color)
+                        )
+                    }
+
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = generalPadding),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "items",
-                    style = Typography.bodyMedium.copy(
-                        color = onSurface
-                    )
-                )
-
-                Text(
-                    text = allExpense.value[ind].items.size.toString(),
-                    style = Typography.bodyMedium.copy(
-                        color = onSurface
-                    )
-                )
-            }
+            Spacer(modifier = Modifier.height(halfGeneralPadding))
 
             Row(
                 modifier = Modifier
@@ -524,10 +559,11 @@ private fun ListItemLayout(
             ) {
 
                 Text(
-                    text = dateString(allExpense.value[ind].date),
-                    style = Typography.bodyMedium.copy(
+                    text = allExpense.value[ind].title,
+                    style = Typography.bodyLarge.copy(
                         color = onSurface
-                    )
+                    ),
+                    modifier = Modifier
                 )
 
                 Text(
