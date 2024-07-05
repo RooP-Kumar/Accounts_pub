@@ -61,7 +61,6 @@ import com.zen.accounts.R
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.disabled_color
 import com.zen.accounts.ui.theme.editTextCursorColor
-import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.green_color
 import com.zen.accounts.ui.theme.halfGeneralPadding
@@ -70,8 +69,10 @@ import com.zen.accounts.ui.theme.normalTextSize
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.placeholder
+import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.roundedCornerShape
+import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.surface
 
 data object CustomKeyboardOptions {
@@ -132,7 +133,7 @@ fun GeneralEditText(
             modifier = modifier
                 .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
                 .clip(RoundedCornerShape(generalPadding))
-                .background(surface)
+                .background(secondary_color)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = if (showClickEffect) LocalIndication.current else null
@@ -220,7 +221,7 @@ fun GeneralEditText(
 fun GeneralButton(
     text: String,
     modifier: Modifier? = null,
-    containerColor: Color = enabled_color,
+    containerColor: Color = primary_color,
     disabledContainerColor: Color = disabled_color,
     enable: Boolean = true,
     onClick: () -> Unit

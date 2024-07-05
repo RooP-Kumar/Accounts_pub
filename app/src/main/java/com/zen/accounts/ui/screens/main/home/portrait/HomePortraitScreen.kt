@@ -34,11 +34,11 @@ import com.zen.accounts.ui.screens.common.home_screen_label
 import com.zen.accounts.ui.screens.common.my_expense_screen_label
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
-import com.zen.accounts.ui.theme.disabled_color
-import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
+import com.zen.accounts.ui.theme.primary_color
+import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.viewmodels.HomeViewModel
 import com.zen.accounts.utility.main
 import kotlinx.coroutines.launch
@@ -85,14 +85,16 @@ fun HomePortraitScreen(
                 painter = painterResource(id = R.drawable.ic_setting),
                 contentDescription = "setting icon",
                 modifier = Modifier
-                    .clip(shape = RoundedCornerShape(generalPadding))
+                    .clip(shape = CircleShape)
                     .clickable {
                         coroutineScope.launch {
                             appState.navController.navigate(Screen.SettingScreen.route)
                         }
                     }
-                    .padding(halfGeneralPadding),
-                tint = onBackground
+                    .background(secondary_color)
+                    .padding(halfGeneralPadding)
+                ,
+                tint = primary_color
             )
         }
 
@@ -106,7 +108,7 @@ fun HomePortraitScreen(
                     }
                 }
                 .clip(RoundedCornerShape(generalPadding))
-                .background(disabled_color)
+                .background(secondary_color)
                 .padding(horizontal = generalPadding, vertical = generalPadding.times(2)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Absolute.SpaceBetween
@@ -136,7 +138,7 @@ fun HomePortraitScreen(
                         }
                     }
                     .clip(shape = RoundedCornerShape(generalPadding))
-                    .background(enabled_color)
+                    .background(primary_color)
                     .padding(horizontal = generalPadding, vertical = generalPadding.times(2))
             ) {
                 Text(
@@ -157,7 +159,7 @@ fun HomePortraitScreen(
                         }
                     }
                     .clip(shape = RoundedCornerShape(generalPadding))
-                    .background(enabled_color)
+                    .background(primary_color)
                     .padding(horizontal = generalPadding, vertical = generalPadding.times(2))
             ) {
                 Text(

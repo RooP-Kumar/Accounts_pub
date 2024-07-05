@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.screens.common.GeneralEditText
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.border_color
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
+import com.zen.accounts.ui.theme.primary_color
 
 @Composable
 fun UpperTitleSection(
@@ -66,6 +66,6 @@ fun HorizontalLineOnBackground(modifier: Modifier = Modifier) {
         modifier
             .fillMaxWidth()
             .height(0.2.dp)
-            .background(border_color)
+            .background(primary_color)
     )
 }

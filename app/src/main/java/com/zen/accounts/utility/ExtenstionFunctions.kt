@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
+import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.shadowColor
 
 @Composable
@@ -80,7 +81,7 @@ fun Modifier.customClickable(
 
 @Composable
 fun Modifier.generalBorder(
-    color: Color = shadowColor,
+    color: Color = primary_color,
     borderRadiusX: Dp = generalPadding,
     borderRadiusY: Dp = generalPadding,
     width: Dp = 0.5.dp,

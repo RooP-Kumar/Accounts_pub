@@ -3,6 +3,7 @@ package com.zen.accounts.ui.screens.common
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -11,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -44,6 +45,8 @@ import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.onSurface
+import com.zen.accounts.ui.theme.primary_color
+import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.utility.generalBorder
 import kotlinx.coroutines.launch
@@ -112,18 +115,28 @@ fun LoadingDialog(
 @Composable
 fun TopBarBackButton(appState: AppState) {
     val coroutineScope = rememberCoroutineScope()
-    Icon(
-        painter = painterResource(id = R.drawable.ic_back),
-        "back button",
+    Box(
         modifier = Modifier
             .padding(start = generalPadding)
-            .clip(RoundedCornerShape(generalPadding))
+            .size(30.dp)
+            .clip(CircleShape)
             .clickable {
-                appState.navController.popBackStack()
+                coroutineScope.launch { appState.navController.popBackStack() }
             }
-            .padding(halfGeneralPadding),
-        tint = onBackground
-    )
+            .background(secondary_color)
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_back),
+            "back button",
+            modifier = Modifier
+                .align(Alignment.Center)
+                .clip(shape = CircleShape)
+                .background(secondary_color)
+                .padding(6.dp),
+            tint = primary_color
+        )
+    }
+
 }
 
 @Composable
@@ -161,7 +174,7 @@ fun TopAppBar(
                     Icon(
                         painter = painterResource,
                         contentDescription ="icon description",
-                        tint = onBackground
+                        tint = primary_color
                     )
                 }
 
@@ -169,7 +182,8 @@ fun TopAppBar(
                 GeneralButton(
                     text = btnText,
                     modifier = Modifier.padding(horizontal = generalPadding),
-                    enable = buttonEnableCondition
+                    enable = buttonEnableCondition,
+                    containerColor = primary_color
                 ) {
                     onClick()
                 }
