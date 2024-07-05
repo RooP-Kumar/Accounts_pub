@@ -19,3 +19,5 @@ https://github.com/RooP-Kumar/Accounts/assets/69110669/28f8467a-f3d9-443a-be99-b
 > - Navigation Component
 >   
 > - WorkManager For Background Task
+>
+> - [Image Cropper](https://github.com/CanHub/Android-Image-Cropper) -- Used for Image picker and cropper.
