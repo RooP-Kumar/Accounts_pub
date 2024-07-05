@@ -2,6 +2,11 @@
 A Simple Application, which keeps track of all my expenses.
 
 
+
+https://github.com/RooP-Kumar/Accounts/assets/69110669/28f8467a-f3d9-443a-be99-bfcdfa091690
+
+
+
 > ### Technology Used
 > - Android Studio
 > 
