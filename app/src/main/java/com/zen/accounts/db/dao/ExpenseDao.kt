@@ -53,10 +53,9 @@ interface ExpenseDao {
                 "LEFT JOIN " +
                 "backup_tracker b " +
                 "ON e.id = b.expenseId " +
-                "WHERE SUBSTRING(e.date, 4, 3) = :date " +
                 "ORDER BY e.id DESC"
     )
-    fun getMonthlyExpensesWithStatus(date: String) : Flow<List<ExpenseWithOperation>>
+    fun getMonthlyExpensesWithStatus() : Flow<List<ExpenseWithOperation>>
 
     @Query("SELECT * FROM expenses")
     fun getAllExpenses() : Flow<List<Expense>>

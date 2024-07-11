@@ -11,6 +11,8 @@ import com.zen.accounts.utility.DateStringConverter
 import com.zen.accounts.utility.io
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.util.Date
 import javax.inject.Inject
@@ -23,9 +25,10 @@ class ExpenseRepository @Inject constructor(
 
     val allExpense : Flow<List<ExpenseWithOperation>> = expenseDao.getAllExpensesWithStatus()
 
-    val monthlyExpense : Flow<List<ExpenseWithOperation>> = expenseDao.getMonthlyExpensesWithStatus(
-        DateStringConverter().dateToString(Date(System.currentTimeMillis())).substring(3, 6)
-    )
+    val monthlyExpense : Flow<List<ExpenseWithOperation>> = expenseDao.getMonthlyExpensesWithStatus()
+        .map {
+            it.filter { expense -> DateStringConverter().dateToString(expense.date).substring(3, 6) == DateStringConverter().dateToString(Date(System.currentTimeMillis())).substring(3, 6) }
+        }
     suspend fun insertExpenseIntoRoom(expense: Expense) {
         expenseDao.insertExpense(expense)
         backupTrackerDao.insertBackupTracker(
@@ -43,7 +46,7 @@ class ExpenseRepository @Inject constructor(
             // Store all expense's ids which are deleted because we need those id to delete from firebase.
             val tempList = arrayListOf<BackupTracker>()
             expenses.forEach {
-                if(backupTrackerDao.getBackupTracker(it.id) == 0L) {
+                if(backupTrackerDao.getBackupTracker(it.id) == null) {
                     tempList.add(
                         BackupTracker(
                             expenseId = it.id,
@@ -61,15 +64,16 @@ class ExpenseRepository @Inject constructor(
 
     suspend fun updateExpense(expense: Expense) {
         expenseDao.updateExpense(expense)
-        if(backupTrackerDao.getBackupTracker(expense.id) == 0L) {
-            backupTrackerDao.insertBackupTracker(
-                BackupTracker(
-                    expenseId = expense.id,
-                    operation = "update",
-                    date = Date(System.currentTimeMillis())
-                )
-            )
+        if(backupTrackerDao.getBackupTracker(expense.id) != null) {
+            backupTrackerDao.deleteRecord(expense.id)
         }
+        backupTrackerDao.insertBackupTracker(
+            BackupTracker(
+                expenseId = expense.id,
+                operation = "update",
+                date = Date(System.currentTimeMillis())
+            )
+        )
     }
 
     suspend fun clearExpenseTable() {
