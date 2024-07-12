@@ -1,6 +1,7 @@
 package com.zen.accounts.ui.screens.common
 
 import androidx.annotation.DrawableRes
+import androidx.appcompat.widget.ActivityChooserView.InnerLayout
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -102,119 +103,176 @@ data object CustomKeyboardOptions {
         imeAction = ImeAction.Done
     )
 }
+
 @Composable
 fun GeneralEditText(
     text: String,
     modifier: Modifier,
-    onValueChange : (String) -> Unit = {},
+    onValueChange: (String) -> Unit = {},
     placeholderText: String = "Enter Text",
+    required: Pair<Boolean, MutableState<Boolean>> = Pair(false, mutableStateOf(false)),
     singleLine: Boolean = true,
     enable: Boolean = true,
+    error: Pair<MutableState<Boolean>, String> = Pair(mutableStateOf(false), ""),
     keyboardOptions: KeyboardOptions = CustomKeyboardOptions.default,
     clickableFun: (() -> Unit)? = null,
-    showClickEffect : Boolean = true,
+    showClickEffect: Boolean = true,
     @DrawableRes trailingIcon: Int? = null,
     trailingIconClick: (() -> Unit)? = null
 ) {
-    val mutablePasswordVisible = rememberSaveable {
-        mutableStateOf(keyboardOptions.keyboardType != KeyboardType.Password)
-    }
-    val passwordVisible = remember { derivedStateOf { mutablePasswordVisible.value } }
-    val customSelectionColor = TextSelectionColors(
-        handleColor = onBackground,
-        backgroundColor = onBackground.copy(alpha = 0.4f)
-    )
-    CompositionLocalProvider(LocalTextSelectionColors provides customSelectionColor) {
-        BasicTextField(
-            value = text,
-            onValueChange = {
-                onValueChange(it)
-            },
-            modifier = modifier
-                .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
-                .clip(RoundedCornerShape(generalPadding))
-                .background(secondary_color)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = if (showClickEffect) LocalIndication.current else null
-                ) {
-                    if (clickableFun != null) {
-                        clickableFun()
+
+    @Composable
+    fun InnerFunc() {
+        val mutablePasswordVisible = rememberSaveable {
+            mutableStateOf(keyboardOptions.keyboardType != KeyboardType.Password)
+        }
+        val passwordVisible = remember { derivedStateOf { mutablePasswordVisible.value } }
+        val customSelectionColor = TextSelectionColors(
+            handleColor = onBackground,
+            backgroundColor = onBackground.copy(alpha = 0.4f)
+        )
+        CompositionLocalProvider(LocalTextSelectionColors provides customSelectionColor) {
+            BasicTextField(
+                value = text,
+                onValueChange = {
+                    onValueChange(it)
+                    if (it.isNotEmpty()) {
+                        required.second.value = false
+                        error.first.value = false
                     }
-                }
-                .padding(generalPadding),
-            singleLine = singleLine,
-            cursorBrush = Brush.linearGradient(listOf(editTextCursorColor, editTextCursorColor)),
-            textStyle = TextStyle.Default.copy(
-                color = onSurface,
-                fontFamily = FontFamily(Font(R.font.montserrat)),
-                fontSize = normalTextSize
-            ),
-            enabled = enable,
-            keyboardOptions = keyboardOptions,
-            visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation()
-        ) {
-            it()
-            Row(
-                Modifier
-            ) {
-                if (text.isEmpty()) {
-                    Text(
-                        text = placeholderText,
-                        style = TextStyle.Default.copy(
-                            color = placeholder,
-                            fontFamily = FontFamily(Font(R.font.montserrat)),
-                            fontSize = normalTextSize
-                        )
+                },
+                modifier = modifier
+                    .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
+                    .clip(RoundedCornerShape(generalPadding))
+                    .background(secondary_color)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = if (showClickEffect) LocalIndication.current else null
+                    ) {
+                        if (clickableFun != null) {
+                            clickableFun()
+                        }
+                    }
+                    .padding(generalPadding),
+                singleLine = singleLine,
+                cursorBrush = Brush.linearGradient(
+                    listOf(
+                        editTextCursorColor,
+                        editTextCursorColor
                     )
-                }
-
-                if (keyboardOptions.keyboardType == KeyboardType.Password) {
-                    val passIcon =
-                        if (passwordVisible.value) R.drawable.ic_eye else R.drawable.ic_eye_off
-                    Column(
-                        Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(passIcon),
-                            contentDescription = "eye_icon",
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .clickable {
-                                    mutablePasswordVisible.value = !mutablePasswordVisible.value
-                                },
-                            tint = onSurface
+                ),
+                textStyle = TextStyle.Default.copy(
+                    color = onSurface,
+                    fontFamily = FontFamily(Font(R.font.montserrat)),
+                    fontSize = normalTextSize
+                ),
+                enabled = enable,
+                keyboardOptions = keyboardOptions,
+                visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation()
+            ) {
+                it()
+                Row(
+                    Modifier
+                ) {
+                    if (text.isEmpty()) {
+                        if (required.first) {
+                            Text(
+                                text = "*",
+                                style = Typography.bodySmall.copy(color = Color.Red)
+                            )
+                        }
+                        Text(
+                            text = placeholderText,
+                            style = TextStyle.Default.copy(
+                                color = placeholder,
+                                fontFamily = FontFamily(Font(R.font.montserrat)),
+                                fontSize = normalTextSize
+                            )
                         )
                     }
-                }
 
-                if (trailingIcon != null) {
-                    Column(
-                        Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(trailingIcon),
-                            contentDescription = "eye_icon",
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .clickable(
-                                    interactionSource = remember {
-                                        MutableInteractionSource()
+                    if (keyboardOptions.keyboardType == KeyboardType.Password) {
+                        val passIcon =
+                            if (passwordVisible.value) R.drawable.ic_eye else R.drawable.ic_eye_off
+                        Column(
+                            Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                painter = painterResource(passIcon),
+                                contentDescription = "eye_icon",
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                                    .clickable {
+                                        mutablePasswordVisible.value = !mutablePasswordVisible.value
                                     },
-                                    indication = null
-                                ) {
-                                    if (trailingIconClick != null) {
-                                        trailingIconClick()
-                                    }
-                                },
-                            tint = onSurface
-                        )
+                                tint = onSurface
+                            )
+                        }
                     }
+
+                    if (trailingIcon != null) {
+                        Column(
+                            Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                painter = painterResource(trailingIcon),
+                                contentDescription = "eye_icon",
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                                    .clickable(
+                                        interactionSource = remember {
+                                            MutableInteractionSource()
+                                        },
+                                        indication = null
+                                    ) {
+                                        if (trailingIconClick != null) {
+                                            trailingIconClick()
+                                        }
+                                    },
+                                tint = onSurface
+                            )
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    Column {
+        if (required.first) {
+
+            AnimatedVisibility(visible = required.second.value) {
+                Row(
+                    modifier = Modifier.padding(start = generalPadding)
+                ) {
+                    Text(
+                        text = "*",
+                        style = Typography.bodyMedium.copy(color = Color.Red)
+                    )
+
+                    Text(
+                        text = required_field,
+                        style = Typography.bodySmall.copy(color = Color.Red)
+                    )
                 }
             }
 
+            InnerFunc()
+
+        } else {
+            InnerFunc()
+        }
+
+        AnimatedVisibility(visible = error.first.value) {
+            Text(
+                text = error.second,
+                style = Typography.bodySmall.copy(color = Color.Red),
+                modifier = Modifier.padding(start = generalPadding)
+            )
         }
     }
+
 }
 
 @Composable
@@ -251,30 +309,30 @@ fun GeneralButton(
 @Composable
 fun GeneralDropDown(
     modifier: Modifier,
-    value : MutableState<BackupPlan>,
-    showDropDown : MutableState<Boolean>,
-    enable : Boolean = false,
-    valueList : List<BackupPlan>,
+    value: MutableState<BackupPlan>,
+    showDropDown: MutableState<Boolean>,
+    enable: Boolean = false,
+    valueList: List<BackupPlan>,
     placeholderText: String = "Select Expense Type",
     onClick: () -> Unit = {},
-    onItemClick : (BackupPlan) -> Unit
+    onItemClick: (BackupPlan) -> Unit
 ) {
     val localDensity = LocalDensity.current
     val screenWidth = LocalConfiguration.current.screenWidthDp
-    val dropDownHeight : MutableState<Dp> = remember { mutableStateOf(0.dp) }
-    val dropDownEdittextHeight : MutableState<Dp> = remember { mutableStateOf(0.dp) }
+    val dropDownHeight: MutableState<Dp> = remember { mutableStateOf(0.dp) }
+    val dropDownEdittextHeight: MutableState<Dp> = remember { mutableStateOf(0.dp) }
     val dropDownRowWidth = rememberSaveable(saver = dpSaver) { mutableStateOf(0.dp) }
     val dropDownIcon = rememberSaveable { mutableIntStateOf(R.drawable.ic_drop_down) }
     val text = remember {
         derivedStateOf { value.value.label }
     }
 
-    if(!enable){
+    if (!enable) {
         value.value = BackupPlan.Off
     }
 
     LaunchedEffect(key1 = showDropDown.value) {
-        if(showDropDown.value) {
+        if (showDropDown.value) {
             dropDownIcon.intValue = R.drawable.ic_drop_up
         } else {
             dropDownIcon.intValue = R.drawable.ic_drop_down
@@ -292,19 +350,18 @@ fun GeneralDropDown(
                         with(localDensity) { it.size.width.toDp() }
                     dropDownEdittextHeight.value =
                         with(localDensity) { it.size.height.toDp() }
-                }
-            ,
+                },
             enable = false,
             placeholderText = placeholderText,
             clickableFun = {
-                if(enable) {
+                if (enable) {
                     showDropDown.value = !showDropDown.value
                 }
                 onClick()
             },
             trailingIcon = dropDownIcon.intValue,
             trailingIconClick = {
-                if(enable)
+                if (enable)
                     showDropDown.value = !showDropDown.value
                 onClick()
             }
@@ -320,11 +377,14 @@ fun GeneralDropDown(
                     width = dropDownRowWidth.value - generalPadding.times(2),
                     height = dropDownHeight.value
                 )
-                .background(surface)
-            ,
+                .background(surface),
             offset =
-                if (screenWidth <= 500) DpOffset(dropDownRowWidth.value / 2 - (dropDownRowWidth.value - generalPadding.times(2))/2, (-4).dp)
-                else DpOffset(-dropDownRowWidth.value + generalPadding.times(2), 0.dp)
+            if (screenWidth <= 500) DpOffset(
+                dropDownRowWidth.value / 2 - (dropDownRowWidth.value - generalPadding.times(
+                    2
+                )) / 2, (-4).dp
+            )
+            else DpOffset(-dropDownRowWidth.value + generalPadding.times(2), 0.dp)
         ) {
             for (i in valueList.indices) {
                 DropdownMenuItem(
@@ -344,7 +404,8 @@ fun GeneralDropDown(
                     },
                     modifier = Modifier
                         .onGloballyPositioned {
-                            dropDownHeight.value = with(localDensity) {it.size.height.toDp()} * if (valueList.size < 6) valueList.size else 5
+                            dropDownHeight.value =
+                                with(localDensity) { it.size.height.toDp() } * if (valueList.size < 6) valueList.size else 5
                         }
                 )
             }
@@ -354,21 +415,21 @@ fun GeneralDropDown(
 
 @Composable
 fun GeneralSnackBar(
-    visible : MutableState<Boolean>,
-    text : String,
+    visible: MutableState<Boolean>,
+    text: String,
     modifier: Modifier = Modifier,
     containerColor: Color = surface,
-    contentColor : Color = onSurface
+    contentColor: Color = onSurface
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
     var textColor = contentColor
-    if(containerColor == green_color || containerColor == red_color) {
+    if (containerColor == green_color || containerColor == red_color) {
         textColor = Color.White
     }
     AnimatedVisibility(
         modifier = modifier
             .zIndex(100f)
-            .padding(horizontal =if(screenWidth <= 500) generalPadding  else  150.dp)
+            .padding(horizontal = if (screenWidth <= 500) generalPadding else 150.dp)
             .padding(generalPadding)
             .clip(roundedCornerShape),
         visible = visible.value,

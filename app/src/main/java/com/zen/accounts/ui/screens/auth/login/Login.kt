@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,8 @@ import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.did_not_have_account
 import com.zen.accounts.ui.screens.common.enter_email
 import com.zen.accounts.ui.screens.common.enter_pass
+import com.zen.accounts.ui.screens.common.invalid_email
+import com.zen.accounts.ui.screens.common.invalid_pass
 import com.zen.accounts.ui.screens.common.login_button_label
 import com.zen.accounts.ui.screens.common.register_button_label
 import com.zen.accounts.ui.theme.Purple80
@@ -120,16 +123,20 @@ private fun MainUI(
             Column(
                 modifier = if(screenWidth > 500) Modifier.width(500.dp) else Modifier
             ) {
+                val emailError = remember { Pair(mutableStateOf(false), invalid_email) }
                 GeneralEditText(
                     text = uiState.emailUsernamePhone.value,
+                    error = emailError,
                     onValueChange = { uiState.emailUsernamePhone.value = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholderText = enter_email,
                     keyboardOptions = CustomKeyboardOptions.textEditor
                 )
 
+                val passError = remember { Pair(mutableStateOf(false), invalid_pass) }
                 GeneralEditText(
                     text = uiState.password.value,
+                    error = passError,
                     onValueChange = { uiState.password.value = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholderText = enter_pass,
@@ -162,9 +169,17 @@ private fun MainUI(
                     modifier = Modifier.fillMaxWidth()
                         .padding(horizontal = generalPadding)
                 ) {
+                    val emailRegex = """^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$""".toRegex()
+                    val passwordRegex = """^([a-zA-Z0-9._%+-]).{6,}$""".toRegex()
                     val email = uiState.emailUsernamePhone.value.trim()
                     val pass = uiState.password.value.trim()
-                    viewModel.loginUser(email, pass)
+                    if(!emailRegex.matches(email)){
+                        emailError.first.value = true
+                    } else if (!passwordRegex.matches(pass)) {
+                        passError.first.value = true
+                    } else {
+                        viewModel.loginUser(email, pass)
+                    }
                 }
             }
         }

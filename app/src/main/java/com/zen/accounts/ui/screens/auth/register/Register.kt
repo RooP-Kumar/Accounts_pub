@@ -18,9 +18,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.zen.accounts.db.model.User
@@ -34,12 +36,17 @@ import com.zen.accounts.ui.screens.common.LoadingDialog
 import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.already_have_account
+import com.zen.accounts.ui.screens.common.empty_email
+import com.zen.accounts.ui.screens.common.empty_pass
 import com.zen.accounts.ui.screens.common.enter_email
 import com.zen.accounts.ui.screens.common.enter_name
 import com.zen.accounts.ui.screens.common.enter_pass
 import com.zen.accounts.ui.screens.common.enter_phone
+import com.zen.accounts.ui.screens.common.invalid_email
+import com.zen.accounts.ui.screens.common.invalid_pass
 import com.zen.accounts.ui.screens.common.login_button_label
 import com.zen.accounts.ui.screens.common.register_button_label
+import com.zen.accounts.ui.screens.common.required_field
 import com.zen.accounts.ui.theme.Purple80
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.background
@@ -48,6 +55,7 @@ import com.zen.accounts.ui.theme.normalPadding
 import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.RegisterScreenViewModel
+import com.zen.accounts.utility.Utility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -58,8 +66,8 @@ data class RegisterUiState(
     val phone: MutableState<String> = mutableStateOf(""),
     val password: MutableState<String> = mutableStateOf(""),
     val loadingState: MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
-    val showSnackBar : MutableState<Boolean> = mutableStateOf(false),
-    val snackBarText : MutableState<String> = mutableStateOf("")
+    val showSnackBar: MutableState<Boolean> = mutableStateOf(false),
+    val snackBarText: MutableState<String> = mutableStateOf("")
 )
 
 @Composable
@@ -70,7 +78,7 @@ fun Register(
     val uiState = viewModel.registerUiState
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(key1 = uiState.loadingState.value) {
-        when(uiState.loadingState.value) {
+        when (uiState.loadingState.value) {
             LoadingState.IDLE -> {}
             LoadingState.LOADING -> {}
             LoadingState.SUCCESS -> {
@@ -81,6 +89,7 @@ fun Register(
                     appState.navController.navigate(Screen.LoginScreen.route)
                 }
             }
+
             LoadingState.FAILURE -> {
                 coroutineScope.launch(Dispatchers.IO) {
                     uiState.showSnackBar.value = true
@@ -111,31 +120,53 @@ private fun MainUI(
         TopAppBar(appState = appState)
 
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(top = topBarHeight),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
 
             Column(
-                modifier = if(screenWidth > 500)
+                modifier = if (screenWidth > 500)
                     Modifier
                         .width(500.dp)
                         .verticalScroll(rememberScrollState())
                 else
                     Modifier
             ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = generalPadding),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = "* ",
+                        style = Typography.bodySmall.copy(color = Color.Red)
+                    )
+
+                    Text(
+                        text = required_field,
+                        style = Typography.bodySmall.copy(color = onBackground)
+                    )
+                }
+
                 GeneralEditText(
                     text = uiState.userName.value,
-                    onValueChange = {uiState.userName.value = it },
+                    onValueChange = { uiState.userName.value = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholderText = enter_name,
                     keyboardOptions = CustomKeyboardOptions.textEditor
                 )
 
+                val emailRequired = remember { Pair(true, mutableStateOf(false)) }
+                val emailError = remember { Pair(mutableStateOf(false), invalid_email) }
                 GeneralEditText(
                     text = uiState.email.value,
-                    onValueChange = {uiState.email.value = it},
+                    required = emailRequired,
+                    error = emailError,
+                    onValueChange = { uiState.email.value = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholderText = enter_email,
                     keyboardOptions = CustomKeyboardOptions.emailEditor
@@ -143,15 +174,19 @@ private fun MainUI(
 
                 GeneralEditText(
                     text = uiState.phone.value,
-                    onValueChange = {uiState.phone.value = it},
+                    onValueChange = { uiState.phone.value = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholderText = enter_phone,
                     keyboardOptions = CustomKeyboardOptions.numberEditor
                 )
 
+                val passRequired = remember { Pair(true, mutableStateOf(false)) }
+                val passError = remember { Pair(mutableStateOf(false), invalid_pass) }
                 GeneralEditText(
                     text = uiState.password.value,
-                    onValueChange = {uiState.password.value = it},
+                    required = passRequired,
+                    error = passError,
+                    onValueChange = { uiState.password.value = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholderText = enter_pass,
                     keyboardOptions = CustomKeyboardOptions.passwordEditor
@@ -179,15 +214,32 @@ private fun MainUI(
                 GeneralButton(
                     text = register_button_label
                 ) {
+                    val emailRegex = """^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$""".toRegex()
+                    val passwordRegex = """^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{6,}$""".toRegex()
                     coroutineScope.launch {
-                        viewModel.registerUser(
-                            User(
-                                name = uiState.userName.value,
-                                email = uiState.email.value,
-                                phone = uiState.phone.value
-                            ), uiState.password.value,
-                            dataStore = appState.dataStore
-                        )
+                        val email = uiState.email.value
+                        val pass = uiState.password.value
+
+                        if(email.trim().isEmpty()) {
+                            emailRequired.second.value = true
+                        } else if(pass.trim().isEmpty()) {
+                            passRequired.second.value = true
+                        } else {
+                            if(!emailRegex.matches(email)){
+                                emailError.first.value = true
+                            } else if (!passwordRegex.matches(pass)) {
+                                passError.first.value = true
+                            } else {
+                                viewModel.registerUser(
+                                    User(
+                                        name = uiState.userName.value,
+                                        email = email,
+                                        phone = uiState.phone.value
+                                    ), pass,
+                                    dataStore = appState.dataStore
+                                )
+                            }
+                        }
                     }
                 }
             }

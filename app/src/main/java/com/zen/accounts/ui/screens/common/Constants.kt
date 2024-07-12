@@ -110,10 +110,11 @@ const val create_work = "create work"
 const val update_work = "update work"
 const val delete_work = "delete work"
 
-// <------------------ Work Manager String ------------------>
-fun getDocPath(uid:String) : String {
-    return "Users/$uid"
-}
-fun getStoragePath(uid: String) : String {
-    return "User/$uid"
-}
+// <------------------ Message String ------------------>
+const val success_register = "Successfully Register. Verify Your Email."
+const val success_login = "Successfully Login to your account."
+const val empty_email = "Please! Enter email"
+const val empty_pass = "Please! Enter password"
+const val required_field = "Required fields"
+const val invalid_email = "Invalid Email"
+const val invalid_pass = "Invalid Password"
