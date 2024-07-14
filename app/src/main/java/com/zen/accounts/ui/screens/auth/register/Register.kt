@@ -1,5 +1,6 @@
 package com.zen.accounts.ui.screens.auth.register
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -76,26 +78,19 @@ fun Register(
     viewModel: RegisterScreenViewModel
 ) {
     val uiState = viewModel.registerUiState
+    val uiStateHolder = viewModel.registerUiStateHolder
+
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(key1 = uiState.loadingState.value) {
-        when (uiState.loadingState.value) {
+        when (uiStateHolder.loadingState.value) {
             LoadingState.IDLE -> {}
             LoadingState.LOADING -> {}
             LoadingState.SUCCESS -> {
-                coroutineScope.launch {
-                    uiState.showSnackBar.value = true
-                    delay(500)
-                    uiState.showSnackBar.value = false
-                    appState.navController.navigate(Screen.LoginScreen.route)
-                }
+                viewModel.showSnackBar()
             }
 
             LoadingState.FAILURE -> {
-                coroutineScope.launch(Dispatchers.IO) {
-                    uiState.showSnackBar.value = true
-                    delay(5000)
-                    uiState.showSnackBar.value = false
-                }
+                viewModel.showSnackBar()
             }
         }
     }
@@ -111,6 +106,8 @@ private fun MainUI(
     val coroutineScope = rememberCoroutineScope()
     val screenWidth = LocalConfiguration.current.screenWidthDp
     LoadingDialog(loadingState = uiState.loadingState)
+
+    Log.d("asdf", "MainUI: Running")
 
     Box(
         modifier = Modifier

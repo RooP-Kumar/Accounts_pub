@@ -11,6 +11,7 @@ import com.zen.accounts.db.datastore.UserDataStore
 import com.zen.accounts.db.model.User
 import com.zen.accounts.repository.AuthRepository
 import com.zen.accounts.ui.screens.auth.register.RegisterUiState
+import com.zen.accounts.ui.screens.auth.register.RegisterUiStateHolder
 import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.empty_email
 import com.zen.accounts.ui.screens.common.empty_pass
@@ -24,9 +25,16 @@ import javax.inject.Inject
 @HiltViewModel
 class RegisterScreenViewModel @Inject constructor(
     private val authRepository: AuthRepository
-) : ViewModel() {
+) : BaseViewmodel() {
 
     val registerUiState by lazy { RegisterUiState() }
+
+    val registerUiStateHolder by lazy { RegisterUiStateHolder() }
+
+    fun showSnackBar() {
+        super.showSnackBar(registerUiStateHolder.showSnackBar) { registerUiStateHolder.updateState(showSnackBar = it) }
+    }
+
     fun registerUser(user: User, pass: String, dataStore: UserDataStore) {
         viewModelScope.launch {
             registerUiState.apply {
