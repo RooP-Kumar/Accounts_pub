@@ -1,7 +1,6 @@
 package com.zen.accounts.ui.viewmodels
 
 import android.content.Context
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.lifecycle.ViewModel
 import com.zen.accounts.CommonUIStateHolder
 import com.zen.accounts.states.AppState
@@ -12,7 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 

@@ -1,6 +1,5 @@
 package com.zen.accounts.ui.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.zen.accounts.api.resource.Resource
 import com.zen.accounts.repository.AuthRepository
@@ -14,7 +13,6 @@ import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.empty_email
 import com.zen.accounts.ui.screens.common.empty_pass
 import com.zen.accounts.ui.screens.common.success_login
-import com.zen.accounts.utility.Utility
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

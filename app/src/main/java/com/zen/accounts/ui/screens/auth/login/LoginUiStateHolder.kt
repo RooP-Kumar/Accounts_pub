@@ -1,8 +1,5 @@
 package com.zen.accounts.ui.screens.auth.login
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import com.zen.accounts.ui.screens.auth.register.RegisterUiStateHolder
 import com.zen.accounts.ui.screens.common.LoadingState
 import kotlin.reflect.KMutableProperty1
 

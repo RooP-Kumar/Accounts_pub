@@ -1,17 +1,7 @@
 package com.zen.accounts.ui.screens.auth.register
 
-import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import com.zen.accounts.ui.screens.common.LoadingState
-import com.zen.accounts.ui.screens.common.invalid_email
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.KProperty
 
 data class RegisterUiStateHolder(
     var name: String = "",

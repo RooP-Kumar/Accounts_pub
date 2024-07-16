@@ -1,6 +1,5 @@
 package com.zen.accounts.ui.screens.common
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,7 +45,6 @@ import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.primary_color
-import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.utility.generalBorder
 import kotlinx.coroutines.launch

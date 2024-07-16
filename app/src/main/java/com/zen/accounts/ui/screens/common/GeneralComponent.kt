@@ -69,7 +69,6 @@ import com.zen.accounts.ui.theme.normalTextSize
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.roundedCornerShape
-import com.zen.accounts.ui.theme.secondary_color
 
 data object CustomKeyboardOptions {
     val default = KeyboardOptions.Default
@@ -147,8 +146,8 @@ fun GeneralEditText(
                 singleLine = singleLine,
                 cursorBrush = Brush.linearGradient(
                     listOf(
-                        MaterialTheme.colors.background,
-                        MaterialTheme.colors.background
+                        MaterialTheme.colors.onBackground,
+                        MaterialTheme.colors.onBackground
                     )
                 ),
                 textStyle = TextStyle.Default.copy(
