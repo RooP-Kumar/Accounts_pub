@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -39,12 +40,9 @@ import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.add_item_button_label
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.red_color
-import com.zen.accounts.ui.theme.surface
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
 import com.zen.accounts.utility.Utility
@@ -102,7 +100,7 @@ private fun MainUI(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {}
-            .background(background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(appState = appState)
         
@@ -115,13 +113,13 @@ private fun MainUI(
         GeneralDialog(showDialog = uiState.confirmationDialogState) {
             Column(
                 modifier = Modifier
-                    .background(surface)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(generalPadding)
             ) {
                 Text(
                     text = "Are you sure?\nYou want to go back, Your data will be lost.",
                     textAlign = TextAlign.Center,
-                    style = Typography.bodyLarge.copy(onSurface),
+                    style = Typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(generalPadding))
@@ -151,7 +149,7 @@ private fun MainUI(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = topBarHeight)
-                .background(background)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(vertical = generalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

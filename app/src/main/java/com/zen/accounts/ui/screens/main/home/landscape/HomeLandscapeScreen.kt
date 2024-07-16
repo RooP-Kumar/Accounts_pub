@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,14 +37,11 @@ import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.screens.common.home_screen_label
 import com.zen.accounts.ui.screens.common.my_expense_screen_label
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.disabled_color
 import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.roundedCornerShape
-import com.zen.accounts.ui.theme.surface
 import com.zen.accounts.ui.viewmodels.HomeViewModel
 import com.zen.accounts.ui.viewmodels.SettingViewModel
 import com.zen.accounts.utility.main
@@ -78,12 +76,12 @@ fun HomeLandscapeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(background)
+                .background(MaterialTheme.colorScheme.background)
                 .pointerInput(Unit) {}
         ) {
             Row(
@@ -113,7 +111,7 @@ fun HomeLandscapeScreen(
 
                 Text(
                     text = home_screen_label,
-                    style = Typography.headlineSmall.copy(color = onBackground),
+                    style = Typography.headlineSmall.copy(color = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier
                         .padding(halfGeneralPadding)
                 )
@@ -130,7 +128,7 @@ fun HomeLandscapeScreen(
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(roundedCornerShape)
-                        .background(surface)
+                        .background(MaterialTheme.colorScheme.surface)
                 ) {
                     Row(
                         modifier = Modifier
@@ -152,12 +150,12 @@ fun HomeLandscapeScreen(
                     ) {
                         Text(
                             text = "Monthly Expense",
-                            style = Typography.bodyLarge.copy(color = onBackground)
+                            style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground)
                         )
 
                         Text(
                             text = getRupeeString(uiState.totalAmount.value, showZero = true),
-                            style = Typography.bodyLarge.copy(color = onBackground)
+                            style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground)
                         )
                     }
                 }
@@ -169,7 +167,7 @@ fun HomeLandscapeScreen(
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(roundedCornerShape)
-                        .background(surface)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(generalPadding)
                 ) {
                     Box(

@@ -1,8 +1,6 @@
 package com.zen.accounts.api
 
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.database
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.zen.accounts.api.resource.Response
@@ -13,8 +11,12 @@ import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class AuthApi @Inject constructor(){
-    suspend fun registerUsingEmailAndPassword(uid: String, pass : String, user : User) : Response<String> = suspendCoroutine { continuation ->
+class AuthApi @Inject constructor() {
+    suspend fun registerUsingEmailAndPassword(
+        uid: String,
+        pass: String,
+        user: User
+    ): Response<String> = suspendCoroutine { continuation ->
         val db = FirebaseFirestore.getInstance()
         val docRef = db.collection("Users").document(uid)
         val auth = FirebaseAuth.getInstance()
@@ -24,6 +26,7 @@ class AuthApi @Inject constructor(){
                 docRef.set(user.copy(isAuthenticated = false))
                     .addOnSuccessListener {
                         authResult.user?.sendEmailVerification()
+                        db.collection("uidmap").add(authResult.user?.uid!!)
                         res.status = true
                         res.message = "Verification code sent to you email."
                         res.value = uid
@@ -42,69 +45,57 @@ class AuthApi @Inject constructor(){
             }
     }
 
-    suspend fun loginUsingEmailAndPassword(email: String, pass : String) : Response<Pair<User, ByteArray>> = suspendCoroutine { continuation ->
+    suspend fun loginUsingEmailAndPassword(
+        email: String,
+        pass: String
+    ): Response<Pair<User, ByteArray>> = suspendCoroutine { continuation ->
         val response = Response(value = Pair(User(), ByteArray(0)))
         val db = FirebaseFirestore.getInstance()
-        val dbRef = Firebase.database.reference
         val auth = FirebaseAuth.getInstance()
         io {
-            val authResult = auth.signInWithEmailAndPassword(email, pass).await()
-            val uidMapResult = db.collection("uidmap").document(authResult.user?.uid!!).get().await()
-            if(!authResult.user?.isEmailVerified!!) {
-                response.status = false
-                response.message = "Please! Verify your email."
-                continuation.resume(response)
-            } else {
-                val userUid = uidMapResult.get("uid").toString()
-                db.collection("Users").document(userUid).update("authenticated", true, "uid", userUid)
-                val userResult = db.collection("Users").document(userUid).get().await()
-                val retrievedUser = userResult.toObject(User::class.java)
-                retrievedUser?.let {retrievedUserFromCloud ->
-                    retrievedUserFromCloud.profilePicFirebaseFormat?.let {url ->
-                        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(url)
-                        storageRef.getBytes(12527200L)
-                            .addOnSuccessListener { bytes ->
-                                response.value = Pair(retrievedUser.copy(profilePicFirebaseFormat = null), bytes)
-                                response.status = true
-                                continuation.resume(response)
-                            }
-                            .addOnFailureListener {
-                                response.status = false
-                                response.message = it.message.toString()
-                                continuation.resume(response)
-                            }
-                    }
+            try {
+                val authResult = auth.signInWithEmailAndPassword(email, pass).await()
+                val uidMapResult =
+                    db.collection("uidmap").document(authResult.user?.uid!!).get().await()
+                if (!authResult.user?.isEmailVerified!!) {
+                    response.status = false
+                    response.message = "Please! Verify your email."
+                    continuation.resume(response)
+                } else {
+                    val userUid = uidMapResult.get("uid").toString()
+                    db.collection("Users").document(userUid)
+                        .update("authenticated", true, "uid", userUid)
+                    val userResult = db.collection("Users").document(userUid).get().await()
+                    val retrievedUser = userResult.toObject(User::class.java)
+                    retrievedUser?.let { retrievedUserFromCloud ->
+                        retrievedUserFromCloud.profilePicFirebaseFormat?.let { url ->
+                            val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(url)
+                            storageRef.getBytes(12527200L)
+                                .addOnSuccessListener { bytes ->
+                                    response.value = Pair(
+                                        retrievedUser.copy(profilePicFirebaseFormat = null),
+                                        bytes
+                                    )
+                                    response.status = true
+                                    continuation.resume(response)
+                                }
+                                .addOnFailureListener {
+                                    response.status = false
+                                    response.message = it.message.toString()
+                                    continuation.resume(response)
+                                }
+                        }
 
+                    }
                 }
+            } catch (e: Exception) {
+                response.status = false
+                response.message = e.message.toString()
+                continuation.resume(response)
             }
         }
     }
 
-//    suspend fun uploadProfilePic(user: User) : Response<Unit> = suspendCoroutine { continuation ->
-//        val response = Response(value = Unit)
-//        val db = FirebaseFirestore.getInstance()
-//
-//        val docRef = db.collection("Users").document(user.uid)
-//        user.profilePic?.let {
-//            val storageRef = FirebaseStorage.getInstance().getReference("user/${user.uid}/profile")
-//            storageRef.putBytes(it)
-//                .addOnSuccessListener {uploadTask ->
-//                    uploadTask.storage.downloadUrl.addOnSuccessListener {uri ->
-//                        docRef.update("profilePicFirebaseFormat", uri.toString())
-//                            .addOnSuccessListener {
-//                                response.status = true
-//                                response.message = "Profile pic is successfully uploaded."
-//                                continuation.resume(response)
-//                            }
-//                            .addOnFailureListener {
-//                                response.status = false
-//                                response.message = it.message.toString()
-//                                continuation.resume(response)
-//                            }
-//                    }
-//                }
-//        }
-//    }
 
     fun logout() {
         val auth = FirebaseAuth.getInstance()

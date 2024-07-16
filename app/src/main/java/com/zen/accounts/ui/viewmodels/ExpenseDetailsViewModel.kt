@@ -1,5 +1,6 @@
 package com.zen.accounts.ui.viewmodels
 
+import android.util.Log
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.repository.ExpenseRepository
@@ -16,6 +17,7 @@ class ExpenseDetailsViewModel @Inject constructor(
     val expenseDetailsUiState by lazy { ExpenseDetailUIState() }
 
     fun updateExpense(updatedExpenseItem : ExpenseItem?, itemInd: Int) {
+        Log.d("asdf", "updateExpense: Running")
         io {
             expenseDetailsUiState.apply {
                 if(updatedExpenseItem != null) {

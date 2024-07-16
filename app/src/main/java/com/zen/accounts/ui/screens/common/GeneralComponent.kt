@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -60,20 +61,14 @@ import androidx.compose.ui.zIndex
 import com.zen.accounts.R
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.disabled_color
-import com.zen.accounts.ui.theme.editTextCursorColor
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.green_color
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.normalPadding
 import com.zen.accounts.ui.theme.normalTextSize
-import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.onSurface
-import com.zen.accounts.ui.theme.placeholder
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.roundedCornerShape
-import com.zen.accounts.ui.theme.secondary_color
-import com.zen.accounts.ui.theme.surface
 
 data object CustomKeyboardOptions {
     val default = KeyboardOptions.Default
@@ -102,119 +97,171 @@ data object CustomKeyboardOptions {
         imeAction = ImeAction.Done
     )
 }
+
 @Composable
 fun GeneralEditText(
     text: String,
     modifier: Modifier,
-    onValueChange : (String) -> Unit = {},
+    onValueChange: (String) -> Unit = {},
     placeholderText: String = "Enter Text",
+    required: Boolean = false,
+    showRequiredText : Boolean = false,
     singleLine: Boolean = true,
     enable: Boolean = true,
+    error: Pair<Boolean, String> = Pair(false, ""),
     keyboardOptions: KeyboardOptions = CustomKeyboardOptions.default,
     clickableFun: (() -> Unit)? = null,
-    showClickEffect : Boolean = true,
+    showClickEffect: Boolean = true,
     @DrawableRes trailingIcon: Int? = null,
     trailingIconClick: (() -> Unit)? = null
 ) {
-    val mutablePasswordVisible = rememberSaveable {
-        mutableStateOf(keyboardOptions.keyboardType != KeyboardType.Password)
-    }
-    val passwordVisible = remember { derivedStateOf { mutablePasswordVisible.value } }
-    val customSelectionColor = TextSelectionColors(
-        handleColor = onBackground,
-        backgroundColor = onBackground.copy(alpha = 0.4f)
-    )
-    CompositionLocalProvider(LocalTextSelectionColors provides customSelectionColor) {
-        BasicTextField(
-            value = text,
-            onValueChange = {
-                onValueChange(it)
-            },
-            modifier = modifier
-                .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
-                .clip(RoundedCornerShape(generalPadding))
-                .background(secondary_color)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = if (showClickEffect) LocalIndication.current else null
-                ) {
-                    if (clickableFun != null) {
-                        clickableFun()
+
+    @Composable
+    fun InnerFunc() {
+        val mutablePasswordVisible = rememberSaveable {
+            mutableStateOf(keyboardOptions.keyboardType != KeyboardType.Password)
+        }
+        val passwordVisible = remember { derivedStateOf { mutablePasswordVisible.value } }
+        val customSelectionColor = TextSelectionColors(
+            handleColor = MaterialTheme.colors.onBackground,
+            backgroundColor = MaterialTheme.colors.onBackground.copy(alpha = 0.4f)
+        )
+        CompositionLocalProvider(LocalTextSelectionColors provides customSelectionColor) {
+            BasicTextField(
+                value = text,
+                onValueChange = onValueChange,
+                modifier = modifier
+                    .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
+                    .clip(RoundedCornerShape(generalPadding))
+                    .background(androidx.compose.material3.MaterialTheme.colorScheme.secondary)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = if (showClickEffect) LocalIndication.current else null
+                    ) {
+                        if (clickableFun != null) {
+                            clickableFun()
+                        }
                     }
-                }
-                .padding(generalPadding),
-            singleLine = singleLine,
-            cursorBrush = Brush.linearGradient(listOf(editTextCursorColor, editTextCursorColor)),
-            textStyle = TextStyle.Default.copy(
-                color = onSurface,
-                fontFamily = FontFamily(Font(R.font.montserrat)),
-                fontSize = normalTextSize
-            ),
-            enabled = enable,
-            keyboardOptions = keyboardOptions,
-            visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation()
-        ) {
-            it()
-            Row(
-                Modifier
-            ) {
-                if (text.isEmpty()) {
-                    Text(
-                        text = placeholderText,
-                        style = TextStyle.Default.copy(
-                            color = placeholder,
-                            fontFamily = FontFamily(Font(R.font.montserrat)),
-                            fontSize = normalTextSize
-                        )
+                    .padding(generalPadding),
+                singleLine = singleLine,
+                cursorBrush = Brush.linearGradient(
+                    listOf(
+                        MaterialTheme.colors.onBackground,
+                        MaterialTheme.colors.onBackground
                     )
-                }
-
-                if (keyboardOptions.keyboardType == KeyboardType.Password) {
-                    val passIcon =
-                        if (passwordVisible.value) R.drawable.ic_eye else R.drawable.ic_eye_off
-                    Column(
-                        Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(passIcon),
-                            contentDescription = "eye_icon",
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .clickable {
-                                    mutablePasswordVisible.value = !mutablePasswordVisible.value
-                                },
-                            tint = onSurface
+                ),
+                textStyle = TextStyle.Default.copy(
+                    color = MaterialTheme.colors.onSurface,
+                    fontFamily = FontFamily(Font(R.font.montserrat)),
+                    fontSize = normalTextSize
+                ),
+                enabled = enable,
+                keyboardOptions = keyboardOptions,
+                visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation()
+            ) {
+                it()
+                Row(
+                    Modifier
+                ) {
+                    if (text.isEmpty()) {
+                        if (required) {
+                            Text(
+                                text = "*",
+                                style = Typography.bodySmall.copy(color = Color.Red)
+                            )
+                        }
+                        Text(
+                            text = placeholderText,
+                            style = TextStyle.Default.copy(
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.surfaceDim,
+                                fontFamily = FontFamily(Font(R.font.montserrat)),
+                                fontSize = normalTextSize
+                            )
                         )
                     }
-                }
 
-                if (trailingIcon != null) {
-                    Column(
-                        Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            painter = painterResource(trailingIcon),
-                            contentDescription = "eye_icon",
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .clickable(
-                                    interactionSource = remember {
-                                        MutableInteractionSource()
+                    if (keyboardOptions.keyboardType == KeyboardType.Password) {
+                        val passIcon =
+                            if (passwordVisible.value) R.drawable.ic_eye else R.drawable.ic_eye_off
+                        Column(
+                            Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                painter = painterResource(passIcon),
+                                contentDescription = "eye_icon",
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                                    .clickable {
+                                        mutablePasswordVisible.value = !mutablePasswordVisible.value
                                     },
-                                    indication = null
-                                ) {
-                                    if (trailingIconClick != null) {
-                                        trailingIconClick()
-                                    }
-                                },
-                            tint = onSurface
-                        )
+                                tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
+
+                    if (trailingIcon != null) {
+                        Column(
+                            Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                painter = painterResource(trailingIcon),
+                                contentDescription = "eye_icon",
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                                    .clickable(
+                                        interactionSource = remember {
+                                            MutableInteractionSource()
+                                        },
+                                        indication = null
+                                    ) {
+                                        if (trailingIconClick != null) {
+                                            trailingIconClick()
+                                        }
+                                    },
+                                tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    Column {
+        if (required) {
+
+            AnimatedVisibility(visible = showRequiredText) {
+                Row(
+                    modifier = Modifier.padding(start = generalPadding)
+                ) {
+                    Text(
+                        text = "*",
+                        style = Typography.bodyMedium.copy(color = Color.Red)
+                    )
+
+                    Text(
+                        text = required_field,
+                        style = Typography.bodySmall.copy(color = Color.Red)
+                    )
                 }
             }
 
+            InnerFunc()
+
+        } else {
+            InnerFunc()
+        }
+
+        AnimatedVisibility(visible = error.first) {
+            Text(
+                text = error.second,
+                style = Typography.bodySmall.copy(color = Color.Red),
+                modifier = Modifier.padding(start = generalPadding)
+            )
         }
     }
+
 }
 
 @Composable
@@ -251,30 +298,30 @@ fun GeneralButton(
 @Composable
 fun GeneralDropDown(
     modifier: Modifier,
-    value : MutableState<BackupPlan>,
-    showDropDown : MutableState<Boolean>,
-    enable : Boolean = false,
-    valueList : List<BackupPlan>,
+    value: MutableState<BackupPlan>,
+    showDropDown: MutableState<Boolean>,
+    enable: Boolean = false,
+    valueList: List<BackupPlan>,
     placeholderText: String = "Select Expense Type",
     onClick: () -> Unit = {},
-    onItemClick : (BackupPlan) -> Unit
+    onItemClick: (BackupPlan) -> Unit
 ) {
     val localDensity = LocalDensity.current
     val screenWidth = LocalConfiguration.current.screenWidthDp
-    val dropDownHeight : MutableState<Dp> = remember { mutableStateOf(0.dp) }
-    val dropDownEdittextHeight : MutableState<Dp> = remember { mutableStateOf(0.dp) }
+    val dropDownHeight: MutableState<Dp> = remember { mutableStateOf(0.dp) }
+    val dropDownEdittextHeight: MutableState<Dp> = remember { mutableStateOf(0.dp) }
     val dropDownRowWidth = rememberSaveable(saver = dpSaver) { mutableStateOf(0.dp) }
     val dropDownIcon = rememberSaveable { mutableIntStateOf(R.drawable.ic_drop_down) }
     val text = remember {
         derivedStateOf { value.value.label }
     }
 
-    if(!enable){
+    if (!enable) {
         value.value = BackupPlan.Off
     }
 
     LaunchedEffect(key1 = showDropDown.value) {
-        if(showDropDown.value) {
+        if (showDropDown.value) {
             dropDownIcon.intValue = R.drawable.ic_drop_up
         } else {
             dropDownIcon.intValue = R.drawable.ic_drop_down
@@ -292,19 +339,18 @@ fun GeneralDropDown(
                         with(localDensity) { it.size.width.toDp() }
                     dropDownEdittextHeight.value =
                         with(localDensity) { it.size.height.toDp() }
-                }
-            ,
+                },
             enable = false,
             placeholderText = placeholderText,
             clickableFun = {
-                if(enable) {
+                if (enable) {
                     showDropDown.value = !showDropDown.value
                 }
                 onClick()
             },
             trailingIcon = dropDownIcon.intValue,
             trailingIconClick = {
-                if(enable)
+                if (enable)
                     showDropDown.value = !showDropDown.value
                 onClick()
             }
@@ -320,11 +366,14 @@ fun GeneralDropDown(
                     width = dropDownRowWidth.value - generalPadding.times(2),
                     height = dropDownHeight.value
                 )
-                .background(surface)
-            ,
+                .background(androidx.compose.material3.MaterialTheme.colorScheme.surface),
             offset =
-                if (screenWidth <= 500) DpOffset(dropDownRowWidth.value / 2 - (dropDownRowWidth.value - generalPadding.times(2))/2, (-4).dp)
-                else DpOffset(-dropDownRowWidth.value + generalPadding.times(2), 0.dp)
+            if (screenWidth <= 500) DpOffset(
+                dropDownRowWidth.value / 2 - (dropDownRowWidth.value - generalPadding.times(
+                    2
+                )) / 2, (-4).dp
+            )
+            else DpOffset(-dropDownRowWidth.value + generalPadding.times(2), 0.dp)
         ) {
             for (i in valueList.indices) {
                 DropdownMenuItem(
@@ -334,7 +383,7 @@ fun GeneralDropDown(
                             modifier = Modifier
                                 .fillMaxWidth(),
                             textAlign = TextAlign.Center,
-                            style = Typography.bodyMedium.copy(color = onSurface)
+                            style = Typography.bodyMedium.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
                         )
                     },
                     onClick = {
@@ -344,7 +393,8 @@ fun GeneralDropDown(
                     },
                     modifier = Modifier
                         .onGloballyPositioned {
-                            dropDownHeight.value = with(localDensity) {it.size.height.toDp()} * if (valueList.size < 6) valueList.size else 5
+                            dropDownHeight.value =
+                                with(localDensity) { it.size.height.toDp() } * if (valueList.size < 6) valueList.size else 5
                         }
                 )
             }
@@ -354,24 +404,63 @@ fun GeneralDropDown(
 
 @Composable
 fun GeneralSnackBar(
-    visible : MutableState<Boolean>,
-    text : String,
+    visible: MutableState<Boolean>,
+    text: String,
     modifier: Modifier = Modifier,
-    containerColor: Color = surface,
-    contentColor : Color = onSurface
+    containerColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+    contentColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
     var textColor = contentColor
-    if(containerColor == green_color || containerColor == red_color) {
+    if (containerColor == green_color || containerColor == red_color) {
         textColor = Color.White
     }
     AnimatedVisibility(
         modifier = modifier
             .zIndex(100f)
-            .padding(horizontal =if(screenWidth <= 500) generalPadding  else  150.dp)
+            .padding(horizontal = if (screenWidth <= 500) generalPadding else 150.dp)
             .padding(generalPadding)
             .clip(roundedCornerShape),
         visible = visible.value,
+        enter = slideInVertically(initialOffsetY = { -300 }) + fadeIn(),
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { -300 })
+    ) {
+        Column(
+            modifier = Modifier
+                .background(containerColor)
+        ) {
+            Text(
+                text = text,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(generalPadding),
+                style = Typography.bodyMedium.copy(color = textColor)
+            )
+        }
+    }
+}
+
+@Composable
+fun GeneralSnackBar(
+    visible: Boolean,
+    text: String,
+    modifier: Modifier = Modifier,
+    containerColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+    contentColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+    var textColor = contentColor
+    if (containerColor == green_color || containerColor == red_color) {
+        textColor = Color.White
+    }
+    AnimatedVisibility(
+        modifier = modifier
+            .zIndex(100f)
+            .padding(horizontal = if (screenWidth <= 500) generalPadding else 150.dp)
+            .padding(generalPadding)
+            .clip(roundedCornerShape),
+        visible = visible,
         enter = slideInVertically(initialOffsetY = { -300 }) + fadeIn(),
         exit = fadeOut() + slideOutVertically(targetOffsetY = { -300 })
     ) {

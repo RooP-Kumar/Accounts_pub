@@ -35,6 +35,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -81,11 +82,8 @@ import com.zen.accounts.ui.screens.common.date_formatter_pattern_without_time
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.screens.main.expense_detail.ExpenseItemDeleteDialog
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.tweenAnimDuration
@@ -149,7 +147,7 @@ fun MyExpense(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(appState = appState)
 
@@ -157,7 +155,7 @@ fun MyExpense(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {}
-                .background(background)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             if (!uiState.showExpenseList.value) {
                 var rotation by remember { mutableFloatStateOf(0f) }
@@ -193,7 +191,7 @@ fun MyExpense(
                         Text(
                             text = "Syncing.....",
                             textAlign = TextAlign.Center,
-                            style = Typography.bodyMedium.copy(color = onBackground)
+                            style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
                         )
                     }
                 }
@@ -273,7 +271,7 @@ fun MyExpense(
 
                                             Text(
                                                 text = if (uiState.selectAll.value) "Deselect All" else "Select All",
-                                                style = Typography.bodyMedium.copy(color = onBackground)
+                                                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
                                             )
 
                                             Spacer(modifier = Modifier.weight(1f))
@@ -398,7 +396,7 @@ fun MyExpense(
                                 )
                                 Text(
                                     text = "No items added!",
-                                    style = Typography.bodyLarge.copy(color = onBackground)
+                                    style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground)
                                 )
                             }
                         }
@@ -561,7 +559,7 @@ private fun ListItemLayout(
                 Text(
                     text = allExpense.value[ind].title,
                     style = Typography.bodyLarge.copy(
-                        color = onSurface
+                        color = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier
                 )
@@ -569,7 +567,7 @@ private fun ListItemLayout(
                 Text(
                     text = getRupeeString(allExpense.value[ind].totalAmount),
                     style = Typography.bodyLarge.copy(
-                        color = onSurface
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
 

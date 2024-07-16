@@ -33,12 +33,11 @@ import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.light_enabled_color
-import com.zen.accounts.ui.theme.onBackground
 
 @Composable
 fun ExpenseItemLayout(
     expenseItem: ExpenseItem,
-    textStyle: TextStyle = Typography.bodyLarge.copy(color = onBackground)
+    textStyle: TextStyle = Typography.bodyLarge.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
 ) {
     Row(
         modifier = Modifier

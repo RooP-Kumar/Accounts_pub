@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -33,10 +34,8 @@ import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.screens.common.home_screen_label
 import com.zen.accounts.ui.screens.common.my_expense_screen_label
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.viewmodels.HomeViewModel
@@ -53,7 +52,7 @@ fun HomePortraitScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Row(
             modifier = Modifier
@@ -74,7 +73,7 @@ fun HomePortraitScreen(
 
             Text(
                 text = home_screen_label,
-                style = Typography.headlineSmall.copy(color = onBackground),
+                style = Typography.headlineSmall.copy(color = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .padding(vertical = halfGeneralPadding)
             )
@@ -108,19 +107,19 @@ fun HomePortraitScreen(
                     }
                 }
                 .clip(RoundedCornerShape(generalPadding))
-                .background(secondary_color)
+                .background(MaterialTheme.colorScheme.inversePrimary)
                 .padding(horizontal = generalPadding, vertical = generalPadding.times(2)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Absolute.SpaceBetween
         ) {
             Text(
                 text = "Monthly Expense",
-                style = Typography.bodyLarge.copy(color = onBackground)
+                style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground)
             )
 
             Text(
                 text = getRupeeString(uiState.totalAmount.value, showZero = true),
-                style = Typography.bodyLarge.copy(color = onBackground)
+                style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground)
             )
         }
 

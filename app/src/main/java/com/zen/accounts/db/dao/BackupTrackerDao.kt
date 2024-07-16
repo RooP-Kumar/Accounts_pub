@@ -13,8 +13,8 @@ interface BackupTrackerDao {
     @Insert
     suspend fun insertBackupTracker(notBackupExpense: List<BackupTracker>)
 
-    @Query("SELECT COUNT(*) FROM backup_tracker WHERE expenseId = :expenseId")
-    suspend fun getBackupTracker(expenseId : Long) : Long
+    @Query("SELECT * FROM backup_tracker WHERE expenseId = :expenseId")
+    suspend fun getBackupTracker(expenseId : Long) : BackupTracker?
 
     @Query("SELECT COUNT(*) FROM backup_tracker")
     suspend fun getTableEntryCount() : Long

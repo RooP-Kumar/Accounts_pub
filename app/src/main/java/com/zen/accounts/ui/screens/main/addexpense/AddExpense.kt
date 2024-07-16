@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,11 +55,8 @@ import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.secondary_color
@@ -136,7 +134,7 @@ private fun MainUi(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(background)
+            .background(MaterialTheme.colorScheme.background)
             .pointerInput(Unit) {}
     ) {
         if(screenWidth <= 500) {
@@ -169,7 +167,7 @@ private fun MainUi(
                 modifier = Modifier
                     .weight(1f)
                     .pointerInput(Unit) {}
-                    .background(background)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
 
                 if(screenWidth <= 500) {
@@ -212,12 +210,12 @@ private fun MainUi(
                         ) {
                             Text(
                                 text = "Total Amount : ",
-                                style = Typography.bodyMedium.copy(color = onSurface)
+                                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
                             )
 
                             Text(
                                 text = getRupeeString(uiState.totalExpenseAmount.value),
-                                style = Typography.bodyMedium.copy(color = onSurface)
+                                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
                             )
                         }
                         GeneralButton(
@@ -247,7 +245,7 @@ fun ItemListLayout(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(background)
+                .background(MaterialTheme.colorScheme.background)
                 .clip(RoundedCornerShape(generalPadding))
                 .padding(start = generalPadding, end = generalPadding, bottom = generalPadding, top = halfGeneralPadding)
                 .generalBorder(width = 0.2.dp)
@@ -268,7 +266,7 @@ fun ItemListLayout(
                     )
                     Text(
                         text = "No items added!",
-                        style = Typography.bodyLarge.copy(color = onBackground)
+                        style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground)
                     )
                 }
 

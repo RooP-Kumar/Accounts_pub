@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.platform.inspectable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.shadowColor
@@ -85,7 +84,7 @@ fun Modifier.generalBorder(
     borderRadiusX: Dp = generalPadding,
     borderRadiusY: Dp = generalPadding,
     width: Dp = 0.5.dp,
-    backgroundColor: Color = background
+    backgroundColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.background
 ): Modifier = this
     .drawBehind {
 
@@ -117,7 +116,7 @@ fun Modifier.generalBorder(
 fun Modifier.generalCircleBorder(
     size: Dp = 0.5.dp,
     color: Color = shadowColor,
-    backgroundColor : Color = background
+    backgroundColor : Color = androidx.compose.material3.MaterialTheme.colorScheme.background
 ): Modifier = this
     .drawBehind {
 

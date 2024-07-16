@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -17,7 +18,6 @@ import com.zen.accounts.ui.screens.common.GeneralEditText
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.primary_color
 
 @Composable
@@ -27,7 +27,7 @@ fun UpperTitleSection(
 ) {
     Text(
         text = "Add Title",
-        style = Typography.titleSmall.copy(color = onBackground),
+        style = Typography.titleSmall.copy(color = MaterialTheme.colorScheme.onBackground),
         modifier = Modifier
             .padding(top = halfGeneralPadding)
             .padding(vertical = halfGeneralPadding, horizontal = generalPadding)
@@ -50,7 +50,7 @@ fun AddExpenseItemTitleSection() {
     ) {
         Text(
             text = "Add Expense Items",
-            style = Typography.titleSmall.copy(color = onBackground),
+            style = Typography.titleSmall.copy(color = MaterialTheme.colorScheme.onBackground),
             modifier = Modifier
                 .padding(vertical = halfGeneralPadding, horizontal = generalPadding)
         )
