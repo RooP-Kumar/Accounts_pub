@@ -137,7 +137,6 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
         ) {
             val settingViewModel: SettingViewModel = hiltViewModel()
             Setting(
-                appState = appState,
                 settingViewModel = settingViewModel
             )
         }

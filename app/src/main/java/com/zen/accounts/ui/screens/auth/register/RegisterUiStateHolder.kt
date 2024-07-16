@@ -1,46 +1,50 @@
 package com.zen.accounts.ui.screens.auth.register
 
+import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import com.zen.accounts.ui.screens.common.LoadingState
+import com.zen.accounts.ui.screens.common.invalid_email
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.KProperty
 
-class RegisterUiStateHolder {
-    private val _userName: MutableStateFlow<String> = MutableStateFlow("")
-    val userName : StateFlow<String> get() = _userName
+data class RegisterUiStateHolder(
+    var name: String = "",
+    var email: String = "",
+    var phone: String = "",
+    var password: String = "",
+    var snackBarText: String = "",
+    var loadingState: LoadingState = LoadingState.IDLE,
+    var showSnackBar: Boolean = false,
+    var emailRequired: Boolean = false,
+    var showEmailError: Boolean = false,
+    var passRequired: Boolean = false,
+    var showPassError: Boolean = false
+) {
+    fun getStringParamNames() : Map<String, KMutableProperty1<RegisterUiStateHolder, String>>{
+        return this::class.members
+            .filterIsInstance<KMutableProperty1<RegisterUiStateHolder, String>>()
+            .associateBy { it.name }
+    }
 
-    private val _email: MutableStateFlow<String> = MutableStateFlow("")
-    val email: StateFlow<String> get() = _email
-
-    private val _phone: MutableStateFlow<String> = MutableStateFlow("")
-    val phone: StateFlow<String> get() = _phone
-
-    private val _password: MutableStateFlow<String> = MutableStateFlow("")
-    val password: StateFlow<String> get() = _password
-
-    private val _loadingState: MutableStateFlow<LoadingState> = MutableStateFlow(LoadingState.IDLE)
-    val loadingState: StateFlow<LoadingState> get() = _loadingState
-
-    private val _showSnackBar: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val showSnackBar: StateFlow<Boolean> get() = _showSnackBar
-
-    private val _snackBarText: MutableStateFlow<String> = MutableStateFlow("")
-    val snackBarText: StateFlow<String> get() = _snackBarText
-
-    fun updateState(
-        name : String? = null,
-        email: String? = null,
-        phone : String? = null,
-        pass: String? = null,
-        loadingState: LoadingState? = null,
-        showSnackBar: Boolean? = null,
-        snackBarText: String? = null
-    ) {
-        name?.let { _userName.value = it }
-        email?.let { _email.value = it }
-        phone?.let { _phone.value = it }
-        pass?.let { _password.value = it }
-        loadingState?.let { _loadingState.value = it }
-        showSnackBar?.let { _showSnackBar.value = it }
-        snackBarText?.let { _snackBarText.value = it }
+    fun getBoolParamNames() : Map<String, KMutableProperty1<RegisterUiStateHolder, Boolean>>{
+        return this::class.members
+            .filterIsInstance<KMutableProperty1<RegisterUiStateHolder, Boolean>>()
+            .associateBy { it.name }
     }
 }
+
+// These value are the same as above ui state holder class properties name. so that we can update these value with these values.
+const val registerUiStateHolder_name = "name"
+const val registerUiStateHolder_email = "email"
+const val registerUiStateHolder_phone = "phone"
+const val registerUiStateHolder_password = "password"
+const val registerUiStateHolder_emailRequired = "emailRequired"
+const val registerUiStateHolder_showEmailError = "showEmailError"
+const val registerUiStateHolder_passRequired = "passRequired"
+const val registerUiStateHolder_showPassError = "showPassError"

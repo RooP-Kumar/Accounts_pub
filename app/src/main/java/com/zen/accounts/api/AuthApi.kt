@@ -28,6 +28,7 @@ class AuthApi @Inject constructor() {
                 docRef.set(user.copy(isAuthenticated = false))
                     .addOnSuccessListener {
                         authResult.user?.sendEmailVerification()
+                        db.collection("uidmap").add(authResult.user?.uid!!)
                         res.status = true
                         res.message = "Verification code sent to you email."
                         res.value = uid
@@ -52,11 +53,9 @@ class AuthApi @Inject constructor() {
     ): Response<Pair<User, ByteArray>> = suspendCoroutine { continuation ->
         val response = Response(value = Pair(User(), ByteArray(0)))
         val db = FirebaseFirestore.getInstance()
-        val dbRef = Firebase.database.reference
         val auth = FirebaseAuth.getInstance()
         io {
             try {
-
                 val authResult = auth.signInWithEmailAndPassword(email, pass).await()
                 val uidMapResult =
                     db.collection("uidmap").document(authResult.user?.uid!!).get().await()

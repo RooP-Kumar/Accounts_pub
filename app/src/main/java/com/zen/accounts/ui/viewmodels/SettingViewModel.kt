@@ -19,6 +19,7 @@ import com.zen.accounts.ui.theme.green_color
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.utility.Utility
 import com.zen.accounts.utility.io
+import com.zen.accounts.utility.main
 import com.zen.accounts.workmanager.worker_repository.WorkerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
@@ -40,7 +41,7 @@ class SettingViewModel @Inject constructor(
     private val expenseItemRepository: ExpenseItemRepository,
     private val workerRepository: WorkerRepository,
     private val mediaStoreRepository: MediaStoreRepository
-) : ViewModel() {
+) : BaseViewmodel() {
     val settingUIState by lazy { SettingUiState() }
     private val _user = MutableStateFlow<User?>(null)
     val user : StateFlow<User?> get() = _user
@@ -254,6 +255,38 @@ class SettingViewModel @Inject constructor(
                             }
                         }
                     }
+            }
+        }
+    }
+
+    // <----------------------------------- UI updates starts ------------------------------------->
+    fun backupPlanChange(backupPlan: BackupPlan) {
+        settingUIState.backupDropDownText.value = backupPlan
+        main {
+            when (backupPlan) {
+                is BackupPlan.Off -> {
+                    cancelAllWork()
+                }
+
+                is BackupPlan.Now -> {
+                    startSingleUploadRequest()
+                    updateBackupPlan()
+                }
+
+                is BackupPlan.Daily -> {
+                    startDailyUploadRequest()
+                    updateBackupPlan()
+                }
+
+                is BackupPlan.Weekly -> {
+                    startWeeklyUploadRequest()
+                    updateBackupPlan()
+                }
+
+                is BackupPlan.Monthly -> {
+                    startMonthlyUploadRequest()
+                    updateBackupPlan()
+                }
             }
         }
     }

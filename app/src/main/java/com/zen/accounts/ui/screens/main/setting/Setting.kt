@@ -3,7 +3,9 @@ package com.zen.accounts.ui.screens.main.setting
 
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,11 +35,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,6 +64,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
@@ -71,6 +73,7 @@ import coil.request.ImageRequest
 import com.zen.accounts.R
 import com.zen.accounts.db.model.User
 import com.zen.accounts.states.AppState
+import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.BackupPlan
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralDialog
@@ -84,28 +87,26 @@ import com.zen.accounts.ui.screens.common.login_button_label
 import com.zen.accounts.ui.screens.common.login_screen_label
 import com.zen.accounts.ui.screens.common.logout_button_label
 import com.zen.accounts.ui.screens.common.small_logout_button_label
+import com.zen.accounts.ui.theme.AccountsThemes
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.buttonDescriptionTextStyle
-import com.zen.accounts.ui.theme.disabled_color
-import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.roundedCornerShape
-import com.zen.accounts.ui.theme.surface
 import com.zen.accounts.ui.theme.tweenAnimDuration
 import com.zen.accounts.ui.viewmodels.SettingViewModel
 import com.zen.accounts.utility.LoadingScreen
 import com.zen.accounts.utility.Utility
+import com.zen.accounts.utility.async
 import com.zen.accounts.utility.generalBorder
 import com.zen.accounts.utility.generalCircleBorder
 import com.zen.accounts.utility.io
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.reflect.KSuspendFunction1
 
 
 data class SettingUiState(
@@ -125,10 +126,10 @@ data class SettingUiState(
 
 @Composable
 fun Setting(
-    appState: AppState,
     settingViewModel: SettingViewModel
 ) {
     val uiState = settingViewModel.settingUIState
+    val user = settingViewModel.user.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         settingViewModel.getBackupPlan()
@@ -137,17 +138,28 @@ fun Setting(
     LoadingDialog(loadingState = uiState.loadingState)
 
     MainUI(
-        appState = appState,
-        settingViewModel = settingViewModel
+        appState = settingViewModel.appState,
+        uiState = settingViewModel.settingUIState,
+        user = user.value,
+        logout = settingViewModel::logout,
+        logoutConfirmation = settingViewModel::logoutConfirmation,
+        backupPlanChange = settingViewModel::backupPlanChange,
+        saveImageToStorage = settingViewModel::saveImageToStorage,
+        uploadUserProfilePicture = settingViewModel::uploadUserProfilePicture
     )
 }
 
 @Composable
 private fun MainUI(
-    appState: AppState,
-    settingViewModel: SettingViewModel
+    appState: AppState = AppState(context = LocalContext.current),
+    uiState: SettingUiState = SettingUiState(),
+    user : User? = null,
+    logout: () -> Unit = {},
+    logoutConfirmation: (Boolean) -> Unit = {},
+    backupPlanChange : (BackupPlan) -> Unit = {},
+    saveImageToStorage : (Uri) -> Deferred<Bitmap?>? = {async { return@async Bitmap.createBitmap(0, 0, Bitmap.Config.ALPHA_8) }},
+    uploadUserProfilePicture: suspend (Bitmap) -> Unit = {}
 ) {
-    val uiState = settingViewModel.settingUIState
     val coroutineScope = rememberCoroutineScope()
     val darkSwitchOn = appState.darkMode.value ?: isSystemInDarkTheme()
     val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -171,17 +183,20 @@ private fun MainUI(
     }
 
     ScreenDialogs(
-        settingViewModel
+        uiState = uiState,
+        logout,
+        logoutConfirmation
     )
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .pointerInput(Unit) {}
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(background)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             TopAppBar(
                 appState = appState
@@ -191,9 +206,8 @@ private fun MainUI(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                val user = settingViewModel.user.collectAsState(initial = null)
                 Crossfade(
-                    targetState = user.value,
+                    targetState = user,
                     animationSpec = tween(500),
                     label = "main screen"
                 ) {
@@ -203,46 +217,46 @@ private fun MainUI(
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(background),
+                                .background(MaterialTheme.colorScheme.background),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             if(screenWidth <= 500) {
                                 ProfileSection(
-                                    user,
+                                    user!!,
                                     uiState.showImagePickerOption,
                                     uiState.profilePic
                                 )
                             }
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(generalPadding),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Dark Mode",
-                                    style = Typography.bodyMedium.copy(color = onBackground)
-                                )
-
-                                Switch(
-                                    checked = darkSwitchOn,
-                                    onCheckedChange = {
-                                        coroutineScope.launch {
-                                            appState.dataStore.saveIsDarkMode(!darkSwitchOn)
-                                        }
-                                    },
-                                    colors = SwitchDefaults.colors().copy(
-                                        checkedBorderColor = onBackground,
-                                        checkedThumbColor = onBackground,
-                                        checkedTrackColor = enabled_color,
-                                        uncheckedBorderColor = enabled_color,
-                                        uncheckedThumbColor = enabled_color,
-                                        uncheckedTrackColor = disabled_color
-                                    )
-                                )
-                            }
+                            // <-------------------------------------------- Dark Mode Switch (Will add later) --------------------------->
+//                            Row(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(generalPadding),
+//                                horizontalArrangement = Arrangement.SpaceBetween,
+//                                verticalAlignment = Alignment.CenterVertically
+//                            ) {
+//                                Text(
+//                                    text = "Dark Mode",
+//                                    style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
+//                                )
+//
+//                                Switch(
+//                                    checked = darkSwitchOn,
+//                                    onCheckedChange = {
+//                                        coroutineScope.launch {
+//                                            appState.dataStore.saveIsDarkMode(!darkSwitchOn)
+//                                        }
+//                                    },
+//                                    colors = SwitchDefaults.colors().copy(
+//                                        checkedBorderColor = MaterialTheme.colorScheme.onBackground,
+//                                        checkedThumbColor = MaterialTheme.colorScheme.onBackground,
+//                                        checkedTrackColor = enabled_color,
+//                                        uncheckedBorderColor = enabled_color,
+//                                        uncheckedThumbColor = enabled_color,
+//                                        uncheckedTrackColor = disabled_color
+//                                    )
+//                                )
+//                            }
 
                             Row(
                                 modifier = Modifier
@@ -252,7 +266,7 @@ private fun MainUI(
                             ) {
                                 Text(
                                     text = "Backup",
-                                    style = Typography.bodyMedium.copy(color = onBackground)
+                                    style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
                                 )
 
                                 Spacer(modifier = Modifier.weight(1f))
@@ -279,9 +293,9 @@ private fun MainUI(
                                     value = uiState.backupDropDownText,
                                     showDropDown = uiState.showBackupDropDown,
                                     valueList = BackupPlan.getAllBackupPlan(),
-                                    enable = user.value!!.isAuthenticated,
+                                    enable = user!!.isAuthenticated,
                                     onClick = {
-                                        if (user.value!!.uid.isEmpty() && !user.value!!.isAuthenticated) {
+                                        if (user.uid.isEmpty() && !user.isAuthenticated) {
                                             uiState.showSnackBarText.value =
                                                 "Please login to use backup"
                                             coroutineScope.launch {
@@ -294,36 +308,7 @@ private fun MainUI(
                                             }
                                         }
                                     },
-                                    onItemClick = { backupPlan ->
-                                        uiState.backupDropDownText.value = backupPlan
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            when (backupPlan) {
-                                                is BackupPlan.Off -> {
-                                                    settingViewModel.cancelAllWork()
-                                                }
-
-                                                is BackupPlan.Now -> {
-                                                    settingViewModel.startSingleUploadRequest()
-                                                    settingViewModel.updateBackupPlan()
-                                                }
-
-                                                is BackupPlan.Daily -> {
-                                                    settingViewModel.startDailyUploadRequest()
-                                                    settingViewModel.updateBackupPlan()
-                                                }
-
-                                                is BackupPlan.Weekly -> {
-                                                    settingViewModel.startWeeklyUploadRequest()
-                                                    settingViewModel.updateBackupPlan()
-                                                }
-
-                                                is BackupPlan.Monthly -> {
-                                                    settingViewModel.startMonthlyUploadRequest()
-                                                    settingViewModel.updateBackupPlan()
-                                                }
-                                            }
-                                        }
-                                    }
+                                    onItemClick = backupPlanChange
                                 )
                             }
 
@@ -335,12 +320,12 @@ private fun MainUI(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (user.value!!.isAuthenticated) small_logout_button_label else login_screen_label,
-                                    style = Typography.bodyMedium.copy(color = onBackground)
+                                    text = if (user!!.isAuthenticated) small_logout_button_label else login_screen_label,
+                                    style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
                                 )
 
                                 GeneralButton(
-                                    text = if (user.value!!.isAuthenticated) logout_button_label else login_button_label,
+                                    text = if (user.isAuthenticated) logout_button_label else login_button_label,
                                     modifier = Modifier
                                         .width(160.dp)
                                         .padding(
@@ -373,8 +358,9 @@ private fun MainUI(
         ) {
             ImagePickerSection(
                 modifier = Modifier
-                    .background(surface),
-                settingViewModel
+                    .background(MaterialTheme.colorScheme.surface),
+                saveImageToStorage,
+                uploadUserProfilePicture
             )
         }
 
@@ -389,9 +375,10 @@ private fun MainUI(
 
 @Composable
 fun ScreenDialogs(
-    settingViewModel: SettingViewModel
+    uiState: SettingUiState = SettingUiState(),
+    logout : () -> Unit,
+    logoutConfirmation : (Boolean) -> Unit
 ) {
-    val uiState = settingViewModel.settingUIState
     val localDensity = LocalDensity.current
     val confirmationPopupButtonsHeight = remember { mutableStateOf(0.dp) }
 
@@ -417,7 +404,7 @@ fun ScreenDialogs(
         ) {
             Text(
                 text = logout_button_label,
-                style = Typography.bodyMedium.copy(color = onBackground),
+                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .padding(top = generalPadding)
             )
@@ -425,7 +412,7 @@ fun ScreenDialogs(
             Text(
                 text = "Not backed up expenses will be removed permanently.",
                 textAlign = TextAlign.Center,
-                style = buttonDescriptionTextStyle.copy(color = onBackground),
+                style = buttonDescriptionTextStyle.copy(color = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .padding(bottom = generalPadding, top = halfGeneralPadding)
             )
@@ -442,14 +429,14 @@ fun ScreenDialogs(
             modifier = Modifier
                 .fillMaxWidth()
                 .generalBorder()
-                .background(background),
+                .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "You want to Logout\nAre you sure?",
                 textAlign = TextAlign.Center,
                 maxLines = 2,
-                style = Typography.bodyMedium.copy(color = onBackground),
+                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .padding(generalPadding)
             )
@@ -468,7 +455,7 @@ fun ScreenDialogs(
 
                 GeneralButton(text = "YES", modifier = Modifier.weight(1f)) {
                     uiState.showLogoutPopUp.value = false
-                    settingViewModel.logout()
+                    logout()
                 }
             }
         }
@@ -482,13 +469,13 @@ fun ScreenDialogs(
             modifier = Modifier
                 .fillMaxWidth()
                 .generalBorder()
-                .background(background),
+                .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Warning!\nYou have some expense which are not backed up yet.",
                 textAlign = TextAlign.Center,
-                style = Typography.bodyMedium.copy(color = onBackground),
+                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .padding(generalPadding)
             )
@@ -496,7 +483,7 @@ fun ScreenDialogs(
             Button(
                 onClick = {
                     uiState.showConfirmationPopUp.value = false
-                    settingViewModel.logoutConfirmation(true)
+                    logoutConfirmation(true)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -512,7 +499,7 @@ fun ScreenDialogs(
                 ) {
                     Text(
                         text = logout_button_label,
-                        style = Typography.bodyMedium.copy(color = onBackground),
+                        style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                         modifier = Modifier
                             .padding(top = generalPadding)
                     )
@@ -520,7 +507,7 @@ fun ScreenDialogs(
                     Text(
                         text = "Not backed up expenses will be removed permanently.",
                         textAlign = TextAlign.Center,
-                        style = buttonDescriptionTextStyle.copy(color = onBackground),
+                        style = buttonDescriptionTextStyle.copy(color = MaterialTheme.colorScheme.onBackground),
                         modifier = Modifier
                             .padding(bottom = generalPadding, top = halfGeneralPadding)
                     )
@@ -533,7 +520,7 @@ fun ScreenDialogs(
                 Button(
                     onClick = {
                         uiState.showConfirmationPopUp.value = false
-                        settingViewModel.logoutConfirmation(false)
+                        logoutConfirmation(false)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -550,14 +537,14 @@ fun ScreenDialogs(
                     ) {
                         Text(
                             text = "BACKUP",
-                            style = Typography.bodyMedium.copy(color = onBackground),
+                            style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
                                 .padding(top = generalPadding)
                         )
 
                         Text(
                             text = "Backup before logout.",
-                            style = buttonDescriptionTextStyle.copy(color = onBackground),
+                            style = buttonDescriptionTextStyle.copy(color = MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier
                                 .padding(bottom = generalPadding, top = halfGeneralPadding)
                         )
@@ -573,7 +560,7 @@ fun ScreenDialogs(
 
 @Composable
 fun ProfileSection(
-    user: State<User?>,
+    user: User? = null,
     showImagePickerOption: MutableState<Boolean>,
     profilePicBitmap: MutableState<Bitmap?>
 ) {
@@ -582,21 +569,21 @@ fun ProfileSection(
     var email = "johndoe@example.com"
 
 
-    if (user.value != null && user.value!!.name.isNotEmpty()) {
-        name = user.value!!.name
+    if (user != null && user.name.isNotEmpty()) {
+        name = user.name
     }
-    if (user.value != null && user.value!!.phone.isNotEmpty()) {
-        mobile = user.value!!.phone
+    if (user != null && user.phone.isNotEmpty()) {
+        mobile = user.phone
     }
-    if (user.value != null && user.value!!.email.isNotEmpty()) {
-        email = user.value!!.email
+    if (user != null && user.email.isNotEmpty()) {
+        email = user.email
     }
 
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(surface)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(bottom = generalPadding, top = halfGeneralPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -623,7 +610,7 @@ fun ProfileSection(
 
             Text(
                 text = "Edit",
-                style = Typography.bodySmall.copy(color = background),
+                style = Typography.bodySmall.copy(color = MaterialTheme.colorScheme.background),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .width(120.dp)
@@ -637,17 +624,17 @@ fun ProfileSection(
         Text(
             text = name,
             textAlign = TextAlign.Center,
-            style = Typography.bodyMedium.copy(color = onBackground)
+            style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
         )
         Text(
             text = "+91 $mobile",
             textAlign = TextAlign.Center,
-            style = Typography.bodyMedium.copy(color = onBackground)
+            style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
         )
         Text(
             text = email,
             textAlign = TextAlign.Center,
-            style = Typography.bodyMedium.copy(color = onBackground)
+            style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
         )
     }
 }
@@ -655,14 +642,15 @@ fun ProfileSection(
 @Composable
 fun ImagePickerSection(
     modifier: Modifier,
-    settingViewModel: SettingViewModel
-) {
+    saveImageToStorage: (Uri) -> Deferred<Bitmap?>?,
+    uploadUserProfilePicture: suspend (Bitmap) -> Unit
+    ) {
     val context = LocalContext.current
     val includeGallery = remember { mutableStateOf(false) }
     val launcher = Utility.imagePicker {
         io {
-            val bitmap = settingViewModel.saveImageToStorage(it)
-            bitmap.await()?.let { it1 -> settingViewModel.uploadUserProfilePicture(it1) }
+            val bitmap = saveImageToStorage(it)
+            bitmap?.await()?.let { it1 -> uploadUserProfilePicture(it1) }
         }
     }
 
@@ -697,7 +685,7 @@ fun ImagePickerSection(
             Icon(
                 painter = painterResource(id = R.drawable.ic_camera),
                 contentDescription = null,
-                tint = onSurface,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(24.dp)
@@ -730,11 +718,20 @@ fun ImagePickerSection(
             Icon(
                 painter = painterResource(id = R.drawable.ic_gallery),
                 contentDescription = null,
-                tint = onSurface,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(24.dp)
             )
         }
+    }
+}
+
+
+@Preview(apiLevel = 34)
+@Composable
+private fun PreviewSetting() {
+    AccountsThemes {
+        MainUI(user = User().copy(name = "Roop Kumar"))
     }
 }

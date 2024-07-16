@@ -1,7 +1,6 @@
 package com.zen.accounts.ui.screens.common
 
 import androidx.annotation.DrawableRes
-import androidx.appcompat.widget.ActivityChooserView.InnerLayout
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,6 +20,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -61,20 +61,15 @@ import androidx.compose.ui.zIndex
 import com.zen.accounts.R
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.disabled_color
-import com.zen.accounts.ui.theme.editTextCursorColor
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.green_color
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.normalPadding
 import com.zen.accounts.ui.theme.normalTextSize
-import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.onSurface
-import com.zen.accounts.ui.theme.placeholder
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.roundedCornerShape
 import com.zen.accounts.ui.theme.secondary_color
-import com.zen.accounts.ui.theme.surface
 
 data object CustomKeyboardOptions {
     val default = KeyboardOptions.Default
@@ -110,10 +105,11 @@ fun GeneralEditText(
     modifier: Modifier,
     onValueChange: (String) -> Unit = {},
     placeholderText: String = "Enter Text",
-    required: Pair<Boolean, MutableState<Boolean>> = Pair(false, mutableStateOf(false)),
+    required: Boolean = false,
+    showRequiredText : Boolean = false,
     singleLine: Boolean = true,
     enable: Boolean = true,
-    error: Pair<MutableState<Boolean>, String> = Pair(mutableStateOf(false), ""),
+    error: Pair<Boolean, String> = Pair(false, ""),
     keyboardOptions: KeyboardOptions = CustomKeyboardOptions.default,
     clickableFun: (() -> Unit)? = null,
     showClickEffect: Boolean = true,
@@ -128,23 +124,17 @@ fun GeneralEditText(
         }
         val passwordVisible = remember { derivedStateOf { mutablePasswordVisible.value } }
         val customSelectionColor = TextSelectionColors(
-            handleColor = onBackground,
-            backgroundColor = onBackground.copy(alpha = 0.4f)
+            handleColor = MaterialTheme.colors.onBackground,
+            backgroundColor = MaterialTheme.colors.onBackground.copy(alpha = 0.4f)
         )
         CompositionLocalProvider(LocalTextSelectionColors provides customSelectionColor) {
             BasicTextField(
                 value = text,
-                onValueChange = {
-                    onValueChange(it)
-                    if (it.isNotEmpty()) {
-                        required.second.value = false
-                        error.first.value = false
-                    }
-                },
+                onValueChange = onValueChange,
                 modifier = modifier
                     .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
                     .clip(RoundedCornerShape(generalPadding))
-                    .background(secondary_color)
+                    .background(androidx.compose.material3.MaterialTheme.colorScheme.secondary)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = if (showClickEffect) LocalIndication.current else null
@@ -157,12 +147,12 @@ fun GeneralEditText(
                 singleLine = singleLine,
                 cursorBrush = Brush.linearGradient(
                     listOf(
-                        editTextCursorColor,
-                        editTextCursorColor
+                        MaterialTheme.colors.background,
+                        MaterialTheme.colors.background
                     )
                 ),
                 textStyle = TextStyle.Default.copy(
-                    color = onSurface,
+                    color = MaterialTheme.colors.onSurface,
                     fontFamily = FontFamily(Font(R.font.montserrat)),
                     fontSize = normalTextSize
                 ),
@@ -175,7 +165,7 @@ fun GeneralEditText(
                     Modifier
                 ) {
                     if (text.isEmpty()) {
-                        if (required.first) {
+                        if (required) {
                             Text(
                                 text = "*",
                                 style = Typography.bodySmall.copy(color = Color.Red)
@@ -184,7 +174,7 @@ fun GeneralEditText(
                         Text(
                             text = placeholderText,
                             style = TextStyle.Default.copy(
-                                color = placeholder,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.surfaceDim,
                                 fontFamily = FontFamily(Font(R.font.montserrat)),
                                 fontSize = normalTextSize
                             )
@@ -205,7 +195,7 @@ fun GeneralEditText(
                                     .clickable {
                                         mutablePasswordVisible.value = !mutablePasswordVisible.value
                                     },
-                                tint = onSurface
+                                tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -229,7 +219,7 @@ fun GeneralEditText(
                                             trailingIconClick()
                                         }
                                     },
-                                tint = onSurface
+                                tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -240,9 +230,9 @@ fun GeneralEditText(
     }
 
     Column {
-        if (required.first) {
+        if (required) {
 
-            AnimatedVisibility(visible = required.second.value) {
+            AnimatedVisibility(visible = showRequiredText) {
                 Row(
                     modifier = Modifier.padding(start = generalPadding)
                 ) {
@@ -264,7 +254,7 @@ fun GeneralEditText(
             InnerFunc()
         }
 
-        AnimatedVisibility(visible = error.first.value) {
+        AnimatedVisibility(visible = error.first) {
             Text(
                 text = error.second,
                 style = Typography.bodySmall.copy(color = Color.Red),
@@ -377,7 +367,7 @@ fun GeneralDropDown(
                     width = dropDownRowWidth.value - generalPadding.times(2),
                     height = dropDownHeight.value
                 )
-                .background(surface),
+                .background(androidx.compose.material3.MaterialTheme.colorScheme.surface),
             offset =
             if (screenWidth <= 500) DpOffset(
                 dropDownRowWidth.value / 2 - (dropDownRowWidth.value - generalPadding.times(
@@ -394,7 +384,7 @@ fun GeneralDropDown(
                             modifier = Modifier
                                 .fillMaxWidth(),
                             textAlign = TextAlign.Center,
-                            style = Typography.bodyMedium.copy(color = onSurface)
+                            style = Typography.bodyMedium.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
                         )
                     },
                     onClick = {
@@ -418,8 +408,8 @@ fun GeneralSnackBar(
     visible: MutableState<Boolean>,
     text: String,
     modifier: Modifier = Modifier,
-    containerColor: Color = surface,
-    contentColor: Color = onSurface
+    containerColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+    contentColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
     var textColor = contentColor
@@ -433,6 +423,45 @@ fun GeneralSnackBar(
             .padding(generalPadding)
             .clip(roundedCornerShape),
         visible = visible.value,
+        enter = slideInVertically(initialOffsetY = { -300 }) + fadeIn(),
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { -300 })
+    ) {
+        Column(
+            modifier = Modifier
+                .background(containerColor)
+        ) {
+            Text(
+                text = text,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(generalPadding),
+                style = Typography.bodyMedium.copy(color = textColor)
+            )
+        }
+    }
+}
+
+@Composable
+fun GeneralSnackBar(
+    visible: Boolean,
+    text: String,
+    modifier: Modifier = Modifier,
+    containerColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+    contentColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+    var textColor = contentColor
+    if (containerColor == green_color || containerColor == red_color) {
+        textColor = Color.White
+    }
+    AnimatedVisibility(
+        modifier = modifier
+            .zIndex(100f)
+            .padding(horizontal = if (screenWidth <= 500) generalPadding else 150.dp)
+            .padding(generalPadding)
+            .clip(roundedCornerShape),
+        visible = visible,
         enter = slideInVertically(initialOffsetY = { -300 }) + fadeIn(),
         exit = fadeOut() + slideOutVertically(targetOffsetY = { -300 })
     ) {

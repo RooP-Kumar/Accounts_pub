@@ -1,5 +1,6 @@
 package com.zen.accounts.ui.screens.auth.login
 
+import android.content.res.Resources.Theme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,18 +12,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import com.zen.accounts.CommonUIStateHolder
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.CustomKeyboardOptions
@@ -39,74 +42,60 @@ import com.zen.accounts.ui.screens.common.invalid_email
 import com.zen.accounts.ui.screens.common.invalid_pass
 import com.zen.accounts.ui.screens.common.login_button_label
 import com.zen.accounts.ui.screens.common.register_button_label
-import com.zen.accounts.ui.theme.Purple80
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.normalPadding
-import com.zen.accounts.ui.theme.onBackground
+import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.LoginScreenViewModel
+import com.zen.accounts.utility.Utility
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-data class LoginUiState(
-    val emailUsernamePhone: MutableState<String> = mutableStateOf(""),
-    val password: MutableState<String> = mutableStateOf(""),
-    val loadingState: MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
-    val snackBarText: MutableState<String> = mutableStateOf(""),
-    val showSnackBar: MutableState<Boolean> = mutableStateOf(false)
-)
+import kotlin.math.log
 
 @Composable
 fun Login(
-    appState: AppState,
-    viewModel: LoginScreenViewModel
+    appState: AppState, viewModel: LoginScreenViewModel
 ) {
-    val uiState = viewModel.loginUiState
+    val loginUiStateHolder = viewModel.loginUiStateHolder.collectAsState()
+    val commonUIStateHolder = viewModel.commonUIStateHolder.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-    LaunchedEffect(key1 = uiState.loadingState.value) {
-        when (uiState.loadingState.value) {
+    LaunchedEffect(key1 = loginUiStateHolder.value.loadingState) {
+        when (loginUiStateHolder.value.loadingState) {
             LoadingState.IDLE -> {}
             LoadingState.LOADING -> {}
             LoadingState.SUCCESS -> {
+                viewModel.showSnackBar()
                 coroutineScope.launch {
-                    uiState.showSnackBar.value = true
-                    delay(1000)
-                    uiState.showSnackBar.value = false
                     appState.navController.popBackStack()
                 }
             }
 
             LoadingState.FAILURE -> {
-                coroutineScope.launch {
-                    uiState.showSnackBar.value = true
-                    delay(5000)
-                    uiState.showSnackBar.value = false
-                }
+                viewModel.showSnackBar()
             }
         }
     }
 
-    MainUI(appState, viewModel)
+    MainUI(appState, viewModel, commonUIStateHolder, loginUiStateHolder)
 }
 
 @Composable
 private fun MainUI(
     appState: AppState,
-    viewModel: LoginScreenViewModel
+    viewModel: LoginScreenViewModel,
+    commonUIStateHolder: State<CommonUIStateHolder>,
+    loginUiStateHolder: State<LoginUiStateHolder>
 ) {
-    val uiState = viewModel.loginUiState
-    val user = appState.dataStore.getUser.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
     val screenWidth = LocalConfiguration.current.screenWidthDp
 
-    LoadingDialog(loadingState = uiState.loadingState)
+    LoadingDialog(loadingState = loginUiStateHolder.value.loadingState)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(background)
+            .background(MaterialTheme.colors.background)
     ) {
 
         TopAppBar(appState = appState)
@@ -121,72 +110,66 @@ private fun MainUI(
         ) {
 
             Column(
-                modifier = if(screenWidth > 500) Modifier.width(500.dp) else Modifier
+                modifier = if (screenWidth > 500) Modifier.width(500.dp) else Modifier
             ) {
-                val emailError = remember { Pair(mutableStateOf(false), invalid_email) }
                 GeneralEditText(
-                    text = uiState.emailUsernamePhone.value,
-                    error = emailError,
-                    onValueChange = { uiState.emailUsernamePhone.value = it },
+                    text = loginUiStateHolder.value.emailUsernamePhone,
+                    error = Pair(loginUiStateHolder.value.emailError, invalid_email),
+                    required = true,
+                    onValueChange = {
+                        viewModel.onTextFieldValueChange(it, loginUiStateHolder_emailOrPhone)
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     placeholderText = enter_email,
                     keyboardOptions = CustomKeyboardOptions.textEditor
                 )
 
-                val passError = remember { Pair(mutableStateOf(false), invalid_pass) }
                 GeneralEditText(
-                    text = uiState.password.value,
-                    error = passError,
-                    onValueChange = { uiState.password.value = it },
+                    text = loginUiStateHolder.value.password,
+                    error = Pair(loginUiStateHolder.value.passError, invalid_pass),
+                    required = true,
+                    onValueChange = {
+                        viewModel.onTextFieldValueChange(it, loginUiStateHolder_pass)
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     placeholderText = enter_pass,
                     keyboardOptions = CustomKeyboardOptions.passwordEditor
                 )
 
                 Row(
-                    modifier = Modifier
-                        .padding(horizontal = generalPadding, vertical = normalPadding)
+                    modifier = Modifier.padding(
+                        horizontal = generalPadding,
+                        vertical = normalPadding
+                    )
                 ) {
                     Text(
                         text = did_not_have_account,
-                        style = Typography.bodySmall.copy(color = onBackground)
+                        style = Typography.bodySmall.copy(color = MaterialTheme.colors.onBackground)
                     )
                     Spacer(modifier = Modifier.width(normalPadding))
-                    Text(
-                        text = register_button_label,
-                        style = Typography.bodySmall.copy(color = Purple80),
-                        modifier = Modifier
-                            .clickable {
-                                coroutineScope.launch {
-                                    appState.navigate(Screen.RegisterScreen.route)
-                                }
+                    Text(text = register_button_label,
+                        style = Typography.bodySmall.copy(color = primary_color),
+                        modifier = Modifier.clickable {
+                            coroutineScope.launch {
+                                appState.navigate(Screen.RegisterScreen.route)
                             }
-                    )
+                        })
                 }
 
                 GeneralButton(
                     text = login_button_label,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(horizontal = generalPadding)
                 ) {
-                    val emailRegex = """^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$""".toRegex()
-                    val passwordRegex = """^([a-zA-Z0-9._%+-]).{6,}$""".toRegex()
-                    val email = uiState.emailUsernamePhone.value.trim()
-                    val pass = uiState.password.value.trim()
-                    if(!emailRegex.matches(email)){
-                        emailError.first.value = true
-                    } else if (!passwordRegex.matches(pass)) {
-                        passError.first.value = true
-                    } else {
-                        viewModel.loginUser(email, pass)
-                    }
+                    viewModel.loginUser()
                 }
             }
         }
 
         GeneralSnackBar(
-            visible = uiState.showSnackBar,
-            text = uiState.snackBarText.value,
+            visible = commonUIStateHolder.value.showSnackBar,
+            text = commonUIStateHolder.value.snackBarText,
             modifier = Modifier.align(Alignment.TopCenter)
         )
 

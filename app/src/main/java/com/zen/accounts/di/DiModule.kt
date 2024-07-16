@@ -9,6 +9,7 @@ import com.zen.accounts.db.AppDatabase
 import com.zen.accounts.db.dao.BackupTrackerDao
 import com.zen.accounts.db.dao.ExpenseDao
 import com.zen.accounts.db.dao.ExpenseItemDao
+import com.zen.accounts.states.AppState
 import com.zen.accounts.utility.DateDeSerializerForApi
 import com.zen.accounts.utility.DateSerializerForApi
 import dagger.Module
@@ -19,6 +20,7 @@ import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.Date
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -68,5 +70,11 @@ class DiModule {
     @Provides
     fun getExpenseService(retrofit : Retrofit) : ExpenseService {
         return retrofit.create(ExpenseService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun getAppState(@ApplicationContext context: Context) : AppState {
+        return AppState(context)
     }
 }

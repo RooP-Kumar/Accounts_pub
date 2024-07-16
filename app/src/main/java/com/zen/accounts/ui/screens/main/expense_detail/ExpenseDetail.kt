@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,11 +56,9 @@ import com.zen.accounts.ui.screens.common.enter_amount
 import com.zen.accounts.ui.screens.common.enter_title
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.green_color
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onBackground
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.viewmodels.ExpenseDetailsViewModel
@@ -148,7 +147,7 @@ private fun MainUI(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {}
-            .background(background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -170,7 +169,7 @@ private fun MainUI(
                 Text(
                     text = uiState.expense.value.title,
                     textAlign = TextAlign.Center,
-                    style = Typography.bodyLarge.copy(color = onBackground),
+                    style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier
                         .padding(horizontal = generalPadding)
                 )
@@ -180,7 +179,7 @@ private fun MainUI(
                 Text(
                     text = getRupeeString(uiState.expense.value.totalAmount),
                     textAlign = TextAlign.Center,
-                    style = Typography.bodyLarge.copy(color = onBackground),
+                    style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier
                         .fillMaxWidth()
                 )
@@ -281,11 +280,11 @@ fun ExpenseItemListLayout(
         ) {
             Text(
                 text = expenseItem.itemTitle,
-                style = Typography.bodyMedium.copy(color = onBackground)
+                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
             )
             Text(
                 text = getRupeeString(expenseItem.itemAmount ?: 0.0),
-                style = Typography.bodyMedium.copy(color = onBackground)
+                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
             )
         }
 
@@ -310,13 +309,13 @@ fun ExpenseItemListLayout(
                         Icon(
                             painterResource(id = R.drawable.ic_edit),
                             contentDescription = "editbutton",
-                            tint = background,
+                            tint = MaterialTheme.colorScheme.background,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(generalPadding))
                         Text(
                             text = "EDIT",
-                            style = Typography.bodyMedium.copy(color = background)
+                            style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.background)
                         )
                     }
 
@@ -336,13 +335,13 @@ fun ExpenseItemListLayout(
                         Icon(
                             painterResource(id = R.drawable.ic_bin),
                             contentDescription = "delete buttom",
-                            tint = background,
+                            tint = MaterialTheme.colorScheme.background,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(generalPadding))
                         Text(
                             text = "DELETE",
-                            style = Typography.bodyMedium.copy(color = background)
+                            style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.background)
                         )
                     }
                 }
@@ -432,7 +431,7 @@ fun ExpenseItemDeleteDialog(
         Text(
             text = "You want to delete this item.\n Are you Sure?",
             textAlign = TextAlign.Center,
-            style = Typography.bodyMedium.copy(color = onBackground),
+            style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(generalPadding)

@@ -1,5 +1,6 @@
 package com.zen.accounts.ui.screens.common
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,10 +16,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,11 +43,8 @@ import com.zen.accounts.R
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.getScreenRouteWithTitle
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
-import com.zen.accounts.ui.theme.onBackground
-import com.zen.accounts.ui.theme.onSurface
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.topBarHeight
@@ -53,7 +53,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoadingDialog(
-    loadingState: MutableState<LoadingState>,
+    loadingState: State<LoadingState>,
     onSuccess: () -> Unit = {},
     onFailure: () -> Unit = {}
 ) {
@@ -88,7 +88,7 @@ fun LoadingDialog(
             Column(
                 modifier = Modifier
                     .generalBorder()
-                    .background(background)
+                    .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
                     .padding(generalPadding)
                 ,
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -104,7 +104,68 @@ fun LoadingDialog(
                 Spacer(modifier = Modifier.height(halfGeneralPadding))
                 Text(
                     text = "Loading.....",
-                    style = Typography.bodyMedium.copy(color = onSurface)
+                    style = Typography.bodyMedium.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
+                )
+            }
+        }
+    }
+
+}
+
+@Composable
+fun LoadingDialog(
+    loadingState: LoadingState,
+    onSuccess: () -> Unit = {},
+    onFailure: () -> Unit = {}
+) {
+    val showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
+    val lottieComposition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.loading_anim))
+    LaunchedEffect(key1 = loadingState) {
+        when (loadingState) {
+            LoadingState.LOADING -> {
+                showDialog.value = true
+            }
+
+            LoadingState.SUCCESS -> {
+                showDialog.value = false
+                onSuccess()
+            }
+
+            LoadingState.FAILURE -> {
+                showDialog.value = false
+                onFailure()
+            }
+
+            else -> {
+                showDialog.value = false
+            }
+        }
+    }
+
+    AnimatedVisibility(visible = showDialog.value) {
+        Dialog(
+            onDismissRequest = {}
+        ) {
+            Column(
+                modifier = Modifier
+                    .generalBorder()
+                    .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
+                    .padding(generalPadding)
+                ,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LottieAnimation(
+                    composition = lottieComposition,
+                    contentScale = ContentScale.Fit,
+                    restartOnPlay = true,
+                    iterations = Int.MAX_VALUE,
+                    modifier = Modifier
+                        .size(50.dp, 50.dp)
+                )
+                Spacer(modifier = Modifier.height(halfGeneralPadding))
+                Text(
+                    text = "Loading.....",
+                    style = Typography.bodyMedium.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
                 )
             }
         }
@@ -123,7 +184,7 @@ fun TopBarBackButton(appState: AppState) {
             .clickable {
                 coroutineScope.launch { appState.navController.popBackStack() }
             }
-            .background(secondary_color)
+            .background(MaterialTheme.colorScheme.secondary)
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_back),
@@ -131,7 +192,7 @@ fun TopBarBackButton(appState: AppState) {
             modifier = Modifier
                 .align(Alignment.Center)
                 .clip(shape = CircleShape)
-                .background(secondary_color)
+                .background(MaterialTheme.colorScheme.secondary)
                 .padding(6.dp),
             tint = primary_color
         )
@@ -163,7 +224,7 @@ fun TopAppBar(
             Text(
                 text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
                     ?: "",
-                style = Typography.bodyLarge.copy(onBackground),
+                style = Typography.bodyLarge.copy(androidx.compose.material3.MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .padding(generalPadding)
                     .weight(1f)
@@ -219,7 +280,7 @@ fun TopAppBar(
             Text(
                 text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
                     ?: "",
-                style = Typography.bodyLarge.copy(onBackground),
+                style = Typography.bodyLarge.copy(androidx.compose.material3.MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .padding(generalPadding)
                     .weight(1f)
@@ -230,7 +291,7 @@ fun TopAppBar(
                     Icon(
                         painter = painterResource,
                         contentDescription ="icon description",
-                        tint = onBackground
+                        tint = androidx.compose.material3.MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -264,7 +325,7 @@ fun GeneralDialog(
             Column(
                 modifier = Modifier
                     .generalBorder()
-                    .background(background)
+                    .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
             ) {
                 content.invoke(this)
             }

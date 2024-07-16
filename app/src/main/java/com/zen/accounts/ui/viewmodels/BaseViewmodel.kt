@@ -1,31 +1,45 @@
 package com.zen.accounts.ui.viewmodels
 
 import android.content.Context
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.lifecycle.ViewModel
-import com.zen.accounts.db.datastore.UserDataStore
+import com.zen.accounts.CommonUIStateHolder
+import com.zen.accounts.states.AppState
 import com.zen.accounts.utility.main
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
-open class BaseViewmodel @Inject constructor(): ViewModel() {
+open class BaseViewmodel @Inject constructor() : ViewModel() {
     @Inject
     @ApplicationContext
-    lateinit var context : Context
+    lateinit var context: Context
+    @Inject
+    lateinit var appState: AppState
 
-    val dataStore : UserDataStore by lazy { UserDataStore(context) }
+    private val _commonUIStateHolder: MutableStateFlow<CommonUIStateHolder> =
+        MutableStateFlow(CommonUIStateHolder())
+    val commonUIStateHolder: StateFlow<CommonUIStateHolder> = _commonUIStateHolder.asStateFlow()
 
-    fun showSnackBar(snackBarState: StateFlow<Boolean>, updateSnackBarState: (Boolean?) -> Unit) {
+    fun updateCommonUiState(showSnackBar: Boolean? = null, snackBarText: String? = null) {
+        val temp = commonUIStateHolder.value.copy()
+        showSnackBar?.let { temp.showSnackBar = it }
+        snackBarText?.let { temp.snackBarText = it }
+        _commonUIStateHolder.update { temp }
+    }
+
+    fun showSnackBar() {
         main {
-            if(!snackBarState.value) {
-                updateSnackBarState(true)
-                delay(2500)
-                updateSnackBarState(false)
-            }
+            updateCommonUiState(true)
+            delay(2500)
+            updateCommonUiState(false)
         }
     }
 }

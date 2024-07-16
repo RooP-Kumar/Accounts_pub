@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,9 +30,7 @@ import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.screens.common.main_route
 import com.zen.accounts.ui.screens.common.splash_route
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.background
 import com.zen.accounts.ui.theme.generalPadding
-import com.zen.accounts.ui.theme.onBackground
 import kotlinx.coroutines.launch
 
 @Composable
@@ -64,7 +63,7 @@ fun Splash(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(background),
+            .background(MaterialTheme.colors.background),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -82,7 +81,7 @@ fun Splash(
         Text(
             text = stringResource(id = R.string.app_name),
             textAlign = TextAlign.Center,
-            style = Typography.bodyMedium.copy(color = onBackground)
+            style = Typography.bodyMedium.copy(color = MaterialTheme.colors.onBackground)
         )
     }
 }

@@ -26,7 +26,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -136,6 +136,7 @@ dependencies {
     androidTestImplementation("androidx.work:work-testing:$workVersion")
     // HemCrest Test
     implementation("org.hamcrest:hamcrest:2.2")
+    implementation(kotlin("reflect"))
 
 }
 
