@@ -1,5 +1,6 @@
 package com.zen.accounts.ui.viewmodels
 
+import androidx.core.text.isDigitsOnly
 import com.zen.accounts.api.resource.Resource
 import com.zen.accounts.db.model.User
 import com.zen.accounts.repository.AuthRepository
@@ -74,6 +75,8 @@ class RegisterScreenViewModel @Inject constructor(
                 updateState(registerUiStateHolder_emailRequired to true)
             } else if (pass.trim().isEmpty()) {
                 updateState(registerUiStateHolder_passRequired to true)
+            } else if (!registerUiStateHolder.value.phone.isDigitsOnly() || (registerUiStateHolder.value.phone.isNotEmpty() && registerUiStateHolder.value.phone.length != 10)) {
+                updateCommonUiState(true, "Phone number should contains only 10 numbers or empty.")
             } else {
                 if (!emailRegex.matches(email)) {
                     updateState(registerUiStateHolder_showEmailError to true)

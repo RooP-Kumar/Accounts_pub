@@ -9,6 +9,8 @@ import com.zen.accounts.utility.io
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.math.floor
+import kotlin.random.Random
 
 class AuthRepository @Inject constructor(
     private val authApi: AuthApi,
@@ -26,7 +28,7 @@ class AuthRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             val res = authApi.loginUsingEmailAndPassword(email, pass)
             if(res.status) {
-                dataStore.saveProfilePic(res.value.second)
+                if(res.value.second.isNotEmpty()) {dataStore.saveProfilePic(res.value.second)}
                 Resource.SUCCESS(
                     Response(
                         value = res.value.first,
@@ -59,15 +61,34 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    fun generateUID(user : User) : String {
-        val first = user.phone.substring(0, 5)
-        var middleOne = ""
-        for (i in 0..<user.name.length){
-            if(user.name[i] == ' '){
-                break;
+    private fun generateUID(user : User) : String {
+        val alphabets = "abcdefghijklmnopqrstuvwxyz"
+        var first = ""
+        var end = ""
+        end = ""
+        if(user.phone.isNotEmpty()) {
+            first = user.phone.substring(0, 5)
+            end = user.phone.substring(5, 10)
+        } else {
+            for (i in 1..5) {
+                first += Random.nextInt(1, 10).toString()
+                end += Random.nextInt(1, 10).toString()
             }
-            middleOne += user.name[i]
         }
+        var middleOne = ""
+        if(user.name.isNotEmpty()) {
+            for (i in 0..<user.name.length) {
+                if (user.name[i] == ' ') {
+                    break;
+                }
+                middleOne += user.name[i]
+            }
+        } else{
+            for (i in 0..4) {
+                middleOne += alphabets[Random.nextInt(0, 25)]
+            }
+        }
+
         var middleTwo = ""
         for (i in 0..<user.email.length) {
             if (user.email[i] == '@'){
@@ -75,7 +96,7 @@ class AuthRepository @Inject constructor(
             }
             middleTwo += user.email[i]
         }
-        val end = user.phone.substring(5, 10)
+
         return "$first$middleOne@$middleTwo$end"
     }
 }

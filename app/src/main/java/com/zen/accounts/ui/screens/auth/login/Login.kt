@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.currentCompositionErrors
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +50,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun Login(
-    appState: AppState, viewModel: LoginScreenViewModel
+    appState: AppState, viewModel: LoginScreenViewModel,
+    currentScreen: Screen?,
+    navigateUp : () -> Boolean
 ) {
     val loginUiStateHolder = viewModel.loginUiStateHolder.collectAsState()
     val commonUIStateHolder = viewModel.commonUIStateHolder.collectAsState()
@@ -71,7 +74,7 @@ fun Login(
         }
     }
 
-    MainUI(appState, viewModel, commonUIStateHolder, loginUiStateHolder)
+    MainUI(appState, viewModel, commonUIStateHolder, loginUiStateHolder, currentScreen = currentScreen, navigateUp)
 }
 
 @Composable
@@ -79,7 +82,9 @@ private fun MainUI(
     appState: AppState,
     viewModel: LoginScreenViewModel,
     commonUIStateHolder: State<CommonUIStateHolder>,
-    loginUiStateHolder: State<LoginUiStateHolder>
+    loginUiStateHolder: State<LoginUiStateHolder>,
+    currentScreen: Screen?,
+    navigateUp: () -> Boolean
 ) {
     val coroutineScope = rememberCoroutineScope()
     val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -92,7 +97,7 @@ private fun MainUI(
             .background(MaterialTheme.colors.background)
     ) {
 
-        TopAppBar(appState = appState)
+        TopAppBar(appState.drawerState, navigateUp = navigateUp, currentScreen = currentScreen)
 
         Column(
             modifier = Modifier
