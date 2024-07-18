@@ -19,12 +19,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -44,10 +46,12 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zen.accounts.R
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.states.AppState
+import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralDialog
 import com.zen.accounts.ui.screens.common.GeneralEditText
@@ -69,77 +73,100 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 data class ExpenseDetailUIState(
-    val expense : MutableState<Expense> = mutableStateOf(Expense()),
-    val expenseItems : SnapshotStateList<ExpenseItem> = mutableStateListOf(),
-    val showEditDialog : MutableState<Boolean> = mutableStateOf(false),
-    val showDeleteDialog : MutableState<Boolean> = mutableStateOf(false),
+    var expense : Expense = Expense(),
+    var expenseItems : ArrayList<ExpenseItem> = arrayListOf(),
+    var showEditDialog : Boolean = false,
+    var showDeleteDialog : Boolean = false,
 )
+
+const val ExpenseDetailUIStateExpense = "expense"
+const val ExpenseDetailUIStateExpenseItems = "expenseItems"
+const val ExpenseDetailUIStateShowEditDialog = "showEditDialog"
+const val ExpenseDetailUIStateShowDeleteDialog = "showDeleteDialog"
 
 @Composable
 fun ExpenseDetails(
-    appState : AppState,
+    drawerState : MutableState<DrawerState?>,
     expense: Expense,
-    expenseDetailsViewModel : ExpenseDetailsViewModel
+    expenseDetailsViewModel : ExpenseDetailsViewModel,
+    navigateUp: () -> Boolean,
+    currentScreen: Screen?
 ) {
-    val uiState = expenseDetailsViewModel.expenseDetailsUiState
+    val expenseDetailsUiState = expenseDetailsViewModel.expenseDetailsUiStateHolder.collectAsState()
     LaunchedEffect(key1 = Unit) {
-        if(uiState.expense.value.id == 0L) {
-           uiState.expense.value = expense
+        if(expenseDetailsUiState.value.expense.id == 0L) {
+           expenseDetailsViewModel.updateExpenseDetailsUiState(expense, ExpenseDetailUIStateExpense)
         }
     }
     LaunchedEffect(key1= Unit) {
-        if(uiState.expenseItems.isEmpty()) {
-            uiState.expenseItems.addAll(expense.items)
+        if(expenseDetailsUiState.value.expenseItems.isEmpty()) {
+            val tempExpenseHolder = expenseDetailsUiState.value.copy()
+            tempExpenseHolder.expenseItems.addAll(expense.items)
+            expenseDetailsViewModel.updateExpenseDetailsUiState(tempExpenseHolder.expenseItems, ExpenseDetailUIStateExpenseItems)
         }
     }
 
     MainUI(
-        appState,
-        expenseDetailsViewModel
+        drawerState = drawerState,
+        expenseDetailsUiState.value,
+        navigateUp = navigateUp,
+        expenseDetailsViewModel::updateExpenseDetailsUiState,
+        updateExpense = expenseDetailsViewModel::updateExpense,
+        deleteExpense = expenseDetailsViewModel::deleteExpense,
+        deleteExpenseItem = expenseDetailsViewModel::deleteExpenseItem,
+        currentScreen
     )
 }
 
 @Composable
 private fun MainUI(
-    appState: AppState,
-    expenseDetailsViewModel: ExpenseDetailsViewModel
+    drawerState : MutableState<DrawerState?>,
+    expenseDetailsUiState: ExpenseDetailUIState,
+    navigateUp : () -> Boolean,
+    updateExpenseDetailsUiState: (Any, String) -> Unit,
+    updateExpense : (ExpenseItem?, Int) -> Unit,
+    deleteExpense : () -> Unit,
+    deleteExpenseItem : (Int) -> Unit,
+    currentScreen: Screen?
 ) {
-    val uiState = expenseDetailsViewModel.expenseDetailsUiState
+    
     val coroutineScope = rememberCoroutineScope()
     val expendedItemInd = remember { mutableIntStateOf(-1) }
     val screenWidth = LocalConfiguration.current.screenWidthDp
     val isExpenseTitle = remember { mutableStateOf(false) }
 
     ExpenseItemEditDialog(
-        showDialog = uiState.showEditDialog,
+        showDialog = expenseDetailsUiState.showEditDialog,
         isExpenseTitle = isExpenseTitle.value,
-        getExpenseTitle = { uiState.expense.value.title },
-        expenseItem = if(expendedItemInd.intValue == -1) ExpenseItem()  else uiState.expense.value.items[expendedItemInd.intValue]
-    ) {updatedExpenseItem, updatedExpenseTitle->
-        uiState.expense.value.title = updatedExpenseTitle ?: uiState.expense.value.title
-        expenseDetailsViewModel.updateExpense(
-            updatedExpenseItem,
-            expendedItemInd.intValue
-        )
-        expendedItemInd.intValue = -1
-    }
+        getExpenseTitle = { expenseDetailsUiState.expense.title },
+        expenseItem = if(expendedItemInd.intValue == -1) ExpenseItem()  else expenseDetailsUiState.expense.items[expendedItemInd.intValue],
+        onEditDialogSaveClick = {updatedExpenseTitle, updatedExpenseItem ->
+            updateExpenseDetailsUiState(expenseDetailsUiState.expense.copy(title = updatedExpenseTitle ?: ""), ExpenseDetailUIStateExpense)
+            updateExpense(
+                updatedExpenseItem,
+                expendedItemInd.intValue
+            )
+            expendedItemInd.intValue = -1
+        },
+        updateAddExpenseStateValue = updateExpenseDetailsUiState
+    )
 
     ExpenseItemDeleteDialog(
-        showDialog = uiState.showDeleteDialog,
+        showDialog = expenseDetailsUiState.showDeleteDialog,
         onYes = {
-            if(uiState.expenseItems.size == 1) {
-                expenseDetailsViewModel.deleteExpense()
+            if(expenseDetailsUiState.expenseItems.size == 1) {
+                deleteExpense()
                 main {
                     delay(300)
-                    appState.navController.popBackStack()
+                    navigateUp()
                 }
             } else {
-                expenseDetailsViewModel.deleteExpenseItem(expendedItemInd.intValue)
+                deleteExpenseItem(expendedItemInd.intValue)
                 expendedItemInd.intValue = -1
-                uiState.showDeleteDialog.value = false
+                updateExpenseDetailsUiState(false, ExpenseDetailUIStateShowDeleteDialog)
             }
         },
-        onNo = { uiState.showDeleteDialog.value = false }
+        onNo = { updateExpenseDetailsUiState(false, ExpenseDetailUIStateShowDeleteDialog) }
     )
 
 
@@ -153,11 +180,13 @@ private fun MainUI(
             modifier = Modifier.fillMaxSize()
         ) {
             TopAppBar(
-                appState = appState,
-                painterResource = painterResource(id = R.drawable.ic_edit_pencil)
+                drawerState = drawerState,
+                navigateUp = navigateUp,
+                painterResource = painterResource(id = R.drawable.ic_edit_pencil),
+                currentScreen = currentScreen
             ) {
                 isExpenseTitle.value = true
-                uiState.showEditDialog.value = true
+                updateExpenseDetailsUiState(true, ExpenseDetailUIStateShowDeleteDialog)
             }
 
             Column(
@@ -167,7 +196,7 @@ private fun MainUI(
             ) {
 
                 Text(
-                    text = uiState.expense.value.title,
+                    text = expenseDetailsUiState.expense.title,
                     textAlign = TextAlign.Center,
                     style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier
@@ -177,7 +206,7 @@ private fun MainUI(
                 Spacer(modifier = Modifier.height(halfGeneralPadding))
 
                 Text(
-                    text = getRupeeString(uiState.expense.value.totalAmount),
+                    text = getRupeeString(expenseDetailsUiState.expense.totalAmount),
                     textAlign = TextAlign.Center,
                     style = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier
@@ -198,13 +227,13 @@ private fun MainUI(
                     ,
                     state = listState
                 ) {
-                    items(uiState.expenseItems.size, key = { uiState.expenseItems[it].id }) { expenseItemInd ->
+                    items(expenseDetailsUiState.expenseItems.size, key = { expenseDetailsUiState.expenseItems[it].id }) { expenseItemInd ->
                         ExpenseItemListLayout(
-                            expenseItem = uiState.expenseItems[expenseItemInd],
+                            expenseItem = expenseDetailsUiState.expenseItems[expenseItemInd],
                             expendedItemInd.intValue == expenseItemInd,
-                            uiState.showEditDialog,
-                            uiState.showDeleteDialog,
-                            uiState.expenseItems.size-1 == expenseItemInd
+                            onEditClick = {updateExpenseDetailsUiState(it, ExpenseDetailUIStateShowEditDialog)},
+                            onDeleteClick = {updateExpenseDetailsUiState(it, ExpenseDetailUIStateShowDeleteDialog)},
+                            isLast = expenseDetailsUiState.expenseItems.size-1 == expenseItemInd
                         ) {
                             coroutineScope.launch {
                                 expendedItemInd.intValue = if(expendedItemInd.intValue == expenseItemInd){
@@ -221,13 +250,13 @@ private fun MainUI(
                     columns = GridCells.Fixed(2),
                     modifier = tempModifier
                 ) {
-                    items(uiState.expenseItems.size, key = { uiState.expenseItems[it].id }) { expenseItemInd ->
+                    items(expenseDetailsUiState.expenseItems.size, key = { expenseDetailsUiState.expenseItems[it].id }) { expenseItemInd ->
                         ExpenseItemListLayout(
-                            expenseItem = uiState.expenseItems[expenseItemInd],
+                            expenseItem = expenseDetailsUiState.expenseItems[expenseItemInd],
                             expendedItemInd.intValue == expenseItemInd,
-                            uiState.showEditDialog,
-                            uiState.showDeleteDialog,
-                            uiState.expenseItems.size-2 == expenseItemInd || uiState.expenseItems.size-1 == expenseItemInd
+                            onEditClick = {updateExpenseDetailsUiState(it, ExpenseDetailUIStateShowEditDialog)},
+                            onDeleteClick = {updateExpenseDetailsUiState(it, ExpenseDetailUIStateShowDeleteDialog)},
+                            isLast = expenseDetailsUiState.expenseItems.size-2 == expenseItemInd || expenseDetailsUiState.expenseItems.size-1 == expenseItemInd
                         ) {
                             isExpenseTitle.value = false
                             coroutineScope.launch {
@@ -251,8 +280,8 @@ private fun MainUI(
 fun ExpenseItemListLayout(
     expenseItem: ExpenseItem,
     expend : Boolean,
-    showEditDialog: MutableState<Boolean>,
-    showDeleteDialog: MutableState<Boolean>,
+    onDeleteClick : (Boolean) -> Unit,
+    onEditClick : (Boolean) -> Unit,
     isLast : Boolean,
     onItemClick : () -> Unit
 ) {
@@ -299,7 +328,7 @@ fun ExpenseItemListLayout(
                             .weight(1f)
                             .generalBorder()
                             .clickable {
-                                showEditDialog.value = true
+                                onEditClick(true)
                             }
                             .background(green_color)
                             .padding(generalPadding),
@@ -325,7 +354,7 @@ fun ExpenseItemListLayout(
                             .weight(1f)
                             .generalBorder()
                             .clickable {
-                                showDeleteDialog.value = true
+                                onDeleteClick(true)
                             }
                             .background(red_color)
                             .padding(generalPadding),
@@ -352,11 +381,12 @@ fun ExpenseItemListLayout(
 
 @Composable
 fun ExpenseItemEditDialog(
-    showDialog : MutableState<Boolean>,
+    showDialog : Boolean,
     expenseItem: ExpenseItem,
     isExpenseTitle : Boolean = false,
     getExpenseTitle : () -> String,
-    onSave : (ExpenseItem?, String?) -> Unit
+    updateAddExpenseStateValue : (Any, String) -> Unit,
+    onEditDialogSaveClick: (String?, ExpenseItem?) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
@@ -408,14 +438,27 @@ fun ExpenseItemEditDialog(
         ) {
             if(amount.trim().isEmpty()) {
                 context.toast("Amount can not be empty.")
+            } else if (title.trim().isEmpty()) {
+                context.toast("Please! Enter Title.")
             } else {
-                showDialog.value = false
+                updateAddExpenseStateValue(false, ExpenseDetailUIStateShowEditDialog)
                 if(isExpenseTitle) {
-                    onSave(null, title.trim())
+                    onEditDialogSaveClick(title.trim(), null)
                 } else {
-                    onSave(expenseItem.copy(itemTitle = title.trim(), itemAmount = amount.trim().toDouble()), null)
+                    try {
+                        onEditDialogSaveClick(
+                            null,
+                            expenseItem.copy(
+                                itemTitle = title.trim(),
+                                itemAmount = amount.trim().toDouble()
+                            )
+                        )
+                    } catch (e: Exception) {
+                        context.toast("Amount should only contains numbers.")
+                    }
                 }
             }
+
         }
         Spacer(modifier = Modifier.height(halfGeneralPadding))
     }
@@ -423,7 +466,7 @@ fun ExpenseItemEditDialog(
 
 @Composable
 fun ExpenseItemDeleteDialog(
-    showDialog: MutableState<Boolean>,
+    showDialog: Boolean,
     onYes : () -> Unit,
     onNo : () -> Unit
 ) {

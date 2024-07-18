@@ -19,12 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -34,6 +30,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,15 +40,14 @@ import androidx.compose.ui.zIndex
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.zen.accounts.CommonUIStateHolder
 import com.zen.accounts.R
-import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralSnackBar
 import com.zen.accounts.ui.screens.common.LoadingDialog
-import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.theme.Typography
@@ -63,57 +59,71 @@ import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.text_color
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
-import com.zen.accounts.utility.Utility
 import com.zen.accounts.utility.generalBorder
-import java.util.Date
-
-
-data class AddExpenseUiState(
-    val title: MutableState<String> = mutableStateOf(""),
-    val expenseItemListAmountTextWidth: MutableState<Dp> = mutableStateOf(0.dp),
-    val totalExpenseAmount: MutableState<Double> = mutableDoubleStateOf(0.0),
-    val loadingState : MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
-    val snackBarText : MutableState<String> = mutableStateOf(""),
-    val snackBarState : MutableState<Boolean> = mutableStateOf(false),
-)
 
 @Composable
 fun AddExpense(
     appState: AppState,
-    viewModel: AddExpenseViewModel
+    viewModel: AddExpenseViewModel,
+    navigateUp : () -> Boolean,
+    currentScreen: Screen?
 ) {
-    MainUi(viewModel, appState)
+    val addExpenseUiStateHolder = viewModel.addExpenseUiStateHolder.collectAsState()
+    val commonUiStateHolder = viewModel.commonUIStateHolder.collectAsState()
+    val allExpenseItems = viewModel.allExpenseItem.collectAsState(initial = arrayListOf())
+
+    LaunchedEffect(key1 = allExpenseItems.value.size) {
+        if (allExpenseItems.value.isNotEmpty()) {
+            allExpenseItems.value.forEach {
+                viewModel.updateAddExpenseStateValue(
+                    addExpenseUiStateHolder.value.totalExpenseAmount + (it.itemAmount ?: 0.0),
+                    AddExpenseUiStateHolderAmount
+                )
+            }
+        } else {
+            viewModel.updateAddExpenseStateValue(0.0, AddExpenseUiStateHolderAmount)
+        }
+    }
+
+    MainUi(
+        appState = appState,
+        addExpenseUiStateHolder = addExpenseUiStateHolder.value,
+        commonUiStateHolder = commonUiStateHolder.value,
+        allExpenseItems = allExpenseItems.value,
+        viewModel::updateAddExpenseStateValue,
+        viewModel::deleteExpenseItemsFromLocalDatabase,
+        viewModel::onAddExpenseClick,
+        navigateUp,
+        currentScreen
+    )
 }
 
 @Composable
 private fun MainUi(
-    viewModel: AddExpenseViewModel,
-    appState: AppState
+    appState: AppState?,
+    addExpenseUiStateHolder: AddExpenseUiStateHolder,
+    commonUiStateHolder: CommonUIStateHolder,
+    allExpenseItems: List<ExpenseItem>?,
+    updateAddExpenseStateValue: (Any, String) -> Unit,
+    deleteExpenseItemsFromLocalDatabase: () -> Unit,
+    onAddExpenseClick: (List<ExpenseItem>) -> Unit,
+    navigateUp : () -> Boolean,
+    currentScreen: Screen?
 ) {
-    val uiState = viewModel.addExpenseUiState
     val localDensity = LocalDensity.current
-    val allExpenseItem = viewModel.allExpenseItem.collectAsState(initial = arrayListOf())
     val screenWidth = LocalConfiguration.current.screenWidthDp
 
-    LaunchedEffect(key1 = allExpenseItem.value.size) {
-        if (allExpenseItem.value.isNotEmpty()) {
-            allExpenseItem.value.forEach { uiState.totalExpenseAmount.value += it.itemAmount ?: 0.0 }
-        } else {
-            uiState.totalExpenseAmount.value = 0.0
-        }
-    }
-
     LoadingDialog(
-        loadingState = uiState.loadingState,
+        loadingState = addExpenseUiStateHolder.loadingState,
         onSuccess = {
-            viewModel.deleteExpenseItemsFromLocalDatabase()
-            uiState.title.value = ""
+            deleteExpenseItemsFromLocalDatabase()
+            updateAddExpenseStateValue("", AddExpenseUiStateHolderTitle)
         }
     )
 
     // This for loop is just fro to calculate the maximum width of the text element.
     // Which I can use in the LazyColumn item to set the Rupee Text width.
-    allExpenseItem.value.forEach {
+    allExpenseItems?.forEach {
         Text(
             text = getRupeeString(it.itemAmount ?: 0.0),
             modifier = Modifier
@@ -121,8 +131,8 @@ private fun MainUi(
                     val tempDp = with(localDensity) {
                         it.size.width.toDp()
                     }
-                    if (tempDp > uiState.expenseItemListAmountTextWidth.value) {
-                        uiState.expenseItemListAmountTextWidth.value = tempDp
+                    if (tempDp > addExpenseUiStateHolder.expenseItemListAmountTextWidth) {
+                        updateAddExpenseStateValue(tempDp, AddExpenseUiStateHolderWidth)
                     }
                 }
                 .zIndex(-100f) // zIndex is -1 so that it does not show on the screen.
@@ -137,22 +147,24 @@ private fun MainUi(
             .background(MaterialTheme.colorScheme.background)
             .pointerInput(Unit) {}
     ) {
-        if(screenWidth <= 500) {
+        if (screenWidth <= 500) {
             TopAppBar(
-                appState = appState,
+                appState?.drawerState ?: AppState(LocalContext.current).drawerState,
                 btnText = "ADD",
                 buttonEnableCondition = true,
                 onClick = {
-                    addExpense(uiState, allExpenseItem, viewModel)
-                }
+                    onAddExpenseClick(allExpenseItems?: listOf())
+                },
+                navigateUp = navigateUp,
+                currentScreen = currentScreen
             )
         } else {
-            TopAppBar(appState = appState)
+            TopAppBar(appState?.drawerState ?: AppState(LocalContext.current).drawerState, navigateUp = navigateUp, currentScreen = currentScreen)
         }
 
         GeneralSnackBar(
-            visible = uiState.snackBarState,
-            text = uiState.snackBarText.value,
+            visible = commonUiStateHolder.showSnackBar,
+            text = commonUiStateHolder.snackBarText,
             containerColor = red_color
         )
 
@@ -170,32 +182,34 @@ private fun MainUi(
                     .background(MaterialTheme.colorScheme.background)
             ) {
 
-                if(screenWidth <= 500) {
+                if (screenWidth <= 500) {
                     UpperTitleSection(
-                        appState = appState,
-                        title = uiState.title
-                    )
+                        title = addExpenseUiStateHolder.title
+                    ) {
+                        updateAddExpenseStateValue(it, AddExpenseUiStateHolderTitle)
+                    }
                 } else {
                     AddExpenseItemTitleSection()
                 }
 
                 ItemListLayout(
-                    appState,
-                    uiState.expenseItemListAmountTextWidth.value,
-                    allExpenseItem.value
+                    appState ?: AppState(LocalContext.current),
+                    addExpenseUiStateHolder.expenseItemListAmountTextWidth,
+                    allExpenseItems ?: listOf()
                 )
             }
 
-            if(screenWidth > 500) {
+            if (screenWidth > 500) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
                 ) {
 
                     UpperTitleSection(
-                        appState = appState,
-                        title = uiState.title
-                    )
+                        title = addExpenseUiStateHolder.title
+                    ) {
+                        updateAddExpenseStateValue(it, AddExpenseUiStateHolderTitle)
+                    }
 
                     Box(
                         modifier = Modifier
@@ -214,7 +228,7 @@ private fun MainUi(
                             )
 
                             Text(
-                                text = getRupeeString(uiState.totalExpenseAmount.value),
+                                text = getRupeeString(addExpenseUiStateHolder.totalExpenseAmount),
                                 style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
                             )
                         }
@@ -224,7 +238,7 @@ private fun MainUi(
                                 .padding(bottom = halfGeneralPadding, end = generalPadding)
                                 .align(Alignment.BottomEnd)
                         ) {
-                            addExpense(uiState, allExpenseItem, viewModel)
+                            onAddExpenseClick(allExpenseItems ?: listOf())
                         }
                     }
                 }
@@ -247,7 +261,12 @@ fun ItemListLayout(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .clip(RoundedCornerShape(generalPadding))
-                .padding(start = generalPadding, end = generalPadding, bottom = generalPadding, top = halfGeneralPadding)
+                .padding(
+                    start = generalPadding,
+                    end = generalPadding,
+                    bottom = generalPadding,
+                    top = halfGeneralPadding
+                )
                 .generalBorder(width = 0.2.dp)
         ) {
             if (allExpenseItems.isEmpty()) {
@@ -257,7 +276,7 @@ fun ItemListLayout(
                         .fillMaxWidth()
                         .align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
-                ){
+                ) {
                     LottieAnimation(
                         composition = lottieComposition,
                         modifier = Modifier
@@ -275,15 +294,19 @@ fun ItemListLayout(
                     modifier = Modifier
                         .padding(top = halfGeneralPadding)
                 ) {
-                    itemsIndexed(allExpenseItems) {index, item ->
+                    itemsIndexed(allExpenseItems) { _, item ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = generalPadding, end = generalPadding, top = halfGeneralPadding, bottom = halfGeneralPadding)
+                                .padding(
+                                    start = generalPadding,
+                                    end = generalPadding,
+                                    top = halfGeneralPadding,
+                                    bottom = halfGeneralPadding
+                                )
                                 .generalBorder()
                                 .background(secondary_color)
-                                .padding(generalPadding)
-                            ,
+                                .padding(generalPadding),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -328,29 +351,4 @@ fun ItemListLayout(
 
 }
 
-fun addExpense(
-    uiState: AddExpenseUiState,
-    allExpenseItem : State<ArrayList<ExpenseItem>>,
-    viewModel: AddExpenseViewModel
-) {
-
-    if(allExpenseItem.value.isEmpty()) {
-        uiState.snackBarText.value = "Please! add expense item."
-        Utility.showSnackBar(uiState.snackBarState)
-    } else if(uiState.title.value.isEmpty()) {
-        uiState.snackBarText.value = "Please! add title."
-        Utility.showSnackBar(uiState.snackBarState)
-    } else {
-        val tempExpense = Expense(
-            id = System.currentTimeMillis(),
-            title = uiState.title.value,
-            items = allExpenseItem.value,
-            totalAmount = uiState.totalExpenseAmount.value,
-            date = Date(System.currentTimeMillis())
-        )
-        viewModel.addExpenseIntoLocalDatabase(tempExpense)
-        viewModel.deleteExpenseItemsFromLocalDatabase()
-    }
-
-}
 

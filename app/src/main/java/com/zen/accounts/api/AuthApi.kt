@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.zen.accounts.api.resource.Response
 import com.zen.accounts.db.model.User
+import com.zen.accounts.ui.screens.common.success_login
 import com.zen.accounts.utility.io
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -26,11 +27,29 @@ class AuthApi @Inject constructor() {
                 docRef.set(user.copy(isAuthenticated = false))
                     .addOnSuccessListener {
                         authResult.user?.sendEmailVerification()
-                        db.collection("uidmap").add(authResult.user?.uid!!)
-                        res.status = true
-                        res.message = "Verification code sent to you email."
-                        res.value = uid
-                        continuation.resume(res)
+                            ?.addOnSuccessListener {
+                                db.collection("uidmap").document(authResult.user?.uid!!)
+                                    .set(mapOf("uid" to uid))
+                                    .addOnSuccessListener {
+                                        res.status = true
+                                        res.message = "Verification code sent to you email."
+                                        res.value = uid
+                                        continuation.resume(res)
+                                    }
+                                    .addOnFailureListener {
+                                        res.status = false
+                                        res.message = it.message.toString()
+                                        res.value = uid
+                                        continuation.resume(res)
+                                    }
+                            }
+                            ?.addOnFailureListener {
+                                res.status = false
+                                res.message = it.message.toString()
+                                res.value = uid
+                                continuation.resume(res)
+                            }
+
                     }
                     .addOnFailureListener {
                         res.status = false
@@ -66,27 +85,35 @@ class AuthApi @Inject constructor() {
                     db.collection("Users").document(userUid)
                         .update("authenticated", true, "uid", userUid)
                     val userResult = db.collection("Users").document(userUid).get().await()
-                    val retrievedUser = userResult.toObject(User::class.java)
-                    retrievedUser?.let { retrievedUserFromCloud ->
-                        retrievedUserFromCloud.profilePicFirebaseFormat?.let { url ->
-                            val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(url)
-                            storageRef.getBytes(12527200L)
-                                .addOnSuccessListener { bytes ->
-                                    response.value = Pair(
-                                        retrievedUser.copy(profilePicFirebaseFormat = null),
-                                        bytes
-                                    )
-                                    response.status = true
-                                    continuation.resume(response)
-                                }
-                                .addOnFailureListener {
-                                    response.status = false
-                                    response.message = it.message.toString()
-                                    continuation.resume(response)
-                                }
-                        }
-
+                    val retrievedUser = userResult.toObject(User::class.java) ?: User()
+                    if (retrievedUser.profilePicFirebaseFormat != null && retrievedUser.profilePicFirebaseFormat!!.isNotEmpty()) {
+                        val url = retrievedUser.profilePicFirebaseFormat!!
+                        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(url)
+                        storageRef.getBytes(12527200L)
+                            .addOnSuccessListener { bytes ->
+                                response.value = Pair(
+                                    retrievedUser.copy(profilePicFirebaseFormat = null),
+                                    bytes
+                                )
+                                response.status = true
+                                response.message = success_login
+                                continuation.resume(response)
+                            }
+                            .addOnFailureListener {
+                                response.status = false
+                                response.message = success_login
+                                continuation.resume(response)
+                            }
+                    } else {
+                        response.value = Pair(
+                            retrievedUser.copy(profilePicFirebaseFormat = null),
+                            ByteArray(0)
+                        )
+                        response.status = true
+                        response.message = ""
+                        continuation.resume(response)
                     }
+
                 }
             } catch (e: Exception) {
                 response.status = false

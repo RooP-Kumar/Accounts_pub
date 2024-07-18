@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.zen.accounts.states.AppState
+import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.CustomKeyboardOptions
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralEditText
@@ -51,7 +52,9 @@ import com.zen.accounts.ui.viewmodels.RegisterScreenViewModel
 @Composable
 fun Register(
     appState: AppState,
-    viewModel: RegisterScreenViewModel
+    viewModel: RegisterScreenViewModel,
+    currentScreen: Screen?,
+    navigateUp: () -> Boolean
 ) {
 
     val registerUiStateHolder = viewModel.registerUiStateHolder.collectAsState()
@@ -59,14 +62,16 @@ fun Register(
     LaunchedEffect(key1 = registerUiStateHolder.value.loadingState) {
         viewModel.showSnackBarAccordingToLoadingState()
     }
-    MainUI(appState = appState, viewModel, registerUiStateHolder)
+    MainUI(appState = appState, viewModel, registerUiStateHolder, currentScreen, navigateUp)
 }
 
 @Composable
 private fun MainUI(
     appState: AppState,
     viewModel: RegisterScreenViewModel,
-    registerUiStateHolder: State<RegisterUiStateHolder>
+    registerUiStateHolder: State<RegisterUiStateHolder>,
+    currentScreen: Screen?,
+    navigateUp : () -> Boolean
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
     LoadingDialog(loadingState = registerUiStateHolder.value.loadingState)
@@ -77,7 +82,11 @@ private fun MainUI(
             .fillMaxSize()
             .background(MaterialTheme.colors.background)
     ) {
-        TopAppBar(appState = appState)
+        TopAppBar(
+            drawerState = appState.drawerState,
+            navigateUp = navigateUp,
+            currentScreen = currentScreen
+        )
 
         Column(
             modifier = Modifier

@@ -1,6 +1,7 @@
 
 package com.zen.accounts.api
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zen.accounts.api.resource.Response
 import com.zen.accounts.api.retrofit.ExpenseService
@@ -36,8 +37,9 @@ class ExpenseApi @Inject constructor(
     suspend fun getExpenseFromFirebase(uid: String) : Response<List<Expense>> = suspendCoroutine { continuation ->
         val response = Response(value = listOf<Expense>())
         val db = FirebaseFirestore.getInstance()
-        val colRef = db.collection("Users").document(uid).collection("expenses")
-        colRef.get()
+        Log.d("asdf", "getExpenseFromFirebase: $uid")
+        db.collection("Users").document(uid).collection("expenses")
+        .get()
             .addOnSuccessListener {
                 response.value = it.toObjects(Expense::class.java)
                 response.status = true

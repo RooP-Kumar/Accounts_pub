@@ -22,8 +22,8 @@ import com.zen.accounts.ui.theme.primary_color
 
 @Composable
 fun UpperTitleSection(
-    appState: AppState,
-    title : MutableState<String>
+    title : String,
+    onTextChange : (String) -> Unit
 ) {
     Text(
         text = "Add Title",
@@ -34,8 +34,8 @@ fun UpperTitleSection(
     )
 
     GeneralEditText(
-        text = title.value,
-        onValueChange = {title.value = it},
+        text = title,
+        onValueChange = onTextChange,
         modifier = Modifier.fillMaxWidth(),
         placeholderText = "Enter Title",
         showClickEffect = false

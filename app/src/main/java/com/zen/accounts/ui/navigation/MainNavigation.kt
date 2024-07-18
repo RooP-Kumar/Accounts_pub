@@ -43,7 +43,7 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
             }
         ) {
             val viewModel: AddExpenseViewModel = hiltViewModel()
-            AddExpense(appState = appState, viewModel = viewModel)
+            AddExpense(appState = appState, viewModel = viewModel, appState.navController::navigateUp, getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route })
         }
 
         composable(
@@ -59,7 +59,11 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
             }
         ) {
             val viewModel: AddExpenseViewModel = hiltViewModel()
-            AddExpenseItem(appState = appState, viewModel = viewModel)
+            AddExpenseItem(
+                viewModel = viewModel,
+                getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route },
+                appState.navController::popBackStack
+            )
         }
 
         // Home Screen
@@ -84,7 +88,7 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
             }
         ) {
             val viewModel: MyExpenseViewModel = hiltViewModel()
-            MyExpense(appState = appState, viewModel, false)
+            MyExpense(appState = appState, viewModel, isMonthlyExpense = false, navigateUp = appState.navController::navigateUp, getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route })
         }
 
         composable(
@@ -103,7 +107,8 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
             val arg =
                 stringToExpense(backStackEntry.arguments?.getString(expense_details_argument)!!)
             val expenseDetailsViewModel: ExpenseDetailsViewModel = hiltViewModel()
-            ExpenseDetails(appState = appState, arg, expenseDetailsViewModel)
+            ExpenseDetails(appState.drawerState, arg, expenseDetailsViewModel, appState.navController::navigateUp,
+                getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route })
         }
 
         composable(
@@ -119,7 +124,13 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
             }
         ) {
             val viewModel: MyExpenseViewModel = hiltViewModel()
-            MyExpense(appState = appState, viewModel, true)
+            MyExpense(
+                appState = appState,
+                viewModel,
+                isMonthlyExpense = true,
+                navigateUp = appState.navController::navigateUp,
+                getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }
+            )
         }
 
         // Setting Screen route to navigate
@@ -137,7 +148,9 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
         ) {
             val settingViewModel: SettingViewModel = hiltViewModel()
             Setting(
-                settingViewModel = settingViewModel
+                settingViewModel = settingViewModel,
+                appState.navController::navigateUp,
+                getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }
             )
         }
     }

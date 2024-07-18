@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +41,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zen.accounts.R
 import com.zen.accounts.states.AppState
+import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.navigation.getScreenRouteWithTitle
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
@@ -172,7 +174,9 @@ fun LoadingDialog(
 }
 
 @Composable
-fun TopBarBackButton(appState: AppState) {
+fun TopBarBackButton(
+    navigateUp: () -> Boolean
+) {
     val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier
@@ -180,7 +184,7 @@ fun TopBarBackButton(appState: AppState) {
             .size(30.dp)
             .clip(CircleShape)
             .clickable {
-                coroutineScope.launch { appState.navController.popBackStack() }
+                navigateUp()
             }
             .background(MaterialTheme.colorScheme.secondary)
     ) {
@@ -200,10 +204,12 @@ fun TopBarBackButton(appState: AppState) {
 
 @Composable
 fun TopAppBar(
-    appState: AppState,
+    drawerState: MutableState<DrawerState?>? = null,
     buttonEnableCondition: Boolean = false,
     btnText : String = "Done",
     painterResource : Painter? = null,
+    currentScreen : Screen? = null,
+    navigateUp: () -> Boolean = {false},
     onClick: (() -> Unit)? = null
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -217,12 +223,12 @@ fun TopAppBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            TopBarBackButton(appState = appState)
+            TopBarBackButton(navigateUp = navigateUp)
 
             Text(
-                text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
+                text = currentScreen?.title
                     ?: "",
-                style = Typography.bodyLarge.copy(androidx.compose.material3.MaterialTheme.colorScheme.onBackground),
+                style = Typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .padding(generalPadding)
                     .weight(1f)
@@ -258,14 +264,14 @@ fun TopAppBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = {
-                if(appState.drawerState.value != null) {
-                    if(appState.drawerState.value!!.isClosed)
+                if(drawerState?.value != null) {
+                    if(drawerState.value!!.isClosed)
                         coroutineScope.launch {
-                            appState.drawerState.value!!.open()
+                            drawerState.value!!.open()
                         }
                     else
                         coroutineScope.launch {
-                            appState.drawerState.value!!.open()
+                            drawerState.value!!.open()
                         }
                 }
             }) {
@@ -276,7 +282,7 @@ fun TopAppBar(
             }
 
             Text(
-                text = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }?.title
+                text = currentScreen?.title
                     ?: "",
                 style = Typography.bodyLarge.copy(androidx.compose.material3.MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
@@ -318,6 +324,29 @@ fun GeneralDialog(
             onDismissRequest = {
                 showDialog.value = false
             },
+            dialogProperties
+        ) {
+            Column(
+                modifier = Modifier
+                    .generalBorder()
+                    .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
+            ) {
+                content.invoke(this)
+            }
+        }
+    }
+}
+
+@Composable
+fun GeneralDialog(
+    showDialog : Boolean,
+    dialogProperties: DialogProperties = DialogProperties(),
+    onDismissRequest : () -> Unit = {},
+    content : @Composable ColumnScope.() -> Unit
+) {
+    AnimatedVisibility(visible = showDialog) {
+        Dialog(
+            onDismissRequest = onDismissRequest,
             dialogProperties
         ) {
             Column(

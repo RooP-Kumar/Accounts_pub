@@ -1,5 +1,6 @@
 package com.zen.accounts.ui.screens.main.add_expense_item
 
+import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,89 +13,79 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.zen.accounts.R
-import com.zen.accounts.db.model.ExpenseItem
-import com.zen.accounts.states.AppState
+import com.zen.accounts.CommonUIStateHolder
+import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralDialog
 import com.zen.accounts.ui.screens.common.GeneralEditText
 import com.zen.accounts.ui.screens.common.GeneralSnackBar
 import com.zen.accounts.ui.screens.common.LoadingDialog
-import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.add_item_button_label
+import com.zen.accounts.ui.theme.AccountsThemes
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.red_color
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
-import com.zen.accounts.utility.Utility
-import kotlinx.coroutines.launch
-
-
-data class AddExpenseItemUiState(
-    val title: MutableState<String> = mutableStateOf(""),
-    val amount: MutableState<String> = mutableStateOf(""),
-    val showAmountDropDown: MutableState<Boolean> = mutableStateOf(false),
-    val dropDownRowWidth: MutableState<Dp> = mutableStateOf(0.dp),
-    val dropDownIcon: MutableState<Int> = mutableIntStateOf(R.drawable.ic_drop_down),
-    val loadingState : MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
-    val snackBarState: MutableState<Boolean> = mutableStateOf(false),
-    val snackBarText : MutableState<String> = mutableStateOf(""),
-    val confirmationDialogState : MutableState<Boolean> = mutableStateOf(false),
-)
 
 @Composable
 fun AddExpenseItem(
-    appState: AppState,
-    viewModel: AddExpenseViewModel
+    viewModel: AddExpenseViewModel,
+    currentScreen: Screen? = null,
+    navigateUp : () -> Boolean
 ) {
-    val uiState = viewModel.addExpenseItemUiState
-    val coroutineScope = rememberCoroutineScope()
+    val addExpenseItemUiStateHolder = viewModel.addExpenseItemUiStateHolder.collectAsState()
+    val commonUIStateHolder = viewModel.commonUIStateHolder.collectAsState()
 
-    BackHandler(enabled = uiState.title.value.isNotEmpty() || uiState.amount.value.isNotEmpty()) {
-        uiState.confirmationDialogState.value = true
+    BackHandler(
+        enabled = addExpenseItemUiStateHolder.value.title.isNotEmpty() ||
+                addExpenseItemUiStateHolder.value.amount.isNotEmpty())
+    {
+        viewModel.updateStateValue(true, addExpenseItemStateHolder_confirmation_state)
     }
 
     LoadingDialog(
-        loadingState = uiState.loadingState,
-        onSuccess = {
-            coroutineScope.launch {
-                appState.navController.popBackStack()
-            }
-        }
+        loadingState = addExpenseItemUiStateHolder.value.loadingState,
+        onSuccess = { navigateUp() }
     )
 
     MainUI(
-        appState,
-        viewModel
+        viewModel.appState.drawerState,
+        addExpenseItemStateHolder = addExpenseItemUiStateHolder.value,
+        commonUIStateHolder = commonUIStateHolder.value,
+        currentScreen,
+        navigateUp,
+        viewModel::onAddExpenseItemClick,
+        updateStateValues = viewModel::updateStateValue
     )
 }
 
 @Composable
 private fun MainUI(
-    appState: AppState,
-    viewModel: AddExpenseViewModel
+    drawerState: MutableState<DrawerState?>? = null,
+    addExpenseItemStateHolder: AddExpenseItemStateHolder? = null,
+    commonUIStateHolder: CommonUIStateHolder? = null,
+    currentScreen: Screen? = null,
+    navigateUp: () -> Boolean,
+    onAddExpenseItemClick : () -> Unit,
+    updateStateValues: (Any, String) -> Unit
 ) {
-    val localContext = LocalContext.current
-    val uiState = viewModel.addExpenseItemUiState
 
     Box(
         modifier = Modifier
@@ -102,15 +93,20 @@ private fun MainUI(
             .pointerInput(Unit) {}
             .background(MaterialTheme.colorScheme.background)
     ) {
-        TopAppBar(appState = appState)
+        TopAppBar(drawerState = drawerState, currentScreen = currentScreen, navigateUp = navigateUp)
         
         GeneralSnackBar(
-            visible = uiState.snackBarState,
-            text = uiState.snackBarText.value,
+            visible = commonUIStateHolder?.showSnackBar ?: false,
+            text = commonUIStateHolder?.snackBarText ?: "",
             containerColor = red_color
         )
 
-        GeneralDialog(showDialog = uiState.confirmationDialogState) {
+        GeneralDialog(
+            showDialog = addExpenseItemStateHolder?.confirmationDialogState ?: false,
+            onDismissRequest = {
+                updateStateValues(false, addExpenseItemStateHolder_confirmation_state)
+            }
+        ) {
             Column(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.surface)
@@ -129,7 +125,7 @@ private fun MainUI(
                         modifier = Modifier
                             .weight(1f)
                     ) {
-                        uiState.confirmationDialogState.value = false
+                        updateStateValues(false, addExpenseItemStateHolder_confirmation_state)
                     }
                     
                     Spacer(modifier = Modifier.width(generalPadding))
@@ -139,7 +135,7 @@ private fun MainUI(
                         modifier = Modifier
                             .weight(1f)
                     ) {
-                        appState.navController.popBackStack()
+                        navigateUp()
                     }
                 }
             }
@@ -155,8 +151,10 @@ private fun MainUI(
         ) {
 
             GeneralEditText(
-                text = uiState.title.value,
-                onValueChange = {uiState.title.value = it},
+                text = addExpenseItemStateHolder?.title ?: "",
+                onValueChange = {
+                    updateStateValues(it, addExpenseItemStateHolder_title)
+                },
                 modifier = Modifier.width(400.dp),
                 placeholderText = "Title",
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -165,8 +163,10 @@ private fun MainUI(
                 )
             )
             GeneralEditText(
-                text = uiState.amount.value,
-                onValueChange = {uiState.amount.value = it},
+                text = addExpenseItemStateHolder?.amount ?: "",
+                onValueChange = {
+                    updateStateValues(it, addExpenseItemStateHolder_amount)
+                },
                 modifier = Modifier.width(400.dp),
                 placeholderText = "Amount",
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -180,29 +180,20 @@ private fun MainUI(
                 modifier = Modifier
                     .width(400.dp)
                     .padding(horizontal = generalPadding)
-                    .padding(top = halfGeneralPadding)
-            ) {
-
-                val itemTitle = uiState.title.value.trim()
-                val itemPrice = uiState.amount.value.trim()
-
-                if(itemTitle.isEmpty()) {
-                    uiState.snackBarText.value = "Please enter title."
-                    Utility.showSnackBar(uiState.snackBarState)
-                } else if (itemPrice.isEmpty()) {
-                    uiState.snackBarText.value = "Amount can not be empty."
-                    Utility.showSnackBar(uiState.snackBarState)
-                } else {
-                    val expenseItem = ExpenseItem(
-                        id = System.currentTimeMillis(),
-                        itemTitle = itemTitle,
-                        itemAmount = itemPrice.toDouble()
-                    )
-                    viewModel.addExpenseItemIntoLocalDatabase(expenseItem)
-                }
-            }
+                    .padding(top = halfGeneralPadding),
+                onClick = onAddExpenseItemClick
+            )
 
         }
     }
 
+}
+
+@Preview(name = "dark mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "light mode", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+private fun ShowPrev() {
+    AccountsThemes {
+        MainUI(navigateUp = { false }, onAddExpenseItemClick = {  }, updateStateValues = {_,_ ->})
+    }
 }

@@ -1,5 +1,6 @@
 package com.zen.accounts.ui.screens.main.myexpense
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -107,13 +108,35 @@ data class MyExpenseUiState(
     val showExpenseList: MutableState<Boolean> = mutableStateOf(false),
 )
 
+data class MyExpenseUiStateHolder(
+    var expenseItemListAmountTextWidth: Dp = 0.dp,
+    var showSelectCheckbox: Boolean = false,
+    var checkBoxList: ArrayList<Boolean> = arrayListOf(),
+    var selectAll: Boolean = false,
+    var totalSelectedItem: Int = 0,
+    var loadingState: LoadingState = LoadingState.IDLE,
+    var showDeleteDialog: Boolean = false,
+    var showExpenseList: Boolean = false,
+)
+const val MyExpenseUiStateHolderAmountTextWidth = "expenseItemListAmountTextWidth"
+const val MyExpenseUiStateHolderShowSelectCheckBox = "showSelectCheckbox"
+const val MyExpenseUiStateHolderCheckBoxList = "checkBoxList"
+const val MyExpenseUiStateHolderSelectAll = "selectAll"
+const val MyExpenseUiStateHolderTotalSelectedItem = "totalSelectedItem"
+const val MyExpenseUiStateHolderLoadingState = "loadingState"
+const val MyExpenseUiStateHolderShowDeleteDialog = "showDeleteDialog"
+const val MyExpenseUiStateHolderShowExpenseList = "showExpenseList"
+
 @Composable
 fun MyExpense(
     appState: AppState,
     viewModel: MyExpenseViewModel,
-    isMonthlyExpense: Boolean
+    isMonthlyExpense: Boolean,
+    navigateUp : () -> Boolean,
+    currentScreen: Screen?
 ) {
     val uiState = viewModel.myExpenseUiState
+    val myExpenseUiState = viewModel.myExpenseUiStateFlow.collectAsState()
     val screenWidth = LocalConfiguration.current.screenWidthDp
     val allExpense =
         if (!isMonthlyExpense) viewModel.allExpense.collectAsState(initial = listOf())
@@ -149,7 +172,7 @@ fun MyExpense(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        TopAppBar(appState = appState)
+        TopAppBar(drawerState = appState.drawerState, navigateUp = navigateUp, currentScreen = currentScreen)
 
         Box(
             modifier = Modifier
@@ -212,7 +235,7 @@ fun MyExpense(
                             Column {
 
                                 ExpenseItemDeleteDialog(
-                                    showDialog = uiState.showDeleteDialog,
+                                    showDialog = uiState.showDeleteDialog.value,
                                     onYes = {
                                         viewModel.deleteExpenses(
                                             allExpense.value.map {
@@ -279,7 +302,7 @@ fun MyExpense(
                                                 modifier = Modifier
                                                     .size(32.dp)
                                                     .clip(CircleShape)
-                                                    .clickable{
+                                                    .clickable {
                                                         uiState.showDeleteDialog.value = true
                                                     }
                                                     .background(secondary_color)
@@ -347,7 +370,9 @@ fun MyExpense(
                                                         appState = appState,
                                                         uiState = uiState,
                                                         allExpense = allExpense,
-                                                        ind = ind
+                                                        viewModel = viewModel,
+                                                        ind = ind,
+                                                        myExpenseUiStateHolder = myExpenseUiState.value
                                                     )
                                                 }
 
@@ -364,7 +389,9 @@ fun MyExpense(
                                                         appState = appState,
                                                         uiState = uiState,
                                                         allExpense = allExpense,
-                                                        ind = ind
+                                                        ind = ind,
+                                                        viewModel = viewModel,
+                                                        myExpenseUiStateHolder = myExpenseUiState.value
                                                     )
                                                 }
 
@@ -417,6 +444,8 @@ private fun dateString(date: Date): String {
 private fun ListItemLayout(
     appState: AppState,
     uiState: MyExpenseUiState,
+    myExpenseUiStateHolder: MyExpenseUiStateHolder,
+    viewModel: MyExpenseViewModel,
     allExpense: State<List<ExpenseWithOperation>>,
     ind: Int
 ) {
@@ -430,6 +459,9 @@ private fun ListItemLayout(
             uiState.showSelectCheckbox.value = true
             uiState.checkBoxList.apply {
                 this[ind] = true
+                myExpenseUiStateHolder.totalSelectedItem += 1
+                viewModel.updateMyExpenseUiState(myExpenseUiStateHolder.totalSelectedItem, MyExpenseUiStateHolderTotalSelectedItem)
+//                viewModel.updateMyExpenseUiStateFlow(myExpenseUiStateHolder)
                 uiState.totalSelectedItem.value += 1
             }
         }

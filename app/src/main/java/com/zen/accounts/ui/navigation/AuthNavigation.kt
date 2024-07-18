@@ -32,7 +32,7 @@ fun NavGraphBuilder.AuthNavigation(
             }
         ) {
             val viewmodel = hiltViewModel<LoginScreenViewModel>()
-            Login(appState, viewmodel)
+            Login(appState, viewmodel, currentScreen = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }, appState.navController::navigateUp)
         }
 
         composable(
@@ -47,7 +47,7 @@ fun NavGraphBuilder.AuthNavigation(
                 null
             }) {
             val viewmodel : RegisterScreenViewModel = hiltViewModel()
-            Register(appState, viewmodel)
+            Register(appState, viewmodel, currentScreen = getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }, appState.navController::navigateUp)
         }
     }
 }

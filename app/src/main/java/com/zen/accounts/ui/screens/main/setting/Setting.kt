@@ -71,6 +71,7 @@ import coil.request.ImageRequest
 import com.zen.accounts.R
 import com.zen.accounts.db.model.User
 import com.zen.accounts.states.AppState
+import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.BackupPlan
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralDialog
@@ -122,7 +123,9 @@ data class SettingUiState(
 
 @Composable
 fun Setting(
-    settingViewModel: SettingViewModel
+    settingViewModel: SettingViewModel,
+    navigateUp: () -> Boolean,
+    currentScreen: Screen?
 ) {
     val uiState = settingViewModel.settingUIState
     val user = settingViewModel.user.collectAsState()
@@ -141,7 +144,9 @@ fun Setting(
         logoutConfirmation = settingViewModel::logoutConfirmation,
         backupPlanChange = settingViewModel::backupPlanChange,
         saveImageToStorage = settingViewModel::saveImageToStorage,
-        uploadUserProfilePicture = settingViewModel::uploadUserProfilePicture
+        uploadUserProfilePicture = settingViewModel::uploadUserProfilePicture,
+        navigateUp = navigateUp,
+        currentScreen
     )
 }
 
@@ -154,7 +159,9 @@ private fun MainUI(
     logoutConfirmation: (Boolean) -> Unit = {},
     backupPlanChange : (BackupPlan) -> Unit = {},
     saveImageToStorage : (Uri) -> Deferred<Bitmap?>? = {async { return@async Bitmap.createBitmap(0, 0, Bitmap.Config.ALPHA_8) }},
-    uploadUserProfilePicture: suspend (Bitmap) -> Unit = {}
+    uploadUserProfilePicture: suspend (Bitmap) -> Unit = {},
+    navigateUp : () -> Boolean,
+    currentScreen: Screen?
 ) {
     val coroutineScope = rememberCoroutineScope()
     val darkSwitchOn = appState.darkMode.value ?: isSystemInDarkTheme()
@@ -195,7 +202,9 @@ private fun MainUI(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             TopAppBar(
-                appState = appState
+                drawerState = appState.drawerState,
+                navigateUp = navigateUp,
+                currentScreen = currentScreen
             )
 
             Box(
@@ -728,6 +737,6 @@ fun ImagePickerSection(
 @Composable
 private fun PreviewSetting() {
     AccountsThemes {
-        MainUI(user = User().copy(name = "Roop Kumar"))
+        MainUI(user = User().copy(name = "Roop Kumar"), currentScreen = null, navigateUp = {true})
     }
 }

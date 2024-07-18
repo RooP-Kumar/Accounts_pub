@@ -24,9 +24,20 @@ import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.platform.inspectable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImagePainter
+import com.google.gson.reflect.TypeToken
+import com.zen.accounts.db.model.Expense
+import com.zen.accounts.db.model.ExpenseItem
+import com.zen.accounts.ui.screens.common.LoadingState
+import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolder
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.shadowColor
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.memberProperties
 
 @Composable
 fun Modifier.customShadow(
@@ -143,3 +154,42 @@ fun Modifier.generalCircleBorder(
 fun Context.toast(msg : String) {
     Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 }
+
+fun<T> List<T>.toArrayList() : ArrayList<T> {
+    val temp = arrayListOf<T>()
+    temp.addAll(this)
+    return temp
+}
+
+fun Any.toLoadingState() : LoadingState {
+    return if(this::class.simpleName == LoadingState::class.simpleName) {
+        this as LoadingState
+    } else {
+        LoadingState.IDLE
+    }
+}
+
+fun Any.toDp() : Dp {
+    return if(this::class.simpleName == Dp::class.simpleName) {
+        this as Dp
+    } else {
+        0.dp
+    }
+}
+
+fun Any.toExpense() : Expense {
+    return if(this::class.simpleName == Expense::class.simpleName) {
+        this as Expense
+    } else {
+        Expense()
+    }
+}
+
+fun Any.toExpenseItem() : ArrayList<ExpenseItem> {
+    return if(this::class.simpleName == ArrayList<ExpenseItem>()::class.simpleName) {
+        this as ArrayList<ExpenseItem>
+    } else {
+        arrayListOf(ExpenseItem())
+    }
+}
+
