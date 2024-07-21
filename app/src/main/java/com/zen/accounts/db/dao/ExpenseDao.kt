@@ -25,8 +25,8 @@ interface ExpenseDao {
     @Query("DELETE FROM expenses")
     suspend fun clearTable()
 
-    @Delete
-    suspend fun deleteExpenses(expenses : List<Expense>)
+    @Query("DELETE FROM expenses WHERE id IN (:expenses)")
+    suspend fun deleteExpenses(expenses : List<Long>)
 
     @Query("SELECT * FROM expenses WHERE id = :id")
     fun getExpense(id : Long) : Flow<Expense>

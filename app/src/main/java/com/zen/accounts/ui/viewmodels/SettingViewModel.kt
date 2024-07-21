@@ -3,6 +3,7 @@ package com.zen.accounts.ui.viewmodels
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import com.zen.accounts.db.model.User
@@ -132,7 +133,7 @@ class SettingViewModel @Inject constructor(
         }
     }
 
-    fun startSingleUploadRequest(fromLogoutConfirmation: Boolean = false) {
+    private fun startSingleUploadRequest(fromLogoutConfirmation: Boolean = false) {
         viewModelScope.launch {
             expenseRepository.dataStore.getUser()?.let { user ->
                 settingUIState.backupLoadingState.value = LoadingState.LOADING

@@ -1,6 +1,7 @@
 package com.zen.accounts.workmanager
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.WorkerParameters
@@ -21,7 +22,7 @@ class UpdateExpenseWorker(
             return when(val res = repo.updateExpenseToFirebase(uid)) {
                 is Resource.SUCCESS -> {
                     repo.clearUpdatedExpenseFromBackupTable()
-                    Result.success(outputData.putString(work_manager_output_data, res.value.message).build())
+                    Result.success(outputData.putString(work_manager_output_data, uid).build())
                 }
                 is Resource.FAILURE -> {
                     Result.failure(outputData.putString(work_manager_output_data, res.message).build())

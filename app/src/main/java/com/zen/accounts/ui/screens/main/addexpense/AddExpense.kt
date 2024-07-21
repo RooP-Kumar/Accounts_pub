@@ -1,5 +1,6 @@
 package com.zen.accounts.ui.screens.main.addexpense
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,6 +49,7 @@ import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralSnackBar
 import com.zen.accounts.ui.screens.common.LoadingDialog
+import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.theme.Typography
@@ -74,12 +76,14 @@ fun AddExpense(
 
     LaunchedEffect(key1 = allExpenseItems.value.size) {
         if (allExpenseItems.value.isNotEmpty()) {
-            allExpenseItems.value.forEach {
-                viewModel.updateAddExpenseStateValue(
-                    addExpenseUiStateHolder.value.totalExpenseAmount + (it.itemAmount ?: 0.0),
-                    AddExpenseUiStateHolderAmount
-                )
+            var totalAmount = 0.0
+            allExpenseItems.value.forEach { item ->
+                totalAmount += (item.itemAmount ?: 0.0)
             }
+            viewModel.updateAddExpenseStateValue(
+                totalAmount,
+                AddExpenseUiStateHolderAmount
+            )
         } else {
             viewModel.updateAddExpenseStateValue(0.0, AddExpenseUiStateHolderAmount)
         }
@@ -118,6 +122,7 @@ private fun MainUi(
         onSuccess = {
             deleteExpenseItemsFromLocalDatabase()
             updateAddExpenseStateValue("", AddExpenseUiStateHolderTitle)
+            updateAddExpenseStateValue(LoadingState.IDLE, AddExpenseUiStateHolderLoadingState)
         }
     )
 

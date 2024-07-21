@@ -1,6 +1,7 @@
 package com.zen.accounts.ui.viewmodels
 
 
+import android.util.Log
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.repository.ExpenseRepository
@@ -43,51 +44,49 @@ class ExpenseDetailsViewModel @Inject constructor(
     fun updateExpense(updatedExpenseItem : ExpenseItem?, itemInd: Int) {
         io {
             val tempExpense = expenseDetailsUiStateHolder.value.copy()
-            updateExpenseDetailsUiState(
-                tempExpense.expense.copy(totalAmount = tempExpense.expense.totalAmount -
-                        expenseDetailsUiStateHolder.value.expenseItems[itemInd].itemAmount!!.toDouble()),
-                ExpenseDetailUIStateExpense
-            )
-            updateExpenseDetailsUiState(
-                tempExpense.expense.copy(totalAmount = tempExpense.expense.totalAmount +
-                        (updatedExpenseItem?.itemAmount ?: 0).toDouble()),
-                ExpenseDetailUIStateExpense
-            )
+            if(updatedExpenseItem != null) {
+                tempExpense.expense = tempExpense.expense.copy(
+                    totalAmount = tempExpense.expense.totalAmount -
+                            tempExpense.expenseItems[itemInd].itemAmount!!.toDouble() +
+                            (updatedExpenseItem.itemAmount ?: 0).toDouble()
+                )
 
-            tempExpense.expenseItems[itemInd] = updatedExpenseItem ?: ExpenseItem()
-            updateExpenseDetailsUiState(
-                tempExpense.expenseItems,
-                ExpenseDetailUIStateExpenseItems
-            )
+//                tempExpense.expense = tempExpense.expense.copy(totalAmount = tempExpense.expense.totalAmount +
+//                        (updatedExpenseItem.itemAmount ?: 0).toDouble())
 
-            tempExpense.expense.items[itemInd] = updatedExpenseItem ?: ExpenseItem()
-            updateExpenseDetailsUiState(
-                tempExpense.expense,
-                ExpenseDetailUIStateExpense
-            )
+
+                tempExpense.expenseItems[itemInd] = updatedExpenseItem
+                updateExpenseDetailsUiState(
+                    tempExpense.expenseItems,
+                    ExpenseDetailUIStateExpenseItems
+                )
+
+                tempExpense.expense.items[itemInd] = updatedExpenseItem
+                updateExpenseDetailsUiState(
+                    tempExpense.expense,
+                    ExpenseDetailUIStateExpense
+                )
+            }
             expenseRepository.updateExpense(tempExpense.expense)
         }
     }
 
     fun deleteExpense() {
         io {
-            expenseRepository.deleteExpenses(listOf(expenseDetailsUiStateHolder.value.expense))
+            expenseRepository.deleteExpenses(listOf(expenseDetailsUiStateHolder.value.expense.id))
         }
     }
 
     fun deleteExpenseItem(itemInd: Int) {
         io {
             val tempExpense = expenseDetailsUiStateHolder.value.copy()
-            updateExpenseDetailsUiState(
-                tempExpense.expense.copy(totalAmount = tempExpense.expense.totalAmount -
-                        tempExpense.expenseItems[itemInd].itemAmount!!.toDouble()),
-                ExpenseDetailUIStateExpense
-            )
+            tempExpense.expense = tempExpense.expense.copy(totalAmount = tempExpense.expense.totalAmount -
+                    tempExpense.expenseItems[itemInd].itemAmount!!.toDouble())
 
             tempExpense.expenseItems.removeAt(itemInd)
             updateExpenseDetailsUiState(
                 tempExpense.expenseItems,
-                ExpenseDetailUIStateExpense
+                ExpenseDetailUIStateExpenseItems
             )
 
             tempExpense.expense.items.removeAt(itemInd)
@@ -109,7 +108,7 @@ class ExpenseDetailsViewModel @Inject constructor(
     fun updateExpenseDetailsUiState(newValue : Any, fieldName: String) {
         when (fieldName) {
             ExpenseDetailUIStateExpense -> {updateExpenseDetailsUiStateFlow(expense = newValue.toExpense())}
-            ExpenseDetailUIStateExpenseItems-> {updateExpenseDetailsUiStateFlow(expenseItems = newValue.toExpenseItem())}
+            ExpenseDetailUIStateExpenseItems-> { updateExpenseDetailsUiStateFlow(expenseItems = newValue.toExpenseItem()) }
             ExpenseDetailUIStateShowEditDialog-> {updateExpenseDetailsUiStateFlow(showEditDialog = newValue.toString().toBoolean())}
             ExpenseDetailUIStateShowDeleteDialog-> {updateExpenseDetailsUiStateFlow(showDeleteDialog = newValue.toString().toBoolean())}
         }
