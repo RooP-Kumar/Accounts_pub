@@ -16,18 +16,15 @@ import com.zen.accounts.ui.screens.main.addexpense.AddExpenseUiStateHolderAmount
 import com.zen.accounts.ui.screens.main.addexpense.AddExpenseUiStateHolderLoadingState
 import com.zen.accounts.ui.screens.main.addexpense.AddExpenseUiStateHolderTitle
 import com.zen.accounts.ui.screens.main.addexpense.AddExpenseUiStateHolderWidth
-import com.zen.accounts.ui.screens.main.expense_detail.ExpenseDetailUIStateShowEditDialog
 import com.zen.accounts.utility.toArrayList
 import com.zen.accounts.utility.toDp
 import com.zen.accounts.utility.toLoadingState
-import com.zen.accounts.utility.toast
 import com.zen.accounts.workmanager.worker_repository.WorkerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -44,6 +41,9 @@ class AddExpenseViewModel @Inject constructor(
     private val _addExpenseUiStateHolder = MutableStateFlow(AddExpenseUiStateHolder())
     val addExpenseUiStateHolder = _addExpenseUiStateHolder.asStateFlow()
 
+    private val _addExpenseItemUiStateHolder = MutableStateFlow(AddExpenseItemStateHolder())
+    val addExpenseItemUiStateHolder = _addExpenseItemUiStateHolder.asStateFlow()
+
     private fun updateAddExpenseUiStateValue(
         title: String? = null,
         amount: Double? = null,
@@ -58,10 +58,7 @@ class AddExpenseViewModel @Inject constructor(
         _addExpenseUiStateHolder.update { temp }
     }
 
-    private val _addExpenseItemUiStateHolder = MutableStateFlow(AddExpenseItemStateHolder())
-    val addExpenseItemUiStateHolder = _addExpenseItemUiStateHolder.asStateFlow()
-
-    private fun updateState(
+    private fun updateAddExpenseItemUiStateHolder(
         title: String? = null,
         amount: String? = null,
         showAmountDropDown: Boolean? = null,
@@ -96,10 +93,10 @@ class AddExpenseViewModel @Inject constructor(
 
     private fun addExpenseItemIntoLocalDatabase(expenseItem: ExpenseItem) {
         viewModelScope.launch(Dispatchers.IO) {
-            updateState(loadingState = LoadingState.LOADING)
+            updateAddExpenseItemUiStateHolder(loadingState = LoadingState.LOADING)
             expenseItemRepository.insertExpenseItemIntoRoom(expenseItem)
             delay(600)
-            updateState(loadingState = LoadingState.SUCCESS)
+            updateAddExpenseItemUiStateHolder(loadingState = LoadingState.SUCCESS)
         }
     }
 
@@ -135,9 +132,9 @@ class AddExpenseViewModel @Inject constructor(
 
     fun updateStateValue(newValue : Any, fieldName: String) {
         when(fieldName) {
-            addExpenseItemStateHolder_confirmation_state -> updateState(confirmationDialogState = newValue.toString().toBoolean())
-            addExpenseItemStateHolder_title -> updateState(title = newValue.toString())
-            addExpenseItemStateHolder_amount -> updateState(amount = newValue.toString())
+            addExpenseItemStateHolder_confirmation_state -> updateAddExpenseItemUiStateHolder(confirmationDialogState = newValue.toString().toBoolean())
+            addExpenseItemStateHolder_title -> updateAddExpenseItemUiStateHolder(title = newValue.toString())
+            addExpenseItemStateHolder_amount -> updateAddExpenseItemUiStateHolder(amount = newValue.toString())
         }
     }
 

@@ -141,7 +141,7 @@ private fun MainUI(
         getExpenseTitle = { expenseDetailsUiState.expense.title },
         expenseItem = if(expendedItemInd.intValue == -1) ExpenseItem()  else expenseDetailsUiState.expense.items[expendedItemInd.intValue],
         onEditDialogSaveClick = {updatedExpenseTitle, updatedExpenseItem ->
-            updateExpenseDetailsUiState(expenseDetailsUiState.expense.copy(title = updatedExpenseTitle ?: ""), ExpenseDetailUIStateExpense)
+            if (updatedExpenseTitle != null) updateExpenseDetailsUiState(expenseDetailsUiState.expense.copy(title = updatedExpenseTitle), ExpenseDetailUIStateExpense)
             updateExpense(
                 updatedExpenseItem,
                 expendedItemInd.intValue
@@ -186,7 +186,7 @@ private fun MainUI(
                 currentScreen = currentScreen
             ) {
                 isExpenseTitle.value = true
-                updateExpenseDetailsUiState(true, ExpenseDetailUIStateShowDeleteDialog)
+                updateExpenseDetailsUiState(true, ExpenseDetailUIStateShowEditDialog)
             }
 
             Column(
@@ -441,9 +441,9 @@ fun ExpenseItemEditDialog(
             } else if (title.trim().isEmpty()) {
                 context.toast("Please! Enter Title.")
             } else {
-                updateAddExpenseStateValue(false, ExpenseDetailUIStateShowEditDialog)
                 if(isExpenseTitle) {
                     onEditDialogSaveClick(title.trim(), null)
+                    updateAddExpenseStateValue(false, ExpenseDetailUIStateShowEditDialog)
                 } else {
                     try {
                         onEditDialogSaveClick(
@@ -453,6 +453,7 @@ fun ExpenseItemEditDialog(
                                 itemAmount = amount.trim().toDouble()
                             )
                         )
+                        updateAddExpenseStateValue(false, ExpenseDetailUIStateShowEditDialog)
                     } catch (e: Exception) {
                         context.toast("Amount should only contains numbers.")
                     }

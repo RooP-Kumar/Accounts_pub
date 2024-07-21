@@ -34,7 +34,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -45,15 +50,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -96,83 +104,76 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlin.math.exp
 
 data class MyExpenseUiState(
     val expenseItemListAmountTextWidth: MutableState<Dp> = mutableStateOf(0.dp),
     val showSelectCheckbox: MutableState<Boolean> = mutableStateOf(false),
-    val checkBoxList: SnapshotStateList<Boolean> = mutableStateListOf(),
+    val checkBoxMap: SnapshotStateMap<Long, Boolean> = mutableStateMapOf(),
     val selectAll: MutableState<Boolean> = mutableStateOf(false),
-    val totalSelectedItem: MutableState<Int> = mutableIntStateOf(0),
     val loadingState: MutableState<LoadingState> = mutableStateOf(LoadingState.IDLE),
     val showDeleteDialog: MutableState<Boolean> = mutableStateOf(false),
     val showExpenseList: MutableState<Boolean> = mutableStateOf(false),
 )
 
-data class MyExpenseUiStateHolder(
-    var expenseItemListAmountTextWidth: Dp = 0.dp,
-    var showSelectCheckbox: Boolean = false,
-    var checkBoxList: ArrayList<Boolean> = arrayListOf(),
-    var selectAll: Boolean = false,
-    var totalSelectedItem: Int = 0,
-    var loadingState: LoadingState = LoadingState.IDLE,
-    var showDeleteDialog: Boolean = false,
-    var showExpenseList: Boolean = false,
-)
-const val MyExpenseUiStateHolderAmountTextWidth = "expenseItemListAmountTextWidth"
-const val MyExpenseUiStateHolderShowSelectCheckBox = "showSelectCheckbox"
-const val MyExpenseUiStateHolderCheckBoxList = "checkBoxList"
-const val MyExpenseUiStateHolderSelectAll = "selectAll"
-const val MyExpenseUiStateHolderTotalSelectedItem = "totalSelectedItem"
-const val MyExpenseUiStateHolderLoadingState = "loadingState"
-const val MyExpenseUiStateHolderShowDeleteDialog = "showDeleteDialog"
-const val MyExpenseUiStateHolderShowExpenseList = "showExpenseList"
+//data class MyExpenseUiStateHolder(
+//    var expenseItemListAmountTextWidth: Dp = 0.dp,
+//    var showSelectCheckbox: Boolean = false,
+//    var checkBoxList: ArrayList<Boolean> = arrayListOf(),
+//    var selectAll: Boolean = false,
+//    var totalSelectedItem: Int = 0,
+//    var loadingState: LoadingState = LoadingState.IDLE,
+//    var showDeleteDialog: Boolean = false,
+//    var showExpenseList: Boolean = false,
+//)
+//const val MyExpenseUiStateHolderAmountTextWidth = "expenseItemListAmountTextWidth"
+//const val MyExpenseUiStateHolderShowSelectCheckBox = "showSelectCheckbox"
+//const val MyExpenseUiStateHolderCheckBoxList = "checkBoxList"
+//const val MyExpenseUiStateHolderSelectAll = "selectAll"
+//const val MyExpenseUiStateHolderTotalSelectedItem = "totalSelectedItem"
+//const val MyExpenseUiStateHolderLoadingState = "loadingState"
+//const val MyExpenseUiStateHolderShowDeleteDialog = "showDeleteDialog"
+//const val MyExpenseUiStateHolderShowExpenseList = "showExpenseList"
 
 @Composable
 fun MyExpense(
     appState: AppState,
     viewModel: MyExpenseViewModel,
     isMonthlyExpense: Boolean,
-    navigateUp : () -> Boolean,
-    currentScreen: Screen?
+    navigateUp: () -> Boolean,
+    currentScreen: Screen?,
+    navigateTo: (String) -> Unit
 ) {
     val uiState = viewModel.myExpenseUiState
-    val myExpenseUiState = viewModel.myExpenseUiStateFlow.collectAsState()
     val screenWidth = LocalConfiguration.current.screenWidthDp
     val allExpense =
         if (!isMonthlyExpense) viewModel.allExpense.collectAsState(initial = listOf())
         else viewModel.monthlyExpense.collectAsState(initial = listOf())
 
-
-    BackHandler(uiState.showSelectCheckbox.value) {
-        uiState.totalSelectedItem.value = 1
-        launch {
-            for (i in 0..<uiState.checkBoxList.size) {
-                uiState.checkBoxList[i] =
-                    uiState.selectAll.value
-            }
+    uiState.selectAll.value = remember {
+        derivedStateOf {
+            val temp = allExpense.value.size == uiState.checkBoxMap.size
+            temp
         }
-        uiState.showSelectCheckbox.value = false
-    }
+    }.value
+
+    LoadingDialog(loadingState = uiState.loadingState)
 
     LaunchedEffect(key1 = allExpense.value) {
-        if (allExpense.value.isNotEmpty())
-            uiState.checkBoxList.addAll(List(allExpense.value.size) { false })
         delay(500)
         uiState.showExpenseList.value = true
     }
-    LaunchedEffect(key1 = uiState.totalSelectedItem.value) {
-        if (allExpense.value.isNotEmpty())
-            uiState.selectAll.value = uiState.totalSelectedItem.value == allExpense.value.size
-    }
-
-    LoadingDialog(loadingState = uiState.loadingState)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        TopAppBar(drawerState = appState.drawerState, navigateUp = navigateUp, currentScreen = currentScreen)
+        TopAppBar(
+            drawerState = appState.drawerState,
+            navigateUp = navigateUp,
+            currentScreen = currentScreen
+        )
 
         Box(
             modifier = Modifier
@@ -221,11 +222,10 @@ fun MyExpense(
             } else {
                 Crossfade(
                     targetState = allExpense.value.isNotEmpty(),
-                    label = "animation crossfade",
-                ) {
-                    when (it) {
+                    label = "my expense screen",
+                ) { allExpenseIsNoEmpty ->
+                    when (allExpenseIsNoEmpty) {
                         true -> {
-                            val selectAllInteractionSource = remember { MutableInteractionSource() }
                             val animateShowList = remember { mutableStateOf(false) }
                             val screenHeight = LocalConfiguration.current.screenHeightDp
                             LaunchedEffect(key1 = Unit) {
@@ -233,38 +233,16 @@ fun MyExpense(
                                 animateShowList.value = true
                             }
                             Column {
-
                                 ExpenseItemDeleteDialog(
                                     showDialog = uiState.showDeleteDialog.value,
                                     onYes = {
                                         viewModel.deleteExpenses(
-                                            allExpense.value.map {
-                                                it.toExpense()
-                                            }
+                                            uiState.checkBoxMap.keys.toList()
                                         )
                                         uiState.showDeleteDialog.value = false
                                     },
                                     onNo = { uiState.showDeleteDialog.value = false }
                                 )
-
-                                launch {
-                                    selectAllInteractionSource.interactions.collectLatest {
-                                        when (it) {
-                                            is PressInteraction.Release -> {
-                                                uiState.totalSelectedItem.value =
-                                                    if (uiState.selectAll.value) allExpense.value.size else 0
-                                                launch {
-                                                    for (i in 0..<uiState.checkBoxList.size) {
-                                                        uiState.checkBoxList[i] =
-                                                            uiState.selectAll.value
-                                                    }
-                                                }
-                                            }
-
-                                            else -> {}
-                                        }
-                                    }
-                                }
 
                                 Column {
                                     AnimatedVisibility(
@@ -279,16 +257,25 @@ fun MyExpense(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
 
-                                            RadioButton(
-                                                selected = uiState.selectAll.value,
-                                                onClick = {
-                                                    uiState.selectAll.value =
-                                                        !uiState.selectAll.value
+                                            Checkbox(
+                                                checked = uiState.selectAll.value,
+                                                onCheckedChange = {
+                                                    if (it) {
+                                                        allExpense.value.forEach { exp ->
+                                                            uiState.checkBoxMap[exp.id] = true
+                                                        }
+                                                    } else {
+                                                        uiState.checkBoxMap.clear()
+                                                    }
+                                                    uiState.selectAll.value = it
                                                 },
-                                                interactionSource = selectAllInteractionSource,
-                                                colors = RadioButtonDefaults.colors().copy(
-                                                    selectedColor = primary_color,
-                                                    unselectedColor = primary_color
+                                                colors = CheckboxDefaults.colors().copy(
+                                                    checkedBoxColor = primary_color,
+                                                    uncheckedBoxColor = MaterialTheme.colorScheme.background,
+                                                    checkedCheckmarkColor = Color.White,
+                                                    uncheckedCheckmarkColor = Color.Gray,
+                                                    checkedBorderColor = MaterialTheme.colorScheme.background,
+                                                    uncheckedBorderColor = Color.Gray
                                                 )
                                             )
 
@@ -312,8 +299,7 @@ fun MyExpense(
                                                     contentDescription = "delete icon",
                                                     modifier = Modifier
                                                         .align(Alignment.Center)
-                                                        .padding(8.dp)
-                                                    ,
+                                                        .padding(8.dp),
                                                     tint = primary_color
                                                 )
                                             }
@@ -325,13 +311,6 @@ fun MyExpense(
                                                     .clickable {
                                                         uiState.showSelectCheckbox.value = false
                                                         uiState.selectAll.value = false
-                                                        uiState.totalSelectedItem.value = 0
-                                                        launch {
-                                                            for (i in 0..<uiState.checkBoxList.size) {
-                                                                uiState.checkBoxList[i] =
-                                                                    uiState.selectAll.value
-                                                            }
-                                                        }
                                                     }
                                                     .background(secondary_color)
                                             ) {
@@ -340,8 +319,7 @@ fun MyExpense(
                                                     contentDescription = "delete icon",
                                                     modifier = Modifier
                                                         .align(Alignment.Center)
-                                                        .padding(6.dp)
-                                                    ,
+                                                        .padding(6.dp),
                                                     tint = primary_color
                                                 )
                                             }
@@ -364,15 +342,12 @@ fun MyExpense(
                                             ) {
 
                                                 items(
-                                                    allExpense.value.size,
-                                                    key = { allExpense.value[it].id }) { ind ->
+                                                    allExpense.value,
+                                                    key = { it.id }) { expense ->
                                                     ListItemLayout(
-                                                        appState = appState,
                                                         uiState = uiState,
-                                                        allExpense = allExpense,
-                                                        viewModel = viewModel,
-                                                        ind = ind,
-                                                        myExpenseUiStateHolder = myExpenseUiState.value
+                                                        expense = expense,
+                                                        navigateTo = navigateTo
                                                     )
                                                 }
 
@@ -383,15 +358,12 @@ fun MyExpense(
                                                 modifier = tempModifier
                                             ) {
                                                 items(
-                                                    allExpense.value.size,
-                                                    key = { allExpense.value[it].id }) { ind ->
+                                                    allExpense.value,
+                                                    key = { it.id }) { expense ->
                                                     ListItemLayout(
-                                                        appState = appState,
                                                         uiState = uiState,
-                                                        allExpense = allExpense,
-                                                        ind = ind,
-                                                        viewModel = viewModel,
-                                                        myExpenseUiStateHolder = myExpenseUiState.value
+                                                        expense = expense,
+                                                        navigateTo = navigateTo
                                                     )
                                                 }
 
@@ -442,58 +414,37 @@ private fun dateString(date: Date): String {
 
 @Composable
 private fun ListItemLayout(
-    appState: AppState,
     uiState: MyExpenseUiState,
-    myExpenseUiStateHolder: MyExpenseUiStateHolder,
-    viewModel: MyExpenseViewModel,
-    allExpense: State<List<ExpenseWithOperation>>,
-    ind: Int
+    expense: ExpenseWithOperation,
+    navigateTo : (String) -> Unit
 ) {
     val interactionSource =
         remember { MutableInteractionSource() }
     val longPressed =
         interactionSource.collectIsPressedAsState()
-    val coroutineScope = rememberCoroutineScope()
-    if (longPressed.value && !uiState.showSelectCheckbox.value) {
-        LaunchedEffect(key1 = Unit) {
-            uiState.showSelectCheckbox.value = true
-            uiState.checkBoxList.apply {
-                this[ind] = true
-                myExpenseUiStateHolder.totalSelectedItem += 1
-                viewModel.updateMyExpenseUiState(myExpenseUiStateHolder.totalSelectedItem, MyExpenseUiStateHolderTotalSelectedItem)
-//                viewModel.updateMyExpenseUiStateFlow(myExpenseUiStateHolder)
-                uiState.totalSelectedItem.value += 1
-            }
-        }
+    if (longPressed.value) {
+        uiState.showSelectCheckbox.value = true
     }
     Row(
         modifier = Modifier
             .padding(
-                top = generalPadding,
+                top = halfGeneralPadding,
                 start = generalPadding,
-                bottom = if (ind == allExpense.value.size - 1 || (ind == allExpense.value.size - 2 && LocalConfiguration.current.screenWidthDp > 500 && allExpense.value.size - 2 % 2 == 0)) generalPadding else 0.dp
+                bottom = halfGeneralPadding
             )
             .generalBorder()
             .clickable(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
                 onClick = {
-                    if (!uiState.showSelectCheckbox.value) {
-                        coroutineScope.launch {
-                            appState.navigate(
-                                Screen.ExpenseDetailScreen.getRoute(
-                                    allExpense.value[ind].toExpense()
-                                )
-                            )
+                    if (uiState.showSelectCheckbox.value) {
+                        if (uiState.checkBoxMap[expense.id] == true) {
+                            uiState.checkBoxMap.remove(expense.id)
+                        } else {
+                            uiState.checkBoxMap[expense.id] = true
                         }
                     } else {
-                        if (!longPressed.value)
-                            uiState.checkBoxList
-                                .also {
-                                    it[ind] =
-                                        !it[ind]
-                                    uiState.totalSelectedItem.value += if (it[ind]) 1 else -1
-                                }
+                        navigateTo(Screen.ExpenseDetailScreen.getRoute(expense.toExpense()))
                     }
                 }
             )
@@ -507,21 +458,28 @@ private fun ListItemLayout(
         AnimatedVisibility(
             visible = uiState.showSelectCheckbox.value
         ) {
-            RadioButton(
-                selected = uiState.checkBoxList[ind],
-                onClick = {
-                    uiState.checkBoxList.also {
-                        it[ind] = !it[ind]
+            Checkbox(
+                checked = uiState.checkBoxMap[expense.id] ?: false,
+                onCheckedChange = {
+                    if (uiState.checkBoxMap[expense.id] == true) {
+                        uiState.checkBoxMap.remove(expense.id)
+                    } else {
+                        uiState.checkBoxMap[expense.id] = true
                     }
-                    uiState.totalSelectedItem.value += if (uiState.checkBoxList[ind]) 1 else -1
                 },
-                colors = RadioButtonDefaults.colors()
+                colors = CheckboxDefaults.colors()
                     .copy(
-                        selectedColor = primary_color,
-                        unselectedColor = primary_color
+                        checkedBoxColor = MaterialTheme.colorScheme.background,
+                        uncheckedBoxColor = MaterialTheme.colorScheme.background,
+                        checkedCheckmarkColor = primary_color,
+                        uncheckedCheckmarkColor = Color.Gray,
+                        checkedBorderColor = primary_color,
+                        uncheckedBorderColor = Color.Gray
                     )
             )
         }
+
+
 
         Column(
             modifier = Modifier
@@ -547,7 +505,7 @@ private fun ListItemLayout(
                     )
                     Spacer(modifier = Modifier.width(halfGeneralPadding))
                     Text(
-                        text = dateString(allExpense.value[ind].date),
+                        text = dateString(expense.date),
                         style = Typography.bodySmall.copy(
                             color = Color.Gray
                         )
@@ -555,28 +513,27 @@ private fun ListItemLayout(
                 }
 
 
-                    Row(
+                Row(
+                    modifier = Modifier
+                        .alpha(if (expense.operation != null && expense.operation?.isNotEmpty()!!) 1f else 0f)
+                        .clip(CircleShape)
+                        .background(primary_color)
+                        .padding(horizontal = generalPadding, vertical = halfGeneralPadding),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_sync),
+                        contentDescription = "sync icon",
                         modifier = Modifier
-                            .alpha(if (allExpense.value[ind].operation != null && allExpense.value[ind].operation?.isNotEmpty()!!) 1f else 0f)
-                            .clip(CircleShape)
-                            .background(primary_color)
-                            .padding(horizontal = generalPadding, vertical = halfGeneralPadding)
-                        ,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_sync),
-                            contentDescription = "sync icon",
-                            modifier = Modifier
-                                .size(12.dp),
-                            tint = secondary_color
-                        )
-                        Spacer(modifier = Modifier.width(halfGeneralPadding))
-                        Text(
-                            text = allExpense.value[ind].operation.toString().capitalize(Locale.current),
-                            style = Typography.bodySmall.copy(color = secondary_color)
-                        )
-                    }
+                            .size(12.dp),
+                        tint = secondary_color
+                    )
+                    Spacer(modifier = Modifier.width(halfGeneralPadding))
+                    Text(
+                        text = expense.operation.toString().capitalize(Locale.current),
+                        style = Typography.bodySmall.copy(color = secondary_color)
+                    )
+                }
 
             }
 
@@ -589,7 +546,7 @@ private fun ListItemLayout(
             ) {
 
                 Text(
-                    text = allExpense.value[ind].title,
+                    text = expense.title,
                     style = Typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onSurface
                     ),
@@ -597,7 +554,7 @@ private fun ListItemLayout(
                 )
 
                 Text(
-                    text = getRupeeString(allExpense.value[ind].totalAmount),
+                    text = getRupeeString(expense.totalAmount),
                     style = Typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onSurface
                     )

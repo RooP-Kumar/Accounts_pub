@@ -33,26 +33,42 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
         composable(
             route = Screen.AddExpenseScreen.route,
             enterTransition = {
-                slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(durationMillis = tweenAnimDuration))
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(durationMillis = tweenAnimDuration)
+                )
             },
             popExitTransition = {
-                slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(tweenAnimDuration))
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(tweenAnimDuration)
+                )
             },
             popEnterTransition = {
                 null
             }
         ) {
             val viewModel: AddExpenseViewModel = hiltViewModel()
-            AddExpense(appState = appState, viewModel = viewModel, appState.navController::navigateUp, getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route })
+            AddExpense(
+                appState = appState,
+                viewModel = viewModel,
+                appState.navController::navigateUp,
+                getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route })
         }
 
         composable(
             route = Screen.AddExpenseItemScreen.route,
             enterTransition = {
-                slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(durationMillis = tweenAnimDuration))
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(durationMillis = tweenAnimDuration)
+                )
             },
             popExitTransition = {
-                slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(tweenAnimDuration))
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(tweenAnimDuration)
+                )
             },
             popEnterTransition = {
                 null
@@ -78,26 +94,46 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
         composable(
             route = Screen.MyExpenseScreen.route,
             enterTransition = {
-                slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(durationMillis = tweenAnimDuration))
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(durationMillis = tweenAnimDuration)
+                )
             },
             popEnterTransition = {
                 null
             },
             popExitTransition = {
-                slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(tweenAnimDuration))
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(tweenAnimDuration)
+                )
             }
         ) {
             val viewModel: MyExpenseViewModel = hiltViewModel()
-            MyExpense(appState = appState, viewModel, isMonthlyExpense = false, navigateUp = appState.navController::navigateUp, getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route })
+            MyExpense(
+                appState = appState,
+                viewModel,
+                isMonthlyExpense = false,
+                navigateUp = appState.navController::navigateUp,
+                getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route },
+                navigateTo = {
+                    appState.navigate(it)
+                })
         }
 
         composable(
             route = Screen.ExpenseDetailScreen.route,
             enterTransition = {
-                slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(durationMillis = tweenAnimDuration))
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(durationMillis = tweenAnimDuration)
+                )
             },
             popExitTransition = {
-                slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(tweenAnimDuration))
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(tweenAnimDuration)
+                )
             },
             popEnterTransition = {
                 null
@@ -107,20 +143,29 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
             val arg =
                 stringToExpense(backStackEntry.arguments?.getString(expense_details_argument)!!)
             val expenseDetailsViewModel: ExpenseDetailsViewModel = hiltViewModel()
-            ExpenseDetails(appState.drawerState, arg, expenseDetailsViewModel, appState.navController::navigateUp,
+            ExpenseDetails(appState.drawerState,
+                arg,
+                expenseDetailsViewModel,
+                appState.navController::navigateUp,
                 getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route })
         }
 
         composable(
             route = Screen.MonthlyExpenseScreen.route,
             enterTransition = {
-                slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(durationMillis = tweenAnimDuration))
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(durationMillis = tweenAnimDuration)
+                )
             },
             popEnterTransition = {
                 null
             },
             popExitTransition = {
-                slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(tweenAnimDuration))
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(tweenAnimDuration)
+                )
             }
         ) {
             val viewModel: MyExpenseViewModel = hiltViewModel()
@@ -129,7 +174,10 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
                 viewModel,
                 isMonthlyExpense = true,
                 navigateUp = appState.navController::navigateUp,
-                getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route }
+                getScreenRouteWithTitle().find { it.route == appState.navController.currentDestination?.route },
+                navigateTo = {
+                    appState.navigate(it)
+                }
             )
         }
 
@@ -140,7 +188,10 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
                 slideInHorizontally(tween(tweenAnimDuration)) { it }
             },
             popExitTransition = {
-                slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(tweenAnimDuration))
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(tweenAnimDuration)
+                )
             },
             popEnterTransition = {
                 null

@@ -22,7 +22,7 @@ class UploadExpenseWorker(
             return when(val res = repo.uploadExpenseToFirebase(uid)) {
                 is Resource.SUCCESS -> {
                     repo.clearCreatedExpenseFromBackupTable()
-                    Result.success(workDataOf(work_manager_input_data to "Successfully backup your expenses."))
+                    Result.success(workDataOf(work_manager_input_data to uid))
                 }
                 is Resource.FAILURE -> {
                     Result.failure(outputData.putString(work_manager_output_data, res.message).build())

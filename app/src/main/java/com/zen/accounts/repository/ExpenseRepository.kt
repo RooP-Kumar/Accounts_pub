@@ -39,22 +39,22 @@ class ExpenseRepository @Inject constructor(
         )
     }
 
-    suspend fun deleteExpenses(expenses : List<Expense>) {
+    suspend fun deleteExpenses(expenses : List<Long>) {
         io {
             expenseDao.deleteExpenses(expenses)
             // Store all expense's ids which are deleted because we need those id to delete from firebase.
             val tempList = arrayListOf<BackupTracker>()
             expenses.forEach {
-                if(backupTrackerDao.getBackupTracker(it.id) == null) {
+                if(backupTrackerDao.getBackupTracker(it) == null) {
                     tempList.add(
                         BackupTracker(
-                            expenseId = it.id,
+                            expenseId = it,
                             operation = "delete",
                             date = Date(System.currentTimeMillis())
                         )
                     )
                 } else {
-                    backupTrackerDao.deleteRecord(it.id)
+                    backupTrackerDao.deleteRecord(it)
                 }
             }
             backupTrackerDao.insertBackupTracker(tempList)

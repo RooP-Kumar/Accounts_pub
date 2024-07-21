@@ -13,7 +13,6 @@ class PeriodicWorker(
     private val workerRepository: WorkerRepository
 ) : CoroutineWorker(context, workerParameters) {
     override suspend fun doWork(): Result {
-        Log.d("asdf", "doWork: Running")
         val uid = inputData.getString(work_manager_input_data)
         return if(uid != null) {
             workerRepository.startUploadingNow(uid, true)
