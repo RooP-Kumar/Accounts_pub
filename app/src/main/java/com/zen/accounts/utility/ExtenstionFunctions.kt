@@ -169,6 +169,14 @@ fun Any.toLoadingState() : LoadingState {
     }
 }
 
+fun Any.toHashMap() : HashMap<Long, Boolean> {
+    return if(this::class.simpleName == HashMap<Long, Boolean>()::class.simpleName) {
+        this as HashMap<Long, Boolean>
+    } else {
+        hashMapOf()
+    }
+}
+
 fun Any.toDp() : Dp {
     return if(this::class.simpleName == Dp::class.simpleName) {
         this as Dp
