@@ -34,8 +34,8 @@ fun AccountsThemes(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val color = if (darkTheme) DarkColorScheme
-    else LightColorScheme
+    val color = /*if (darkTheme) DarkColorScheme
+    else*/ LightColorScheme
 
     MaterialTheme(
         colorScheme = color,

@@ -111,7 +111,7 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
         ) {
             val viewModel: MyExpenseViewModel = hiltViewModel()
             MyExpense(
-                appState = appState,
+                drawerState = appState.drawerState,
                 viewModel,
                 isMonthlyExpense = false,
                 navigateUp = appState.navController::navigateUp,
@@ -170,7 +170,7 @@ fun NavGraphBuilder.MainNavigation(appState: AppState) {
         ) {
             val viewModel: MyExpenseViewModel = hiltViewModel()
             MyExpense(
-                appState = appState,
+                drawerState = appState.drawerState,
                 viewModel,
                 isMonthlyExpense = true,
                 navigateUp = appState.navController::navigateUp,

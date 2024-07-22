@@ -40,6 +40,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -116,61 +117,78 @@ data class MyExpenseUiState(
     val showExpenseList: MutableState<Boolean> = mutableStateOf(false),
 )
 
-//data class MyExpenseUiStateHolder(
-//    var expenseItemListAmountTextWidth: Dp = 0.dp,
-//    var showSelectCheckbox: Boolean = false,
-//    var checkBoxList: ArrayList<Boolean> = arrayListOf(),
-//    var selectAll: Boolean = false,
-//    var totalSelectedItem: Int = 0,
-//    var loadingState: LoadingState = LoadingState.IDLE,
-//    var showDeleteDialog: Boolean = false,
-//    var showExpenseList: Boolean = false,
-//)
-//const val MyExpenseUiStateHolderAmountTextWidth = "expenseItemListAmountTextWidth"
-//const val MyExpenseUiStateHolderShowSelectCheckBox = "showSelectCheckbox"
-//const val MyExpenseUiStateHolderCheckBoxList = "checkBoxList"
-//const val MyExpenseUiStateHolderSelectAll = "selectAll"
-//const val MyExpenseUiStateHolderTotalSelectedItem = "totalSelectedItem"
-//const val MyExpenseUiStateHolderLoadingState = "loadingState"
-//const val MyExpenseUiStateHolderShowDeleteDialog = "showDeleteDialog"
-//const val MyExpenseUiStateHolderShowExpenseList = "showExpenseList"
+data class MyExpenseUiStateHolder(
+    var expenseItemListAmountTextWidth: Dp = 0.dp,
+    var showSelectCheckbox: Boolean = false,
+    var checkBoxMap: HashMap<Long, Boolean> = hashMapOf(),
+    var selectAll: Boolean = false,
+    var loadingState: LoadingState = LoadingState.IDLE,
+    var showDeleteDialog: Boolean = false,
+    var showExpenseList: Boolean = false,
+)
+const val MyExpenseUiStateHolderAmountTextWidth = "expenseItemListAmountTextWidth"
+const val MyExpenseUiStateHolderShowSelectCheckBox = "showSelectCheckbox"
+const val MyExpenseUiStateHolderCheckBoxList = "checkBoxMap"
+const val MyExpenseUiStateHolderSelectAll = "selectAll"
+const val MyExpenseUiStateHolderLoadingState = "loadingState"
+const val MyExpenseUiStateHolderShowDeleteDialog = "showDeleteDialog"
+const val MyExpenseUiStateHolderShowExpenseList = "showExpenseList"
 
 @Composable
 fun MyExpense(
-    appState: AppState,
+    drawerState: MutableState<DrawerState?>?,
     viewModel: MyExpenseViewModel,
     isMonthlyExpense: Boolean,
     navigateUp: () -> Boolean,
     currentScreen: Screen?,
     navigateTo: (String) -> Unit
 ) {
-    val uiState = viewModel.myExpenseUiState
-    val screenWidth = LocalConfiguration.current.screenWidthDp
+    viewModel.isMonthlyCalled = isMonthlyExpense
+    val myExpenseUiState by viewModel.myExpenseUiStateFlow.collectAsState()
+
     val allExpense =
-        if (!isMonthlyExpense) viewModel.allExpense.collectAsState(initial = listOf())
-        else viewModel.monthlyExpense.collectAsState(initial = listOf())
+        if (!isMonthlyExpense) viewModel.allExpense
+        else viewModel.monthlyExpense
 
-    uiState.selectAll.value = remember {
-        derivedStateOf {
-            val temp = allExpense.value.size == uiState.checkBoxMap.size
-            temp
-        }
-    }.value
+    LoadingDialog(loadingState = myExpenseUiState.loadingState)
 
-    LoadingDialog(loadingState = uiState.loadingState)
-
-    LaunchedEffect(key1 = allExpense.value) {
+    LaunchedEffect(key1 = allExpense) {
         delay(500)
-        uiState.showExpenseList.value = true
+        viewModel.updateMyExpenseUiState(true, MyExpenseUiStateHolderShowExpenseList)
     }
 
+MainUi(
+    myExpenseUiState = myExpenseUiState,
+    updateMyExpenseUiState = viewModel::updateMyExpenseUiState,
+    drawerState = drawerState,
+    viewModel = viewModel,
+    allExpense = allExpense,
+    navigateUp = navigateUp,
+    currentScreen = currentScreen,
+    navigateTo = navigateTo
+)
+
+}
+
+@Composable
+private fun MainUi(
+    myExpenseUiState: MyExpenseUiStateHolder,
+    updateMyExpenseUiState: (Any, String) -> Unit,
+    drawerState: MutableState<DrawerState?>?,
+    viewModel: MyExpenseViewModel,
+    allExpense: List<ExpenseWithOperation>,
+    navigateUp: () -> Boolean,
+    currentScreen: Screen?,
+    navigateTo: (String) -> Unit
+) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(
-            drawerState = appState.drawerState,
+            drawerState = drawerState,
             navigateUp = navigateUp,
             currentScreen = currentScreen
         )
@@ -181,7 +199,7 @@ fun MyExpense(
                 .pointerInput(Unit) {}
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            if (!uiState.showExpenseList.value) {
+            if (!myExpenseUiState.showExpenseList) {
                 var rotation by remember { mutableFloatStateOf(0f) }
                 val infiniteTransition = rememberInfiniteTransition(label = "")
                 rotation = infiniteTransition.animateFloat(
@@ -221,7 +239,7 @@ fun MyExpense(
                 }
             } else {
                 Crossfade(
-                    targetState = allExpense.value.isNotEmpty(),
+                    targetState = allExpense.isNotEmpty(),
                     label = "my expense screen",
                 ) { allExpenseIsNoEmpty ->
                     when (allExpenseIsNoEmpty) {
@@ -234,19 +252,19 @@ fun MyExpense(
                             }
                             Column {
                                 ExpenseItemDeleteDialog(
-                                    showDialog = uiState.showDeleteDialog.value,
+                                    showDialog = myExpenseUiState.showDeleteDialog,
                                     onYes = {
                                         viewModel.deleteExpenses(
-                                            uiState.checkBoxMap.keys.toList()
+                                            myExpenseUiState.checkBoxMap.keys.toList()
                                         )
-                                        uiState.showDeleteDialog.value = false
+                                        updateMyExpenseUiState(false, MyExpenseUiStateHolderShowDeleteDialog)
                                     },
-                                    onNo = { uiState.showDeleteDialog.value = false }
+                                    onNo = { updateMyExpenseUiState(false, MyExpenseUiStateHolderShowDeleteDialog) }
                                 )
 
                                 Column {
                                     AnimatedVisibility(
-                                        visible = uiState.showSelectCheckbox.value,
+                                        visible = myExpenseUiState.showSelectCheckbox,
                                         enter = fadeIn() + slideInVertically(tween(300)) { value -> -1 * value },
                                         exit = fadeOut() + slideOutVertically(tween(300)) { value -> -1 * value }
                                     ) {
@@ -258,16 +276,18 @@ fun MyExpense(
                                         ) {
 
                                             Checkbox(
-                                                checked = uiState.selectAll.value,
+                                                checked = myExpenseUiState.selectAll,
                                                 onCheckedChange = {
                                                     if (it) {
-                                                        allExpense.value.forEach { exp ->
-                                                            uiState.checkBoxMap[exp.id] = true
+                                                        allExpense.forEach { exp ->
+                                                            val temp = myExpenseUiState.checkBoxMap
+                                                            temp[exp.id] = true
+                                                            updateMyExpenseUiState(temp, MyExpenseUiStateHolderCheckBoxList)
                                                         }
                                                     } else {
-                                                        uiState.checkBoxMap.clear()
+                                                        updateMyExpenseUiState(hashMapOf<Long, String>(), MyExpenseUiStateHolderCheckBoxList)
                                                     }
-                                                    uiState.selectAll.value = it
+                                                    updateMyExpenseUiState(it, MyExpenseUiStateHolderSelectAll)
                                                 },
                                                 colors = CheckboxDefaults.colors().copy(
                                                     checkedBoxColor = primary_color,
@@ -280,7 +300,7 @@ fun MyExpense(
                                             )
 
                                             Text(
-                                                text = if (uiState.selectAll.value) "Deselect All" else "Select All",
+                                                text = if (myExpenseUiState.selectAll) "Deselect All" else "Select All",
                                                 style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
                                             )
 
@@ -290,7 +310,10 @@ fun MyExpense(
                                                     .size(32.dp)
                                                     .clip(CircleShape)
                                                     .clickable {
-                                                        uiState.showDeleteDialog.value = true
+                                                        updateMyExpenseUiState(
+                                                            true,
+                                                            MyExpenseUiStateHolderShowDeleteDialog
+                                                        )
                                                     }
                                                     .background(secondary_color)
                                             ) {
@@ -309,8 +332,14 @@ fun MyExpense(
                                                     .size(32.dp)
                                                     .clip(CircleShape)
                                                     .clickable {
-                                                        uiState.showSelectCheckbox.value = false
-                                                        uiState.selectAll.value = false
+                                                        updateMyExpenseUiState(
+                                                            false,
+                                                            MyExpenseUiStateHolderShowSelectCheckBox
+                                                        )
+                                                        updateMyExpenseUiState(
+                                                            false,
+                                                            MyExpenseUiStateHolderSelectAll
+                                                        )
                                                     }
                                                     .background(secondary_color)
                                             ) {
@@ -335,19 +364,20 @@ fun MyExpense(
                                             .fillMaxSize()
                                             .padding(generalPadding)
                                             .generalBorder()
-                                            .padding(end = generalPadding)
+                                            .padding(end = generalPadding, top = halfGeneralPadding, bottom = halfGeneralPadding)
                                         if (screenWidth <= 500) {
                                             LazyColumn(
                                                 modifier = tempModifier
                                             ) {
 
                                                 items(
-                                                    allExpense.value,
+                                                    allExpense,
                                                     key = { it.id }) { expense ->
                                                     ListItemLayout(
-                                                        uiState = uiState,
                                                         expense = expense,
-                                                        navigateTo = navigateTo
+                                                        navigateTo = navigateTo,
+                                                        updateMyExpenseUiState = updateMyExpenseUiState,
+                                                        myExpenseUiState = myExpenseUiState
                                                     )
                                                 }
 
@@ -358,12 +388,13 @@ fun MyExpense(
                                                 modifier = tempModifier
                                             ) {
                                                 items(
-                                                    allExpense.value,
+                                                    allExpense,
                                                     key = { it.id }) { expense ->
                                                     ListItemLayout(
-                                                        uiState = uiState,
                                                         expense = expense,
-                                                        navigateTo = navigateTo
+                                                        navigateTo = navigateTo,
+                                                        updateMyExpenseUiState = updateMyExpenseUiState,
+                                                        myExpenseUiState = myExpenseUiState
                                                     )
                                                 }
 
@@ -404,7 +435,6 @@ fun MyExpense(
             }
         }
     }
-
 }
 
 private fun dateString(date: Date): String {
@@ -414,16 +444,17 @@ private fun dateString(date: Date): String {
 
 @Composable
 private fun ListItemLayout(
-    uiState: MyExpenseUiState,
+    myExpenseUiState: MyExpenseUiStateHolder,
     expense: ExpenseWithOperation,
-    navigateTo : (String) -> Unit
+    navigateTo : (String) -> Unit,
+    updateMyExpenseUiState: (Any, String) -> Unit
 ) {
     val interactionSource =
         remember { MutableInteractionSource() }
     val longPressed =
         interactionSource.collectIsPressedAsState()
     if (longPressed.value) {
-        uiState.showSelectCheckbox.value = true
+        updateMyExpenseUiState(true, MyExpenseUiStateHolderShowSelectCheckBox)
     }
     Row(
         modifier = Modifier
@@ -437,11 +468,15 @@ private fun ListItemLayout(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
                 onClick = {
-                    if (uiState.showSelectCheckbox.value) {
-                        if (uiState.checkBoxMap[expense.id] == true) {
-                            uiState.checkBoxMap.remove(expense.id)
+                    if (myExpenseUiState.showSelectCheckbox) {
+                        if (myExpenseUiState.checkBoxMap[expense.id] == true) {
+                            val temp = myExpenseUiState.checkBoxMap
+                            temp.remove(expense.id)
+                            updateMyExpenseUiState(temp, MyExpenseUiStateHolderCheckBoxList)
                         } else {
-                            uiState.checkBoxMap[expense.id] = true
+                            val temp = myExpenseUiState.checkBoxMap
+                            temp[expense.id] = true
+                            updateMyExpenseUiState(temp, MyExpenseUiStateHolderCheckBoxList)
                         }
                     } else {
                         navigateTo(Screen.ExpenseDetailScreen.getRoute(expense.toExpense()))
@@ -456,15 +491,19 @@ private fun ListItemLayout(
     ) {
 
         AnimatedVisibility(
-            visible = uiState.showSelectCheckbox.value
+            visible = myExpenseUiState.showSelectCheckbox
         ) {
             Checkbox(
-                checked = uiState.checkBoxMap[expense.id] ?: false,
+                checked = myExpenseUiState.checkBoxMap[expense.id] ?: false,
                 onCheckedChange = {
-                    if (uiState.checkBoxMap[expense.id] == true) {
-                        uiState.checkBoxMap.remove(expense.id)
+                    if (myExpenseUiState.checkBoxMap[expense.id] == true) {
+                        val temp = myExpenseUiState.checkBoxMap
+                        temp.remove(expense.id)
+                        updateMyExpenseUiState(temp, MyExpenseUiStateHolderCheckBoxList)
                     } else {
-                        uiState.checkBoxMap[expense.id] = true
+                        val temp = myExpenseUiState.checkBoxMap
+                        temp[expense.id] = true
+                        updateMyExpenseUiState(temp, MyExpenseUiStateHolderCheckBoxList)
                     }
                 },
                 colors = CheckboxDefaults.colors()
@@ -484,7 +523,7 @@ private fun ListItemLayout(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(start = if (uiState.showSelectCheckbox.value) 0.dp else generalPadding)
+                .padding(start = if (myExpenseUiState.showSelectCheckbox) 0.dp else generalPadding)
         ) {
             Row(
                 modifier = Modifier
