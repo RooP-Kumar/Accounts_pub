@@ -26,6 +26,7 @@ class ExpenseRepository @Inject constructor(
 
     val monthlyExpense : Flow<List<ExpenseWithOperation>> = expenseDao.getMonthlyExpensesWithStatus()
         .map {
+            
             it.filter { expense -> DateStringConverter().dateToString(expense.date).substring(3, 6) == DateStringConverter().dateToString(Date(System.currentTimeMillis())).substring(3, 6) }
         }
     suspend fun insertExpenseIntoRoom(expense: Expense) {

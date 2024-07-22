@@ -364,7 +364,7 @@ private fun MainUi(
                                             .fillMaxSize()
                                             .padding(generalPadding)
                                             .generalBorder()
-                                            .padding(end = generalPadding)
+                                            .padding(end = generalPadding, top = halfGeneralPadding, bottom = halfGeneralPadding)
                                         if (screenWidth <= 500) {
                                             LazyColumn(
                                                 modifier = tempModifier

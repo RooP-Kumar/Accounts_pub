@@ -7,7 +7,6 @@ import com.zen.accounts.db.model.Expense
 import com.zen.accounts.repository.ExpenseItemRepository
 import com.zen.accounts.repository.ExpenseRepository
 import com.zen.accounts.ui.screens.common.LoadingState
-import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiState
 import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolder
 import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolderCheckBoxList
 import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolderLoadingState
