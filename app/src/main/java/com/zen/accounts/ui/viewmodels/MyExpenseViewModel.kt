@@ -1,9 +1,7 @@
 package com.zen.accounts.ui.viewmodels
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
+//import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolder
 import com.zen.accounts.db.dao.ExpenseWithOperation
-import com.zen.accounts.db.model.Expense
 import com.zen.accounts.repository.ExpenseItemRepository
 import com.zen.accounts.repository.ExpenseRepository
 import com.zen.accounts.ui.screens.common.LoadingState
@@ -14,28 +12,16 @@ import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolderSelectAl
 import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolderShowDeleteDialog
 import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolderShowExpenseList
 import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolderShowSelectCheckBox
-//import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolder
 import com.zen.accounts.utility.io
-import com.zen.accounts.utility.main
-import com.zen.accounts.utility.toExpense
 import com.zen.accounts.utility.toHashMap
 import com.zen.accounts.utility.toLoadingState
-import com.zen.accounts.utility.toast
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
-import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.full.memberProperties
 
 @HiltViewModel
 class MyExpenseViewModel @Inject constructor(

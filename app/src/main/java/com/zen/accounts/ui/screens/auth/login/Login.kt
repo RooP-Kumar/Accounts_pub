@@ -11,13 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.currentCompositionErrors
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,7 +92,7 @@ private fun MainUI(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background)
+            .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
     ) {
 
         TopAppBar(appState.drawerState, navigateUp = navigateUp, currentScreen = currentScreen)
@@ -143,7 +141,7 @@ private fun MainUI(
                 ) {
                     Text(
                         text = did_not_have_account,
-                        style = Typography.bodySmall.copy(color = MaterialTheme.colors.onBackground)
+                        style = Typography.bodySmall.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
                     )
                     Spacer(modifier = Modifier.width(normalPadding))
                     Text(text = register_button_label,

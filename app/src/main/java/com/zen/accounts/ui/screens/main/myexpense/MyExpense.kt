@@ -1,6 +1,5 @@
 package com.zen.accounts.ui.screens.main.myexpense
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -16,10 +15,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +35,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Checkbox
@@ -43,25 +42,17 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,7 +74,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zen.accounts.R
 import com.zen.accounts.db.dao.ExpenseWithOperation
-import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.LoadingDialog
 import com.zen.accounts.ui.screens.common.LoadingState
@@ -99,13 +89,9 @@ import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.tweenAnimDuration
 import com.zen.accounts.ui.viewmodels.MyExpenseViewModel
 import com.zen.accounts.utility.generalBorder
-import com.zen.accounts.utility.launch
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
-import kotlin.math.exp
 
 data class MyExpenseUiState(
     val expenseItemListAmountTextWidth: MutableState<Dp> = mutableStateOf(0.dp),
@@ -126,6 +112,7 @@ data class MyExpenseUiStateHolder(
     var showDeleteDialog: Boolean = false,
     var showExpenseList: Boolean = false,
 )
+
 const val MyExpenseUiStateHolderAmountTextWidth = "expenseItemListAmountTextWidth"
 const val MyExpenseUiStateHolderShowSelectCheckBox = "showSelectCheckbox"
 const val MyExpenseUiStateHolderCheckBoxList = "checkBoxMap"
@@ -150,6 +137,12 @@ fun MyExpense(
         if (!isMonthlyExpense) viewModel.allExpense
         else viewModel.monthlyExpense
 
+    BackHandler(
+        myExpenseUiState.showSelectCheckbox
+    ) {
+        viewModel.updateMyExpenseUiState(false, MyExpenseUiStateHolderShowSelectCheckBox)
+    }
+
     LoadingDialog(loadingState = myExpenseUiState.loadingState)
 
     LaunchedEffect(key1 = allExpense) {
@@ -157,16 +150,16 @@ fun MyExpense(
         viewModel.updateMyExpenseUiState(true, MyExpenseUiStateHolderShowExpenseList)
     }
 
-MainUi(
-    myExpenseUiState = myExpenseUiState,
-    updateMyExpenseUiState = viewModel::updateMyExpenseUiState,
-    drawerState = drawerState,
-    viewModel = viewModel,
-    allExpense = allExpense,
-    navigateUp = navigateUp,
-    currentScreen = currentScreen,
-    navigateTo = navigateTo
-)
+    MainUi(
+        myExpenseUiState = myExpenseUiState,
+        updateMyExpenseUiState = viewModel::updateMyExpenseUiState,
+        drawerState = drawerState,
+        deleteExpenses = viewModel::deleteExpenses,
+        allExpense = allExpense,
+        navigateUp = navigateUp,
+        currentScreen = currentScreen,
+        navigateTo = navigateTo
+    )
 
 }
 
@@ -175,7 +168,7 @@ private fun MainUi(
     myExpenseUiState: MyExpenseUiStateHolder,
     updateMyExpenseUiState: (Any, String) -> Unit,
     drawerState: MutableState<DrawerState?>?,
-    viewModel: MyExpenseViewModel,
+    deleteExpenses: (List<Long>) -> Unit,
     allExpense: List<ExpenseWithOperation>,
     navigateUp: () -> Boolean,
     currentScreen: Screen?,
@@ -254,12 +247,20 @@ private fun MainUi(
                                 ExpenseItemDeleteDialog(
                                     showDialog = myExpenseUiState.showDeleteDialog,
                                     onYes = {
-                                        viewModel.deleteExpenses(
+                                        deleteExpenses(
                                             myExpenseUiState.checkBoxMap.keys.toList()
                                         )
-                                        updateMyExpenseUiState(false, MyExpenseUiStateHolderShowDeleteDialog)
+                                        updateMyExpenseUiState(
+                                            false,
+                                            MyExpenseUiStateHolderShowDeleteDialog
+                                        )
                                     },
-                                    onNo = { updateMyExpenseUiState(false, MyExpenseUiStateHolderShowDeleteDialog) }
+                                    onNo = {
+                                        updateMyExpenseUiState(
+                                            false,
+                                            MyExpenseUiStateHolderShowDeleteDialog
+                                        )
+                                    }
                                 )
 
                                 Column {
@@ -282,12 +283,21 @@ private fun MainUi(
                                                         allExpense.forEach { exp ->
                                                             val temp = myExpenseUiState.checkBoxMap
                                                             temp[exp.id] = true
-                                                            updateMyExpenseUiState(temp, MyExpenseUiStateHolderCheckBoxList)
+                                                            updateMyExpenseUiState(
+                                                                temp,
+                                                                MyExpenseUiStateHolderCheckBoxList
+                                                            )
                                                         }
                                                     } else {
-                                                        updateMyExpenseUiState(hashMapOf<Long, String>(), MyExpenseUiStateHolderCheckBoxList)
+                                                        updateMyExpenseUiState(
+                                                            hashMapOf<Long, String>(),
+                                                            MyExpenseUiStateHolderCheckBoxList
+                                                        )
                                                     }
-                                                    updateMyExpenseUiState(it, MyExpenseUiStateHolderSelectAll)
+                                                    updateMyExpenseUiState(
+                                                        it,
+                                                        MyExpenseUiStateHolderSelectAll
+                                                    )
                                                 },
                                                 colors = CheckboxDefaults.colors().copy(
                                                     checkedBoxColor = primary_color,
@@ -364,7 +374,11 @@ private fun MainUi(
                                             .fillMaxSize()
                                             .padding(generalPadding)
                                             .generalBorder()
-                                            .padding(end = generalPadding, top = halfGeneralPadding, bottom = halfGeneralPadding)
+                                            .padding(
+                                                end = generalPadding,
+                                                top = halfGeneralPadding,
+                                                bottom = halfGeneralPadding
+                                            )
                                         if (screenWidth <= 500) {
                                             LazyColumn(
                                                 modifier = tempModifier
@@ -446,7 +460,7 @@ private fun dateString(date: Date): String {
 private fun ListItemLayout(
     myExpenseUiState: MyExpenseUiStateHolder,
     expense: ExpenseWithOperation,
-    navigateTo : (String) -> Unit,
+    navigateTo: (String) -> Unit,
     updateMyExpenseUiState: (Any, String) -> Unit
 ) {
     val interactionSource =
@@ -483,7 +497,7 @@ private fun ListItemLayout(
                     }
                 }
             )
-            .background(secondary_color)
+            .background(MaterialTheme.colorScheme.secondary)
             .padding(vertical = generalPadding)
             .padding(end = generalPadding),
         verticalAlignment = Alignment.CenterVertically
@@ -540,13 +554,13 @@ private fun ListItemLayout(
                         contentDescription = "sync icon",
                         modifier = Modifier
                             .size(12.dp),
-                        tint = Color(0xFF8C8C8C)
+                        tint = if(isSystemInDarkTheme()) Color.White else Color(0xFF8C8C8C)
                     )
                     Spacer(modifier = Modifier.width(halfGeneralPadding))
                     Text(
                         text = dateString(expense.date),
                         style = Typography.bodySmall.copy(
-                            color = Color.Gray
+                            color = if(isSystemInDarkTheme()) Color.White else Color.Gray
                         )
                     )
                 }
@@ -555,8 +569,14 @@ private fun ListItemLayout(
                 Row(
                     modifier = Modifier
                         .alpha(if (expense.operation != null && expense.operation?.isNotEmpty()!!) 1f else 0f)
+                        .then(
+                            if (isSystemInDarkTheme())
+                                Modifier.border(0.5.dp, color = primary_color, shape = CircleShape)
+                            else
+                                Modifier
+                        )
                         .clip(CircleShape)
-                        .background(primary_color)
+                        .background(MaterialTheme.colorScheme.primary)
                         .padding(horizontal = generalPadding, vertical = halfGeneralPadding),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -570,7 +590,7 @@ private fun ListItemLayout(
                     Spacer(modifier = Modifier.width(halfGeneralPadding))
                     Text(
                         text = expense.operation.toString().capitalize(Locale.current),
-                        style = Typography.bodySmall.copy(color = secondary_color)
+                        style = Typography.bodySmall.copy(color = Color.White)
                     )
                 }
 

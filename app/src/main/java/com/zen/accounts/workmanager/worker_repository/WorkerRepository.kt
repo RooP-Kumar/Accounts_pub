@@ -1,7 +1,6 @@
 package com.zen.accounts.workmanager.worker_repository
 
 import android.content.Context
-import android.util.Log
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy

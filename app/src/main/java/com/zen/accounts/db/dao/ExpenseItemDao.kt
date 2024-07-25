@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Update
 import com.zen.accounts.db.model.ExpenseItem
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 
 @Dao
 interface ExpenseItemDao {

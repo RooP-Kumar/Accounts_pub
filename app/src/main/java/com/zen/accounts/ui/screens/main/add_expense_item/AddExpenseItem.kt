@@ -194,6 +194,11 @@ private fun MainUI(
 @Composable
 private fun ShowPrev() {
     AccountsThemes {
-        MainUI(navigateUp = { false }, onAddExpenseItemClick = {  }, updateStateValues = {_,_ ->})
+        MainUI(
+            navigateUp = { false },
+            onAddExpenseItemClick = {  },
+            updateStateValues = {_,_ ->},
+            currentScreen = Screen.AddExpenseItemScreen
+        )
     }
 }

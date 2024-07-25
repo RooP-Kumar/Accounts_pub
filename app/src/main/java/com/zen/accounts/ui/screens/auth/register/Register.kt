@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -80,7 +80,7 @@ private fun MainUI(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(
             drawerState = appState.drawerState,
@@ -117,7 +117,7 @@ private fun MainUI(
 
                     Text(
                         text = required_field,
-                        style = Typography.bodySmall.copy(color = MaterialTheme.colors.onBackground)
+                        style = Typography.bodySmall.copy(color = MaterialTheme.colorScheme.onBackground)
                     )
                 }
 
@@ -173,7 +173,7 @@ private fun MainUI(
                 ) {
                     Text(
                         text = already_have_account,
-                        style = Typography.bodySmall.copy(color = MaterialTheme.colors.onBackground)
+                        style = Typography.bodySmall.copy(color = MaterialTheme.colorScheme.onBackground)
                     )
                     Spacer(modifier = Modifier.width(normalPadding))
                     Text(

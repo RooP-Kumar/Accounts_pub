@@ -8,11 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
+    primary = DarkPrimary,
+    secondary = DarkSecondary,
     tertiary = Pink80,
-    background = Color.Black,
-    surface = darkSurface,
+    background = DarkBackground,
+    surface = DarkSurface,
     onBackground = Color.White,
     onSurface = Color(0xFFFFFFFF),
     surfaceDim = Color(0xFFA2A2A2)
@@ -34,8 +34,8 @@ fun AccountsThemes(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val color = /*if (darkTheme) DarkColorScheme
-    else*/ LightColorScheme
+    val color = if (darkTheme) DarkColorScheme
+    else LightColorScheme
 
     MaterialTheme(
         colorScheme = color,

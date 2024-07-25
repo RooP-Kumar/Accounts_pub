@@ -2,10 +2,10 @@ package com.zen.accounts.ui.screens.main.setting
 
 
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -734,7 +734,14 @@ fun ImagePickerSection(
 }
 
 
-@Preview(apiLevel = 34)
+@Preview(
+    apiLevel = 34,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Preview(
+    apiLevel = 34,
+    uiMode = Configuration.UI_MODE_NIGHT_NO
+)
 @Composable
 private fun PreviewSetting() {
     AccountsThemes {
