@@ -40,7 +40,12 @@ Welcome to Accounts, an expense tracker application designed to help you manage 
     ```
 2. Open the project in Android Studio.
 3. Sync the project with Gradle files.
-4. Run the app on an emulator or a physical device.
+4. Create a new Firebase Project.
+5. Download the google-service.json file of your own firbase project.
+6. Paste it inside of your app folder.
+7. Run the app on an emulator or a physical device.
+
+   That's it :relaxed: !! enjoy your own expense tracker.
 
 ## Usage
 
