@@ -1,6 +1,5 @@
 
 https://github.com/RooP-Kumar/Accounts/assets/69110669/28f8467a-f3d9-443a-be99-bfcdfa091690
-
 # Accounts - Expense Tracker Application
 
 Welcome to Accounts, an expense tracker application designed to help you manage your finances efficiently. This project was created to enhance my knowledge of Android WorkManager and Android Permissions.
@@ -17,18 +16,21 @@ Welcome to Accounts, an expense tracker application designed to help you manage 
 ## Technologies Used
 
 - **Android Studio:** Integrated Development Environment (IDE)
-- **Android WorkManager:** For background task management
-- **Android Permissions:** To manage app permissions
-- **Room Database:** For local data storage
-- **Firebase Authentication:** For secure user authentication
-- **Firebase Realtime Database:** For data storage and synchronization
-- **MVVM Architecture:** For organized and maintainable code
-- **Coil:** For image loading and caching in Jetpack Compose
-- **Material Design:** For a modern and intuitive UI/UX
-- **Adobe XD/Figma:** For UI/UX design
-- **Adobe Illustrator:** For creating vectors used in the promo video
-- **Adobe After Effects:** For creating the promo video
-- **ImageCropper:** For picking and cropping images ([ImageCropper Repository](https://github.com/CanHub/Android-Image-Cropper))
+- **Android WorkManager:** For background task management, including:
+  - **WorkRequest Chaining:** Used 3 different WorkRequests (create, update, delete) to practice request chaining.
+  - **Custom Worker Factory:** Implemented custom worker factories and used these dynamically to choose different factory for different operations.
+  - **PeriodicWorkRequest:** Used for automatic data backup (Daily, Weekly, Monthly).
+- **Android Permissions:** To manage app permissions.
+- **Room Database:** For local data storage.
+- **Firebase Authentication:** For secure user authentication.
+- **Firebase Realtime Database:** For data storage and synchronization.
+- **MVVM Architecture:** For organized and maintainable code.
+- **Coil:** For image loading and caching in Jetpack Compose.
+- **Material Design:** For a modern and intuitive UI/UX.
+- **Adobe XD/Figma:** For UI/UX design.
+- **Adobe Illustrator:** For creating vectors used in the promo video.
+- **Adobe After Effects:** For creating the promo video.
+- **ImageCropper:** For picking and cropping images ([ImageCropper Repository](https://github.com/CanHub/Android-Image-Cropper)).
 
 ## Installation
 
