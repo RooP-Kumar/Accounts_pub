@@ -1,7 +1,6 @@
 package com.zen.accounts.ui.screens.main.addexpense
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,7 +44,6 @@ import androidx.compose.ui.zIndex
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.google.android.gms.common.internal.service.Common
 import com.zen.accounts.CommonUIStateHolder
 import com.zen.accounts.R
 import com.zen.accounts.db.model.ExpenseItem
@@ -64,8 +61,6 @@ import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.red_color
-import com.zen.accounts.ui.theme.secondary_color
-import com.zen.accounts.ui.theme.text_color
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.ui.viewmodels.AddExpenseViewModel
 import com.zen.accounts.utility.generalBorder

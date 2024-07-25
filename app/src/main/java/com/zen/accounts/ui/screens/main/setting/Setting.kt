@@ -6,7 +6,6 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -88,7 +87,6 @@ import com.zen.accounts.ui.screens.common.login_screen_label
 import com.zen.accounts.ui.screens.common.logout_button_label
 import com.zen.accounts.ui.screens.common.small_logout_button_label
 import com.zen.accounts.ui.theme.AccountsThemes
-import com.zen.accounts.ui.theme.DarkSecondary
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.buttonDescriptionTextStyle
 import com.zen.accounts.ui.theme.generalPadding

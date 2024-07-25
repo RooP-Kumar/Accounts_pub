@@ -3,7 +3,6 @@ package com.zen.accounts.ui.screens.main.addexpense
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.zen.accounts.ui.screens.common.LoadingState
-import kotlin.reflect.KMutableProperty1
 
 data class AddExpenseUiStateHolder(
     var title: String = "",

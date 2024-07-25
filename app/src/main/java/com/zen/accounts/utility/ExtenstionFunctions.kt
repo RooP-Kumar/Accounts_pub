@@ -1,5 +1,6 @@
 package com.zen.accounts.utility
 
+//import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolder
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.LocalIndication
@@ -24,20 +25,12 @@ import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.platform.inspectable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImagePainter
-import com.google.gson.reflect.TypeToken
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
 import com.zen.accounts.ui.screens.common.LoadingState
-//import com.zen.accounts.ui.screens.main.myexpense.MyExpenseUiStateHolder
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.shadowColor
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.full.memberProperties
 
 @Composable
 fun Modifier.customShadow(

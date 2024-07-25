@@ -44,10 +44,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zen.accounts.R
-import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
-import com.zen.accounts.ui.navigation.getScreenRouteWithIcon
-import com.zen.accounts.ui.navigation.getScreenRouteWithTitle
 import com.zen.accounts.ui.theme.AccountsThemes
 import com.zen.accounts.ui.theme.DarkBackground
 import com.zen.accounts.ui.theme.Typography

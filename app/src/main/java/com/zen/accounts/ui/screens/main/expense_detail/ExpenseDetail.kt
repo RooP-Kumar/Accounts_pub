@@ -1,8 +1,6 @@
 package com.zen.accounts.ui.screens.main.expense_detail
 
 import android.content.res.Configuration
-import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,12 +31,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -52,11 +48,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zen.accounts.R
 import com.zen.accounts.db.model.Expense
 import com.zen.accounts.db.model.ExpenseItem
-import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.GeneralButton
 import com.zen.accounts.ui.screens.common.GeneralDialog
@@ -71,7 +65,6 @@ import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.green_color
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.red_color
-import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.viewmodels.ExpenseDetailsViewModel
 import com.zen.accounts.utility.generalBorder
 import com.zen.accounts.utility.main
@@ -79,7 +72,6 @@ import com.zen.accounts.utility.toast
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Date
-import kotlin.math.log
 
 data class ExpenseDetailUIState(
     var expense : Expense = Expense(),

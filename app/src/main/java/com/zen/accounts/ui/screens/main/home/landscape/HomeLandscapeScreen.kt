@@ -29,7 +29,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -48,19 +47,14 @@ import com.zen.accounts.ui.screens.main.home.HomeUiState
 import com.zen.accounts.ui.theme.AccountsThemes
 import com.zen.accounts.ui.theme.DarkBackground
 import com.zen.accounts.ui.theme.Typography
-import com.zen.accounts.ui.theme.disabled_color
-import com.zen.accounts.ui.theme.enabled_color
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.primary_color
 import com.zen.accounts.ui.theme.roundedCornerShape
-import com.zen.accounts.ui.viewmodels.HomeViewModel
-import com.zen.accounts.ui.viewmodels.SettingViewModel
 import com.zen.accounts.utility.main
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.round
 
 @Composable
 fun HomeLandscapeScreen(
