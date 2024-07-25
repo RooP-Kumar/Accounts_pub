@@ -1,8 +1,11 @@
 package com.zen.accounts.ui.screens.common
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -33,6 +36,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -42,11 +46,15 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.zen.accounts.R
 import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
+import com.zen.accounts.ui.navigation.getScreenRouteWithIcon
 import com.zen.accounts.ui.navigation.getScreenRouteWithTitle
+import com.zen.accounts.ui.theme.AccountsThemes
+import com.zen.accounts.ui.theme.DarkBackground
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.primary_color
+import com.zen.accounts.ui.theme.secondary_color
 import com.zen.accounts.ui.theme.topBarHeight
 import com.zen.accounts.utility.generalBorder
 import kotlinx.coroutines.launch
@@ -186,7 +194,16 @@ fun TopBarBackButton(
             .clickable {
                 navigateUp()
             }
-            .background(MaterialTheme.colorScheme.secondary)
+            .then(
+                if (isSystemInDarkTheme()) {
+                    Modifier.border(0.5.dp, color = primary_color, shape = CircleShape)
+                } else {
+                    Modifier
+                        .clip(shape = CircleShape)
+                        .background(MaterialTheme.colorScheme.secondary)
+                }
+            )
+
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_back),
@@ -194,12 +211,26 @@ fun TopBarBackButton(
             modifier = Modifier
                 .align(Alignment.Center)
                 .clip(shape = CircleShape)
-                .background(MaterialTheme.colorScheme.secondary)
+                .then(
+                    if (isSystemInDarkTheme()) {
+                        Modifier.background(DarkBackground)
+                    } else {
+                        Modifier.background(secondary_color)
+                    }
+                )
                 .padding(6.dp),
             tint = primary_color
         )
     }
+}
 
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+private fun ShowPrevBackButton() {
+    AccountsThemes {
+        TopBarBackButton { false }
+    }
 }
 
 @Composable
@@ -248,7 +279,7 @@ fun TopAppBar(
                     text = btnText,
                     modifier = Modifier.padding(horizontal = generalPadding),
                     enable = buttonEnableCondition,
-                    containerColor = primary_color
+                    containerColor = MaterialTheme.colorScheme.primary
                 ) {
                     onClick()
                 }
@@ -263,24 +294,28 @@ fun TopAppBar(
             ,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = {
-                if(drawerState?.value != null) {
-                    if(drawerState.value!!.isClosed)
-                        coroutineScope.launch {
-                            drawerState.value!!.open()
-                        }
-                    else
-                        coroutineScope.launch {
-                            drawerState.value!!.open()
-                        }
+            if(currentScreen?.route !in listOf(Screen.LoginScreen.route, Screen.RegisterScreen.route, Screen.Home.route, Screen.SettingScreen.route)) {
+                TopBarBackButton(navigateUp)
+            } else {
+                IconButton(onClick = {
+                    if (drawerState?.value != null) {
+                        if (drawerState.value!!.isClosed)
+                            coroutineScope.launch {
+                                drawerState.value!!.open()
+                            }
+                        else
+                            coroutineScope.launch {
+                                drawerState.value!!.open()
+                            }
+                    }
+                }) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_menu),
+                        contentDescription = "menu icon",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
                 }
-            }) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_menu),
-                    contentDescription = "menu icon"
-                )
             }
-
             Text(
                 text = currentScreen?.title
                     ?: "",

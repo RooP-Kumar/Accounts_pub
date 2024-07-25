@@ -3,6 +3,7 @@ package com.zen.accounts.ui.screens.main.home
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -42,8 +43,11 @@ fun Home(
     }
 
     if(screenWidth <= 500.dp) {
-        HomePortraitScreen(appState = appState, viewModel = viewModel)
+        HomePortraitScreen(uiState = uiState, navigateTo = appState::navigate)
     } else {
-        HomeLandscapeScreen(appState = appState, viewModel = viewModel, settingViewModel)
+        LaunchedEffect(key1 = Unit) {
+            settingViewModel.getBackupPlan()
+        }
+        HomeLandscapeScreen(appState = appState, uiState)
     }
 }

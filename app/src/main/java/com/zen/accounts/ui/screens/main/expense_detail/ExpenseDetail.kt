@@ -1,5 +1,8 @@
 package com.zen.accounts.ui.screens.main.expense_detail
 
+import android.content.res.Configuration
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -45,7 +49,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zen.accounts.R
 import com.zen.accounts.db.model.Expense
@@ -59,6 +65,7 @@ import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.enter_amount
 import com.zen.accounts.ui.screens.common.enter_title
 import com.zen.accounts.ui.screens.common.getRupeeString
+import com.zen.accounts.ui.theme.AccountsThemes
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.green_color
@@ -71,6 +78,8 @@ import com.zen.accounts.utility.main
 import com.zen.accounts.utility.toast
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Date
+import kotlin.math.log
 
 data class ExpenseDetailUIState(
     var expense : Expense = Expense(),
@@ -92,10 +101,17 @@ fun ExpenseDetails(
     navigateUp: () -> Boolean,
     currentScreen: Screen?
 ) {
-    val expenseDetailsUiState = expenseDetailsViewModel.expenseDetailsUiStateHolder.collectAsState()
-    LaunchedEffect(key1 = Unit) {
+    val expenseDetailsUiState = expenseDetailsViewModel.expenseDetailsUiStateHolder.collectAsState(initial = ExpenseDetailUIState())
+
+    DisposableEffect(key1 = Unit) {
         if(expenseDetailsUiState.value.expense.id == 0L) {
            expenseDetailsViewModel.updateExpenseDetailsUiState(expense, ExpenseDetailUIStateExpense)
+        }
+        onDispose {
+            if(expenseDetailsUiState.value.showEditDialog || expenseDetailsUiState.value.showDeleteDialog) {
+                expenseDetailsViewModel.updateExpenseDetailsUiState(false, ExpenseDetailUIStateShowEditDialog)
+                expenseDetailsViewModel.updateExpenseDetailsUiState(false, ExpenseDetailUIStateShowDeleteDialog)
+            }
         }
     }
     LaunchedEffect(key1= Unit) {
@@ -297,7 +313,7 @@ fun ExpenseItemListLayout(
             .clickable {
                 onItemClick()
             }
-            .background(secondary_color),
+            .background(MaterialTheme.colorScheme.secondary),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -379,6 +395,25 @@ fun ExpenseItemListLayout(
     }
 }
 
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PrevEditDialog() {
+    AccountsThemes {
+        ExpenseItemEditDialog(
+            showDialog = true,
+            expenseItem = ExpenseItem(
+                itemTitle = "Title",
+                id = 123L,
+                itemAmount = 900.0,
+                lastUpdate = Date(System.currentTimeMillis())
+            ),
+            getExpenseTitle = { "" },
+            updateAddExpenseStateValue = { _, _ -> },
+            onEditDialogSaveClick = {_, _ ->}
+        )
+    }
+}
+
 @Composable
 fun ExpenseItemEditDialog(
     showDialog : Boolean,
@@ -400,7 +435,11 @@ fun ExpenseItemEditDialog(
     }
 
     GeneralDialog(
-        showDialog = showDialog
+        showDialog = showDialog,
+        onDismissRequest = {
+            updateAddExpenseStateValue(false, ExpenseDetailUIStateShowEditDialog)
+        },
+        dialogProperties = DialogProperties(dismissOnClickOutside = false)
     ) {
         GeneralEditText(
             text = title,
@@ -408,7 +447,8 @@ fun ExpenseItemEditDialog(
                 title = it
             },
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(top = halfGeneralPadding),
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(
                 KeyboardCapitalization.Sentences,
@@ -471,7 +511,13 @@ fun ExpenseItemDeleteDialog(
     onYes : () -> Unit,
     onNo : () -> Unit
 ) {
-    GeneralDialog(showDialog = showDialog) {
+    GeneralDialog(
+        showDialog = showDialog,
+        onDismissRequest = {
+            onNo()
+        },
+        dialogProperties = DialogProperties(dismissOnClickOutside = false)
+    ) {
         Text(
             text = "You want to delete this item.\n Are you Sure?",
             textAlign = TextAlign.Center,

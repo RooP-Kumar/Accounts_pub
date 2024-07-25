@@ -94,7 +94,7 @@ private fun MainUI(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background)
+            .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
     ) {
 
         TopAppBar(appState.drawerState, navigateUp = navigateUp, currentScreen = currentScreen)
@@ -143,7 +143,7 @@ private fun MainUI(
                 ) {
                     Text(
                         text = did_not_have_account,
-                        style = Typography.bodySmall.copy(color = MaterialTheme.colors.onBackground)
+                        style = Typography.bodySmall.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
                     )
                     Spacer(modifier = Modifier.width(normalPadding))
                     Text(text = register_button_label,

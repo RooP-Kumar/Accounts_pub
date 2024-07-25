@@ -3,6 +3,7 @@ package com.zen.accounts.ui.screens.main.add_expense_item
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -194,6 +195,11 @@ private fun MainUI(
 @Composable
 private fun ShowPrev() {
     AccountsThemes {
-        MainUI(navigateUp = { false }, onAddExpenseItemClick = {  }, updateStateValues = {_,_ ->})
+        MainUI(
+            navigateUp = { false },
+            onAddExpenseItemClick = {  },
+            updateStateValues = {_,_ ->},
+            currentScreen = Screen.AddExpenseItemScreen
+        )
     }
 }

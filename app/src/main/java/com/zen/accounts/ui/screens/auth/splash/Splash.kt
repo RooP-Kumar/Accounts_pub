@@ -63,7 +63,7 @@ fun Splash(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background),
+            .background(androidx.compose.material3.MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -81,7 +81,7 @@ fun Splash(
         Text(
             text = stringResource(id = R.string.app_name),
             textAlign = TextAlign.Center,
-            style = Typography.bodyMedium.copy(color = MaterialTheme.colors.onBackground)
+            style = Typography.bodyMedium.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
         )
     }
 }

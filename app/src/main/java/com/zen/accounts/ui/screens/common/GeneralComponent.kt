@@ -146,12 +146,12 @@ fun GeneralEditText(
                 singleLine = singleLine,
                 cursorBrush = Brush.linearGradient(
                     listOf(
-                        MaterialTheme.colors.onBackground,
-                        MaterialTheme.colors.onBackground
+                        androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
+                        androidx.compose.material3.MaterialTheme.colorScheme.onBackground
                     )
                 ),
                 textStyle = TextStyle.Default.copy(
-                    color = MaterialTheme.colors.onSurface,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
                     fontFamily = FontFamily(Font(R.font.montserrat)),
                     fontSize = normalTextSize
                 ),
@@ -268,7 +268,7 @@ fun GeneralEditText(
 fun GeneralButton(
     text: String,
     modifier: Modifier? = null,
-    containerColor: Color = primary_color,
+    containerColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
     disabledContainerColor: Color = disabled_color,
     enable: Boolean = true,
     onClick: () -> Unit

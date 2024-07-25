@@ -2,6 +2,7 @@ package com.zen.accounts.ui.screens.main.setting
 
 
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
@@ -87,6 +88,7 @@ import com.zen.accounts.ui.screens.common.login_screen_label
 import com.zen.accounts.ui.screens.common.logout_button_label
 import com.zen.accounts.ui.screens.common.small_logout_button_label
 import com.zen.accounts.ui.theme.AccountsThemes
+import com.zen.accounts.ui.theme.DarkSecondary
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.buttonDescriptionTextStyle
 import com.zen.accounts.ui.theme.generalPadding
@@ -734,7 +736,14 @@ fun ImagePickerSection(
 }
 
 
-@Preview(apiLevel = 34)
+@Preview(
+    apiLevel = 34,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Preview(
+    apiLevel = 34,
+    uiMode = Configuration.UI_MODE_NIGHT_NO
+)
 @Composable
 private fun PreviewSetting() {
     AccountsThemes {

@@ -1,7 +1,10 @@
 package com.zen.accounts.ui.screens.main.home.portrait
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,33 +25,36 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.zen.accounts.R
-import com.zen.accounts.states.AppState
 import com.zen.accounts.ui.navigation.Screen
 import com.zen.accounts.ui.screens.common.add_expense_screen_label
 import com.zen.accounts.ui.screens.common.getRupeeString
 import com.zen.accounts.ui.screens.common.home_screen_label
 import com.zen.accounts.ui.screens.common.my_expense_screen_label
+import com.zen.accounts.ui.screens.main.home.HomeUiState
+import com.zen.accounts.ui.theme.AccountsThemes
+import com.zen.accounts.ui.theme.DarkBackground
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
 import com.zen.accounts.ui.theme.primary_color
+import com.zen.accounts.ui.theme.roundedCornerShape
 import com.zen.accounts.ui.theme.secondary_color
-import com.zen.accounts.ui.viewmodels.HomeViewModel
 import com.zen.accounts.utility.main
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomePortraitScreen(
-    appState: AppState,
-    viewModel: HomeViewModel
+    navigateTo: (String) -> Unit,
+    uiState: HomeUiState
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val uiState = viewModel.homeUiState
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -84,15 +90,19 @@ fun HomePortraitScreen(
                 painter = painterResource(id = R.drawable.ic_setting),
                 contentDescription = "setting icon",
                 modifier = Modifier
-                    .clip(shape = CircleShape)
+                    .then(
+                        if (isSystemInDarkTheme()) {
+                            Modifier.border(0.5.dp, color = primary_color, shape = CircleShape).background(DarkBackground)
+                        } else {
+                            Modifier.clip(shape = CircleShape).background(secondary_color)
+                        }
+                    )
                     .clickable {
                         coroutineScope.launch {
-                            appState.navController.navigate(Screen.SettingScreen.route)
+                            navigateTo(Screen.SettingScreen.route)
                         }
                     }
-                    .background(secondary_color)
-                    .padding(halfGeneralPadding)
-                ,
+                    .padding(halfGeneralPadding),
                 tint = primary_color
             )
         }
@@ -103,11 +113,11 @@ fun HomePortraitScreen(
                 .padding(generalPadding)
                 .clickable {
                     main {
-                        appState.navigate(Screen.MonthlyExpenseScreen.route)
+                        navigateTo(Screen.MonthlyExpenseScreen.route)
                     }
                 }
                 .clip(RoundedCornerShape(generalPadding))
-                .background(MaterialTheme.colorScheme.inversePrimary)
+                .background(MaterialTheme.colorScheme.secondary)
                 .padding(horizontal = generalPadding, vertical = generalPadding.times(2)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Absolute.SpaceBetween
@@ -123,6 +133,24 @@ fun HomePortraitScreen(
             )
         }
 
+        val btnModifierATTH = if (isSystemInDarkTheme()) {
+            Modifier
+                .border(0.5.dp, color = primary_color, shape = roundedCornerShape)
+                .drawBehind {
+                    drawRoundRect(
+                        color = DarkBackground
+                    )
+                }
+        } else {
+            Modifier
+                .clip(shape = RoundedCornerShape(generalPadding))
+                .drawBehind {
+                    drawRoundRect(
+                        color = primary_color
+                    )
+                }
+        }
+
         Row(
             modifier = Modifier
                 .padding(start = generalPadding)
@@ -133,12 +161,14 @@ fun HomePortraitScreen(
                     .padding(bottom = generalPadding, end = generalPadding)
                     .clickable {
                         coroutineScope.launch {
-                            appState.navigate(Screen.AddExpenseScreen.route)
+                            navigateTo(Screen.AddExpenseScreen.route)
                         }
                     }
-                    .clip(shape = RoundedCornerShape(generalPadding))
-                    .background(primary_color)
-                    .padding(horizontal = generalPadding, vertical = generalPadding.times(2))
+                    .then(btnModifierATTH)
+                    .padding(
+                        horizontal = generalPadding,
+                        vertical = generalPadding.times(2)
+                    )
             ) {
                 Text(
                     text = add_expense_screen_label,
@@ -154,12 +184,14 @@ fun HomePortraitScreen(
                     .padding(bottom = generalPadding, end = generalPadding)
                     .clickable {
                         main {
-                            appState.navigate(Screen.MyExpenseScreen.route)
+                            navigateTo(Screen.MyExpenseScreen.route)
                         }
                     }
-                    .clip(shape = RoundedCornerShape(generalPadding))
-                    .background(primary_color)
-                    .padding(horizontal = generalPadding, vertical = generalPadding.times(2))
+                    .then(btnModifierATTH)
+                    .padding(
+                        horizontal = generalPadding,
+                        vertical = generalPadding.times(2)
+                    )
             ) {
                 Text(
                     text = my_expense_screen_label,
@@ -170,5 +202,14 @@ fun HomePortraitScreen(
             }
 
         }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+private fun ShowHomePrev() {
+    AccountsThemes {
+        HomePortraitScreen(navigateTo = {}, uiState = HomeUiState())
     }
 }

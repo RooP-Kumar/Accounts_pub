@@ -1,7 +1,9 @@
 package com.zen.accounts.ui.screens.main.addexpense
 
+import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,12 +39,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.google.android.gms.common.internal.service.Common
 import com.zen.accounts.CommonUIStateHolder
 import com.zen.accounts.R
 import com.zen.accounts.db.model.ExpenseItem
@@ -52,6 +58,7 @@ import com.zen.accounts.ui.screens.common.LoadingDialog
 import com.zen.accounts.ui.screens.common.LoadingState
 import com.zen.accounts.ui.screens.common.TopAppBar
 import com.zen.accounts.ui.screens.common.getRupeeString
+import com.zen.accounts.ui.theme.AccountsThemes
 import com.zen.accounts.ui.theme.Typography
 import com.zen.accounts.ui.theme.generalPadding
 import com.zen.accounts.ui.theme.halfGeneralPadding
@@ -272,7 +279,7 @@ fun ItemListLayout(
                     bottom = generalPadding,
                     top = halfGeneralPadding
                 )
-                .generalBorder(width = 0.2.dp)
+                .generalBorder(width = 0.5.dp)
         ) {
             if (allExpenseItems.isEmpty()) {
                 val lottieComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.empty_list))
@@ -310,14 +317,14 @@ fun ItemListLayout(
                                     bottom = halfGeneralPadding
                                 )
                                 .generalBorder()
-                                .background(secondary_color)
+                                .background(MaterialTheme.colorScheme.secondary )
                                 .padding(generalPadding),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
                                 text = item.itemTitle,
-                                style = Typography.bodyMedium.copy(color = text_color),
+                                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier
@@ -327,7 +334,7 @@ fun ItemListLayout(
 
                             Text(
                                 text = getRupeeString(item.itemAmount!!),
-                                style = Typography.bodyMedium.copy(color = text_color),
+                                style = Typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                                 modifier = Modifier
                                     .width(rupeeTextWidth)
                             )
@@ -341,10 +348,11 @@ fun ItemListLayout(
         FloatingActionButton(
             onClick = { appState.navController.navigate(Screen.AddExpenseItemScreen.route) },
             shape = RoundedCornerShape(50),
-            containerColor = primary_color,
+            containerColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = halfGeneralPadding, end = halfGeneralPadding)
+                .border(0.5.dp, color = primary_color, shape = CircleShape)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_add),
@@ -354,6 +362,25 @@ fun ItemListLayout(
         }
     }
 
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+private fun PreviewMainUI() {
+    AccountsThemes {
+        MainUi(
+            appState = AppState(LocalContext.current),
+            addExpenseUiStateHolder = AddExpenseUiStateHolder(),
+            commonUiStateHolder = CommonUIStateHolder(),
+            allExpenseItems = listOf(ExpenseItem()),
+            updateAddExpenseStateValue = {_, _ ->},
+            deleteExpenseItemsFromLocalDatabase = {},
+            onAddExpenseClick = {},
+            navigateUp = { true },
+            currentScreen = Screen.AddExpenseScreen
+        )
+    }
 }
 
 

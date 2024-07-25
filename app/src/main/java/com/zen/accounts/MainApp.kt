@@ -120,8 +120,8 @@ fun DrawerContent(
             gesturesEnabled = false,
             drawerContent = {
                 ModalDrawerSheet(
-                    drawerContainerColor = MaterialTheme.colors.background,
-                    drawerContentColor = MaterialTheme.colors.onBackground
+                    drawerContainerColor = androidx.compose.material3.MaterialTheme.colorScheme.background,
+                    drawerContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onBackground
                 ) {
                     Row(
                         modifier = Modifier
@@ -129,7 +129,7 @@ fun DrawerContent(
                     ) {
                         Text(
                             "Profile",
-                            style = Typography.bodyMedium.copy(color = MaterialTheme.colors.onBackground),
+                            style = Typography.bodyMedium.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier.padding(generalPadding)
                         )
 
@@ -142,7 +142,8 @@ fun DrawerContent(
                         }) {
                             Icon(
                                 painterResource(id = R.drawable.ic_menu_opened),
-                                contentDescription = "menu close button"
+                                contentDescription = "menu close button",
+                                tint = androidx.compose.material3.MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
@@ -195,21 +196,22 @@ fun DrawerBody(
                 .padding(horizontal = generalPadding)
                 .padding(top = generalPadding),
             colors = NavigationDrawerItemDefaults.colors(
-                selectedContainerColor = MaterialTheme.colors.surface,
-                selectedIconColor = MaterialTheme.colors.onBackground,
-                unselectedContainerColor = MaterialTheme.colors.background,
-                unselectedIconColor = MaterialTheme.colors.onBackground
+                selectedContainerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
+                unselectedContainerColor = androidx.compose.material3.MaterialTheme.colorScheme.background,
+                unselectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onBackground
             ),
             icon = {
                 Icon(
                     painterResource(id = it.second),
                     contentDescription = "setting button",
+                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onBackground
                 )
             },
             label = {
                 Text(
                     text = it.first.title,
-                    style = Typography.bodyMedium.copy(color = MaterialTheme.colors.onSurface)
+                    style = Typography.bodyMedium.copy(color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
                 )
             },
             selected = currentDestination == it.first.route,
